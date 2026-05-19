@@ -32,6 +32,19 @@ let empFormDirty = false; // 폼 변경 여부 추적
 
 function markDirty() { empFormDirty = true; }
 
+function setFieldError(errId, msg, inputId) {
+  const errEl = document.getElementById(errId);
+  if (errEl) errEl.textContent = msg || '';
+  if (inputId) {
+    const inp = document.getElementById(inputId);
+    if (inp) inp.classList.toggle('error', !!msg);
+  }
+}
+
+function clearFieldError(errId, inputId) {
+  setFieldError(errId, '', inputId);
+}
+
 function openEmpForm(idx) {
   // 수정 중인데 다른 직원 선택 시 경고
   if(editingEmpIdx !== -1 && empFormDirty && idx !== editingEmpIdx) {
@@ -87,41 +100,68 @@ function renderEmpFormFields(emp) {
   const html = `
   <div class="form-grid2">
     <div class="form-group">
-      <label class="form-label">${jp?'社員番号（4桁）':'사원번호（4자리）'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label"><span class="form-req">*</span>${jp?'社員番号（4桁）':'사원번호（4자리）'}</label>
+          <span class="form-error" id="f-no-err"></span>
+        </div>
+        <div class="form-label-hint">${jp?'半角数字4桁のみ（全角不可）':'반각 숫자 4자리만（전각 불가）'}</div>
+      </div>
       <input class="form-input" id="f-no" maxlength="4" value="${v('no')}"
         oninput="validateEmpNo(this);markDirty()" onblur="padEmpNo(this)"
         onkeydown="focusNext(event,'f-name')">
-      <div class="form-error" id="f-no-err"></div>
-      <div class="form-hint">${jp?'半角数字4桁のみ（全角不可）。1桁で自動ゼロ埋め（例：1→0001）':'반각 숫자 4자리만（전각 불가）. 1자리 입력 시 0패딩（예：1→0001）'}</div>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'氏名':'이름'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label"><span class="form-req">*</span>${jp?'氏名':'이름'}</label>
+          <span class="form-error" id="f-name-err"></span>
+        </div>
+      </div>
       <input class="form-input" id="f-name" value="${v('name')}"
-        oninput="markDirty()" onkeydown="focusNext(event,'f-kana')">
+        oninput="clearFieldError('f-name-err','f-name');markDirty()" onkeydown="focusNext(event,'f-kana')">
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'カナ（任意）':'카나（선택）'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label"><span class="form-req">*</span>${jp?'カナ':'카나'}</label>
+          <span class="form-error" id="f-kana-err"></span>
+        </div>
+        <div class="form-label-hint">${jp?'カタカナ・英字可':'가타카나·영문 가능'}</div>
+      </div>
       <input class="form-input" id="f-kana" value="${v('kana')}"
-        oninput="markDirty()" onkeydown="focusNext(event,'f-join')">
+        oninput="clearFieldError('f-kana-err','f-kana');markDirty()" onkeydown="focusNext(event,'f-join')">
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'入社日':'입사일'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label"><span class="form-req">*</span>${jp?'入社日':'입사일'}</label>
+          <span class="form-error" id="f-join-err"></span>
+        </div>
+      </div>
       <input class="form-input" id="f-join" type="text" value="${v('join')}"
-        placeholder="YYYY-MM-DD" autocomplete="off"
+        placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-join-err')"
         onkeydown="onDateKeydown(event,'f-birth','f-join-err')" oninput="onDateInput(this)">
-      <div class="form-error" id="f-join-err"></div>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'生年月日':'생년월일'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label"><span class="form-req">*</span>${jp?'生年月日':'생년월일'}</label>
+          <span class="form-error" id="f-birth-err"></span>
+        </div>
+      </div>
       <input class="form-input" id="f-birth" type="text" value="${v('birth')}"
-        placeholder="YYYY-MM-DD" autocomplete="off"
+        placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-birth-err')"
         onkeydown="onDateKeydown(event,'f-kaigo','f-birth-err')" oninput="onDateInput(this)">
-      <div class="form-error" id="f-birth-err"></div>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'介護保険':'개호보험'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'介護保険':'개호보험'}</label>
+        </div>
+      </div>
       <select class="form-select" id="f-kaigo" onchange="markDirty()">
         <option value="auto" ${v('kaigo','auto')==='auto'?'selected':''}>${jp?'自動（年齢で判定）':'자동（나이로 판정）'}</option>
         <option value="yes" ${v('kaigo')==='yes'?'selected':''}>${jp?'対象（40歳以上）':'대상（40세 이상）'}</option>
@@ -129,31 +169,47 @@ function renderEmpFormFields(emp) {
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'雇用保険':'고용보험'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'雇用保険':'고용보험'}</label>
+        </div>
+      </div>
       <select class="form-select" id="f-koyo" onchange="markDirty()">
         <option value="yes" ${v('koyo','yes')==='yes'?'selected':''}>${jp?'加入':'가입'}</option>
         <option value="no" ${v('koyo')==='no'?'selected':''}>${jp?'未加入':'미가입'}</option>
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'所得税区分':'소득세 구분'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'所得税区分':'소득세 구분'}</label>
+        </div>
+      </div>
       <select class="form-select" id="f-shotoku-kbn" onchange="markDirty()">
         <option value="ko" ${v('shotokuKbn','ko')==='ko'?'selected':''}>${jp?'甲欄（扶養控除等申告書あり）':'갑란（부양공제신고서 제출）'}</option>
         <option value="otsu" ${v('shotokuKbn')==='otsu'?'selected':''}>${jp?'乙欄（申告書なし）':'을란（신고서 미제출）'}</option>
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'扶養親族等の数（所得税用）':'부양친족 수（소득세용）'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'扶養親族等の数（所得税用）':'부양친족 수（소득세용）'}</label>
+        </div>
+        <div class="form-label-hint">${jp?'扶養控除等申告書に記載の人数（配偶者含む）':'부양공제신고서 기재 인원（배우자 포함）'}</div>
+      </div>
       <select class="form-select" id="f-fuyou" onchange="markDirty()">
         ${[0,1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${parseInt(v('fuyouCount','0'))===n?'selected':''}>${n}${jp?'人':'명'}</option>`).join('')}
       </select>
-      <div class="form-hint">${jp?'扶養控除等申告書に記載の人数（配偶者含む）':'부양공제신고서 기재 인원（배우자 포함）'}</div>
     </div>
     <div class="form-group">
-      <label class="form-label">${jp?'通勤手当（月額・定期券）':'통근수당（월액・정기권）'}</label>
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'通勤手当（月額・定期券）':'통근수당（월액・정기권）'}</label>
+        </div>
+        <div class="form-label-hint">${jp?'毎月の給与に自動反映されます':'매월 급여에 자동 반영됩니다'}</div>
+      </div>
       <input class="form-input" id="f-commute" type="number" value="${v('commute',0)}"
         oninput="markDirty()">
-      <div class="form-hint">${jp?'毎月の給与に自動反映されます':'매월 급여에 자동 반영됩니다'}</div>
     </div>
   </div>
 
@@ -167,11 +223,16 @@ function renderEmpFormFields(emp) {
         <input class="form-input" id="fam-name" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('fam-birth').focus();}">
       </div>
       <div class="form-group" style="margin:0;">
+        <div class="form-label-block" style="min-height:24px;">
+          <div class="form-label-row">
+            <label class="form-label">${jp?'生年月日':'생년월일'}</label>
+            <span class="form-error" id="fam-birth-err"></span>
+          </div>
+        </div>
         <input class="form-input" id="fam-birth" type="text"
           placeholder="YYYY-MM-DD" autocomplete="off"
           onfocus="onDateFocus(this)" onblur="onDateBlur(this,'fam-birth-err')"
           onkeydown="onDateKeydown(event,'addFam','fam-birth-err')" oninput="onDateInput(this)">
-        <div class="form-error" id="fam-birth-err"></div>
       </div>
       <button class="btn btn-success btn-sm" onclick="addFam()">${jp?'追加':'추가'}</button>
       <div></div>
@@ -253,7 +314,7 @@ function finalizeDateInput(input) {
 
 function onDateBlur(input, errId) {
   finalizeDateInput(input);
-  validateDateText(input, errId);
+  validateDateText(input, errId, input.dataset.required === '1');
 }
 
 function onDateInput(input) {
@@ -310,13 +371,14 @@ function isDateFieldEmpty(v) {
 }
 
 function tryAdvanceDateField(input, nextId, errId) {
+  const jp = LANG === 'JP';
   if (isDateFieldEmpty(input.value)) {
-    input.value = '';
-    if (errId) {
-      const errEl = document.getElementById(errId);
-      if (errEl) errEl.textContent = '';
-      input.classList.remove('error');
+    if (input.dataset.required === '1') {
+      setFieldError(errId, jp ? '必須入力' : '필수 입력', input.id);
+      return false;
     }
+    input.value = '';
+    clearFieldError(errId, input.id);
   } else {
     const norm = normalizeDateInput(input.value);
     if (norm) input.value = norm;
@@ -376,15 +438,23 @@ function onDateKeydown(event, nextId, errId) {
 function today() { return new Date().toISOString().split('T')[0]; }
 
 // text 입력용 날짜 검증 (브라우저 자동보정 없음)
-function validateDateText(input, errId) {
+function validateDateText(input, errId, required) {
   const errEl = document.getElementById(errId);
   if(!errEl) return true;
+  const jp = LANG==='JP';
   const v = input.value.trim();
-  if(!v) { errEl.textContent=''; input.classList.remove('error'); return true; }
+  const empty = !v || v === DATE_MASK || (isDateMaskValue(v) && dateDigitsFromValue(v).length === 0);
+  if(empty) {
+    if(required) {
+      errEl.textContent = jp ? '必須入力' : '필수 입력';
+      input.classList.add('error');
+      return false;
+    }
+    errEl.textContent=''; input.classList.remove('error'); return true;
+  }
 
   // YYYY-MM-DD 형식 파싱
   const match = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  const jp = LANG==='JP';
   if(!match) {
     errEl.textContent = jp ? '日付はYYYY-MM-DD形式で入力してください（例：1990-04-01）' : '날짜는 YYYY-MM-DD 형식으로 입력해 주세요（예：1990-04-01）';
     input.classList.add('error');
@@ -444,7 +514,12 @@ function validateEmpNo(input) {
   if(input.value.length > 4) input.value = input.value.slice(0,4);
   const errEl = document.getElementById('f-no-err');
   if(!errEl) return;
-  if(!input.value) { errEl.textContent=''; input.classList.remove('error'); return; }
+  const jp = LANG==='JP';
+  if(!input.value) {
+    errEl.textContent = jp ? '必須入力' : '필수 입력';
+    input.classList.add('error');
+    return;
+  }
   const no = input.value.padStart(4,'0');
   // 신규/수정 모두 중복 체크, 수정 시 자기 자신은 제외
   const dup = employees.some((e,i) => {
@@ -508,9 +583,25 @@ function saveEmployee() {
   if(!noEl||!nameEl) return;
   let no=noEl.value.trim().replace(/\D/g, '').padStart(4,'0');
   const name=toHalfSpace(nameEl.value.trim());
-  const kana=toHalfSpace((document.getElementById('f-kana')?.value||'').trim());
-  if(no.replace(/^0+/,'')==='') { showToast(jp?'社員番号を入力してください':'사원번호를 입력해 주세요','w'); return; }
-  if(!name) { showToast(jp?'氏名を入力してください':'이름을 입력해 주세요','w'); return; }
+  const kanaEl = document.getElementById('f-kana');
+  const joinEl = document.getElementById('f-join');
+  const birthEl = document.getElementById('f-birth');
+  const kana = toHalfSpace((kanaEl?.value||'').trim());
+
+  let ok = true;
+  if(no.replace(/^0+/,'')==='') {
+    setFieldError('f-no-err', jp?'必須入力':'필수 입력', 'f-no'); ok = false;
+  } else validateEmpNo(noEl);
+  if(!name) { setFieldError('f-name-err', jp?'必須入力':'필수 입력', 'f-name'); ok = false; }
+  else clearFieldError('f-name-err', 'f-name');
+  if(!kana) { setFieldError('f-kana-err', jp?'必須入力':'필수 입력', 'f-kana'); ok = false; }
+  else clearFieldError('f-kana-err', 'f-kana');
+  if(joinEl && !validateDateText(joinEl, 'f-join-err', true)) ok = false;
+  if(birthEl && !validateDateText(birthEl, 'f-birth-err', true)) ok = false;
+  if(!ok) {
+    showToast(jp?'必須項目を確認してください':'필수 항목을 확인해 주세요','w');
+    return;
+  }
 
   // 중복 체크 - 신규/수정 모두, 수정 시 자기 자신 제외
   const dup = employees.some((e,i) => {
@@ -519,16 +610,13 @@ function saveEmployee() {
   });
   if(dup) { showToast(jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다','e'); return; }
 
-  // 날짜 유효성
-  const joinVal=document.getElementById('f-join')?.value;
-  const birthVal=document.getElementById('f-birth')?.value;
-  if(joinVal && !isValidDate(joinVal)) { showToast(jp?'入社日が無効です':'입사일이 유효하지 않습니다','w'); return; }
-  if(birthVal && !isValidDate(birthVal)) { showToast(jp?'生年月日が無効です':'생년월일이 유효하지 않습니다','w'); return; }
+  const joinVal = joinEl?.value || '';
+  const birthVal = birthEl?.value || '';
 
   const empData = {
     no, name, kana,
-    join: joinVal||'',
-    birth: birthVal||'',
+    join: joinVal,
+    birth: birthVal,
     kaigo: document.getElementById('f-kaigo')?.value||'auto',
     koyo: document.getElementById('f-koyo')?.value||'yes',
     shotokuKbn: document.getElementById('f-shotoku-kbn')?.value||'ko',
