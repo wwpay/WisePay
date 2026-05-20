@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 16:04 — 급여 페이지 이탈 경고 무시 시 미저장 데이터 파기 + 복귀 시 원본 복원
+﻿// 수정: 2026-05-20 17:45 — 급여 입력란 포커스 시 0 클리어, 이탈 시 0 복원
 'use strict';
 // ══ INIT ══
 window.addEventListener('DOMContentLoaded', () => {
@@ -27,6 +27,13 @@ window.addEventListener('DOMContentLoaded', () => {
   gasUrl = localStorage.getItem(LS.gas) || '';
   LANG = localStorage.getItem(LS.lang) || 'KR';
   document.getElementById('gasUrlInput').value = gasUrl;
+
+  // 급여 입력란: 포커스 이탈 시 빈 값 → "0" 복원
+  document.addEventListener('focusout', e => {
+    if(e.target.matches('#page-payroll .row-input') && e.target.value === '') {
+      e.target.value = '0';
+    }
+  });
 
   applyLang();
   renderEmpSelect();

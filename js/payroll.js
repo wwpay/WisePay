@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 12:32 — 급여 저장 시 Google 자동 동기화 (Content-Type 수정)
+﻿// 수정: 2026-05-20 17:45 — 급여 입력란 포커스 시 0 클리어, 이탈 시 0 복원
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -205,9 +205,10 @@ function focusNext(event, nextId) {
   }
 }
 
-// 포커스 시 현재 값 저장 (ESC 복원용)
+// 포커스 시 현재 값 저장 (ESC 복원용) + "0" 표시 중이면 클리어
 function savePrevVal(input) {
   prevValues[input.id] = input.value;
+  if(input.value === '0') input.value = '';
 }
 
 // 반각 스페이스로 변환 (일본어 입력 시 전각 스페이스 → 반각)
