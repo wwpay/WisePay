@@ -1,4 +1,5 @@
-﻿'use strict';
+﻿// 수정: 2026-05-20 12:32 — 사원번호 표시를 항상 4자리(padStart)로 통일
+'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
   c.innerHTML = '';
@@ -66,7 +67,7 @@ function renderEmpSelect() {
   employees.forEach((e,i) => {
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = `${e.name}（${e.no}）`;
+    opt.textContent = `${e.name}（${String(e.no).padStart(4,'0')}）`;
     sel.appendChild(opt);
   });
   // currentEmpIdx가 유효하면 선택 유지, 아니면 미선택
@@ -155,7 +156,7 @@ function updateEmpHeader() {
   const emp = employees[currentEmpIdx];
   document.getElementById('avatarTxt').textContent = emp.name.charAt(0);
   document.getElementById('empNameTxt').textContent = emp.name;
-  document.getElementById('empIdTxt').textContent = emp.no;
+  document.getElementById('empIdTxt').textContent = String(emp.no).padStart(4,'0');
   const yu = LANG==='JP'?'年':'년', mu = LANG==='JP'?'月分':'월분';
   document.getElementById('empMonthTxt').textContent = `${currentYear}${yu}${currentMonth}${mu}`;
 }

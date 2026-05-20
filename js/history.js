@@ -1,10 +1,11 @@
-﻿'use strict';
+﻿// 수정: 2026-05-20 12:32 — 사원번호 표시를 항상 4자리(padStart)로 통일
+'use strict';
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
   sel.innerHTML = '';
   employees.forEach((e,i) => {
     const o = document.createElement('option');
-    o.value = i; o.textContent = `${e.name}（${e.no}）`;
+    o.value = i; o.textContent = `${e.name}（${String(e.no).padStart(4,'0')}）`;
     sel.appendChild(o);
   });
 }
@@ -51,7 +52,7 @@ function renderAnnual() {
   // 인쇄 헤더
   const ph = document.getElementById('annualPrintHeader');
   ph.style.display='block';
-  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${emp.no}） ${year}${jp?'年':'년'} ${jp?'年間給与一覧':'연간 급여 일람'}`;
+  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年':'년'} ${jp?'年間給与一覧':'연간 급여 일람'}`;
   document.getElementById('annualPrintSub').textContent = jp?`出力日：${new Date().toLocaleDateString('ja-JP')}`:`출력일：${new Date().toLocaleDateString('ko-KR')}`;
 
   const rows = [
@@ -134,7 +135,7 @@ function renderAnnual() {
 function buildHistEmpSel() {
   const sel=document.getElementById('histEmpSel');
   sel.innerHTML=`<option value="all">${LANG==='JP'?'全員':'전체'}</option>`;
-  employees.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${e.name}（${e.no}）`; sel.appendChild(o); });
+  employees.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${e.name}（${String(e.no).padStart(4,'0')}）`; sel.appendChild(o); });
 }
 
 function renderHistory() {

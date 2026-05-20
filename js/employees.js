@@ -1,4 +1,5 @@
-﻿'use strict';
+﻿// 수정: 2026-05-20 12:32 — 사원번호 표시를 항상 4자리(padStart)로 통일
+'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
   const title=document.getElementById('empListTitle');
@@ -12,7 +13,7 @@ function renderEmpList() {
     const item=document.createElement('div');
     item.className='emp-list-item'+(i===editingEmpIdx?' active':'');
     const famCnt=countFamilies(emp);
-    item.innerHTML=`<div class="emp-list-av">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${emp.name}</div><div class="emp-list-no">${emp.no} · ${LANG==='JP'?'扶養':'부양'} ${famCnt}${LANG==='JP'?'名':'명'}</div></div>`;
+    item.innerHTML=`<div class="emp-list-av">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${emp.name}</div><div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${LANG==='JP'?'扶養':'부양'} ${famCnt}${LANG==='JP'?'名':'명'}</div></div>`;
     item.onclick=()=>openEmpForm(i);
     body.appendChild(item);
   });
