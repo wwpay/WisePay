@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-21 00:33 — Google→로컬 동기화 후 급여 미표시 버그 수정 및 배지 공식 명칭 적용 (gas.js, i18n.js)
+  수정: 2026-05-21 00:34 — 배지 위치를 4번 제목 옆으로 이동 (index.html)
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -335,11 +335,9 @@
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
           <div class="gas-num">4</div>
           <div class="gas-step-title" id="t-gas-step4-title">웹 앱 URL 입력</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input class="gas-url-input" id="gasUrlInput" style="flex:1;min-width:0;" placeholder="https://script.google.com/macros/s/...../exec" oninput="updateGasUrlBadge()">
           <div id="gasUrlBadge" style="display:none;font-size:11px;padding:3px 8px;border-radius:4px;white-space:nowrap;border:1px solid;flex-shrink:0;"></div>
         </div>
+        <input class="gas-url-input" id="gasUrlInput" style="width:100%;" placeholder="https://script.google.com/macros/s/...../exec" oninput="updateGasUrlBadge()">
       </div>
       <div id="gas-actions" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
         <div id="t-gas-sync-title" style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;">데이터 동기화</div>
