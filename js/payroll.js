@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 12:32 — 사원번호 표시를 항상 4자리(padStart)로 통일
+﻿// 수정: 2026-05-20 12:32 — 급여 저장 시 Google 자동 동기화 (Content-Type 수정)
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -296,7 +296,7 @@ function saveCurrent() {
 
   if(gasUrl && window._calc) {
     const c=window._calc;
-    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...c}),mode:'no-cors'})
+    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...c}),mode:'no-cors'})
       .then(()=>showToast(LANG==='JP'?'Google スプレッドシートに保存しました ✓':'Google 스프레드시트에 저장됨 ✓','s'))
       .catch(()=>showToast(LANG==='JP'?'ローカルのみ保存しました':'로컬만 저장됨','w'));
   } else {
