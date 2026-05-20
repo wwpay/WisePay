@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 12:32 — Google 자동 동기화 추가 / const jp 중복 선언 버그 수정
+﻿// 수정: 2026-05-20 12:32 — Google 자동 동기화 추가 / 사원번호 입력란 4자리 표시 / const jp 중복 선언 버그 수정
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -108,7 +108,7 @@ function renderEmpFormFields(emp) {
         </div>
         <div class="form-label-hint">${jp?'半角数字4桁のみ（全角不可）':'반각 숫자 4자리만（전각 불가）'}</div>
       </div>
-      <input class="form-input" id="f-no" maxlength="4" value="${v('no')}"
+      <input class="form-input" id="f-no" maxlength="4" value="${v('no')?String(v('no')).padStart(4,'0'):''}"
         oninput="validateEmpNo(this);markDirty()" onblur="padEmpNo(this)"
         onkeydown="focusNext(event,'f-name')">
     </div>
