@@ -83,8 +83,8 @@ function applyLang() {
   setTxt('t-gas-copy-btn', '📋 コードをコピー', '📋 코드 복사');
   setTxt('t-gas-step3-title', 'ウェブアプリとしてデプロイ', '웹 앱으로 배포');
   setHtml('t-gas-step3-desc',
-    '「デプロイ」→「新しいデプロイ」→ 種類:「ウェブアプリ」<br>アクセス権限:「全員」→ デプロイ → <strong>URLをコピー</strong><br><span style="color:var(--orange);font-size:11px;">※ テスト中は「テストデプロイ」(Dev URL) を使用してください</span>',
-    '「배포」→「새 배포」→ 유형:「웹 앱」<br>액세스 권한:「전체」→ 배포 → <strong>URL 복사</strong><br><span style="color:var(--orange);font-size:11px;">※ 테스트 중에는 「테스트 배포」(Dev URL)를 사용해 주세요</span>'
+    '「デプロイ」→「新しいデプロイ」→ 種類:「ウェブアプリ」<br>アクセス権限:「全員」→ デプロイ → <strong>URLをコピー</strong><br><span style="color:var(--orange);font-size:11px;">✅ exec URL = 本番用（アクセス:全員 必須）&nbsp;&nbsp;🧪 dev URL = テスト用（オーナーのみ、権限エラーが出やすい）</span>',
+    '「배포」→「새 배포」→ 유형:「웹 앱」<br>액세스 권한:「전체」→ 배포 → <strong>URL 복사</strong><br><span style="color:var(--orange);font-size:11px;">✅ exec URL = 배포판 (액세스:전체 필수)&nbsp;&nbsp;🧪 dev URL = 테스트용 (소유자만 접근, 권한 오류 잦음)</span>'
   );
   setTxt('t-gas-step4-title', 'WebアプリのURLを入力', '웹 앱 URL 입력');
   setTxt('t-gas-sync-title', 'データ同期', '데이터 동기화');

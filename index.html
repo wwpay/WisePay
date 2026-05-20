@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-21 00:23 — Google 연동 설정 언어 전환 지원 및 동기화 버튼 카드 UI 개선 (index.html, i18n.js, styles.css)
+  수정: 2026-05-21 00:29 — URL 입력란 확장 및 exec/dev 자동 배지 표시 (index.html, gas.js, i18n.js)
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -331,11 +331,14 @@
           <div class="gas-step-desc" id="t-gas-step3-desc">「배포」→「새 배포」→ 유형:「웹 앱」<br>액세스 권한:「전체」→ 배포 → <strong>URL 복사</strong><br><span style="color:var(--orange);font-size:11px;">※ 테스트 중에는 「테스트 배포」(Dev URL)를 사용해 주세요</span></div>
         </div>
       </div>
-      <div class="gas-step">
-        <div class="gas-num">4</div>
-        <div>
+      <div style="margin-bottom:13px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div class="gas-num">4</div>
           <div class="gas-step-title" id="t-gas-step4-title">웹 앱 URL 입력</div>
-          <input class="gas-url-input" id="gasUrlInput" placeholder="https://script.google.com/macros/s/...../dev">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="gas-url-input" id="gasUrlInput" style="flex:1;min-width:0;" placeholder="https://script.google.com/macros/s/...../exec" oninput="updateGasUrlBadge()">
+          <div id="gasUrlBadge" style="display:none;font-size:11px;padding:3px 8px;border-radius:4px;white-space:nowrap;border:1px solid;flex-shrink:0;"></div>
         </div>
       </div>
       <div id="gas-actions" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">

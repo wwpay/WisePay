@@ -290,6 +290,33 @@ function openGasModal() {
   if (inp) inp.value = gasUrl || '';
   const actionsEl = document.getElementById('gas-actions');
   if (actionsEl) actionsEl.style.display = gasUrl ? '' : 'none';
+  updateGasUrlBadge();
+}
+
+function updateGasUrlBadge() {
+  const input = document.getElementById('gasUrlInput');
+  const badge = document.getElementById('gasUrlBadge');
+  if (!input || !badge) return;
+  const url = input.value.trim();
+  if (!url) { badge.style.display = 'none'; return; }
+  const jp = LANG === 'JP';
+  badge.style.display = 'inline-block';
+  if (url.endsWith('/exec')) {
+    badge.textContent = jp ? '✅ 本番デプロイ (exec)' : '✅ 배포판 (exec)';
+    badge.style.background = '#dcfce7';
+    badge.style.color = '#166534';
+    badge.style.borderColor = '#bbf7d0';
+  } else if (url.endsWith('/dev')) {
+    badge.textContent = jp ? '🧪 テストデプロイ (dev)' : '🧪 테스트용 (dev)';
+    badge.style.background = '#fef3c7';
+    badge.style.color = '#92400e';
+    badge.style.borderColor = '#fde68a';
+  } else {
+    badge.textContent = jp ? '⚠️ URL確認' : '⚠️ URL 확인';
+    badge.style.background = '#fee2e2';
+    badge.style.color = '#991b1b';
+    badge.style.borderColor = '#fecaca';
+  }
 }
 
 // GAS 코드 클립보드 복사
