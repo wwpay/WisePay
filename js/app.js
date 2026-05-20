@@ -1,4 +1,5 @@
-﻿'use strict';
+﻿// 수정: 2026-05-20 16:04 — 급여 페이지 이탈 경고 무시 시 미저장 데이터 파기 + 복귀 시 원본 복원
+'use strict';
 // ══ INIT ══
 window.addEventListener('DOMContentLoaded', () => {
   // load storage
@@ -56,6 +57,10 @@ function gotoPage(id, el) {
       ? '保存されていない給与データがあります。このまま移動しますか？'
       : '저장되지 않은 급여 데이터가 있습니다. 이동하시겠습니까?';
     if(!confirm(msg)) return;
+    // 경고 무시하고 이동 선택 — 미저장 내용 파기
+    payrollDirty = false;
+    const saveBtn = document.getElementById('btn-save');
+    if(saveBtn) saveBtn.style.background = '';
   }
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -70,6 +75,7 @@ function gotoPage(id, el) {
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   document.getElementById('btn-save').style.display = id==='payroll' ? '' : 'none';
+  if(id==='payroll') loadPayrollForm();
   if(id==='history') { buildHistEmpSel(); renderHistory(); }
   if(id==='employees') renderEmpList();
   if(id==='rates') renderRatesPage();
