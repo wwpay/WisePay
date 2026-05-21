@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-21 13:27 — toggleLang에 renderAnnual/renderHistory 추가 (언어 전환 미반영 버그)
+﻿// 수정: 2026-05-21 15:00 — 연간 급여 일람 페이지 제목 i18n 누락 수정
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -37,6 +37,7 @@ function applyLang() {
   setTxt('t-nav-payroll', '給与明細', '급여 명세');
   setTxt('t-nav-history', '支給履歴', '지급 이력');
   setTxt('t-nav-annual', '年間給与一覧', '연간 급여 일람');
+  setTxt('t-annual-title', '年間給与一覧', '연간 급여 일람');
   setTxt('t-nav-setting', '設定', '설정');
   setTxt('t-nav-emp', '従業員管理', '직원 관리');
   setTxt('t-emp-add', '+ 新規', '+ 직원 추가');
