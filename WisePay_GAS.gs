@@ -147,7 +147,7 @@ function scrapeKenpoRates() {
     }
   }
 
-  if (!html) {
+  if (!html || typeof html !== 'string') {
     return { ok: false, error: 'ページ取得失敗。協会けんぽサイトに接続できませんでした。' };
   }
 
@@ -177,6 +177,10 @@ function scrapeKenpoRates() {
 }
 
 function parseTokyoRates(html) {
+  if (!html || typeof html !== 'string') {
+    Logger.log('parseTokyoRates: html が無効 (' + typeof html + ')');
+    return { kenko: null, kaigo: null };
+  }
   const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
