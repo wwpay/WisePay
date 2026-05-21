@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-21 15:00 — 연간 급여 일람 페이지 제목 i18n 누락 수정
+﻿// 수정: 2026-05-21 15:14 — 전체 i18n 누락 항목 일괄 추가 (이력/직원/요율/모달 등 30여 건)
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -104,6 +104,40 @@ function applyLang() {
   setTxt('t-rates-current', '現在の適用料率', '현재 적용 요율');
   setTxt('t-rates-ai', 'AIで最新料率を確認', 'AI로 최신 요율 확인');
   setTxt('t-rates-save', '料率を保存', '요율 저장');
+
+  setTxt('t-annual-print', 'A4印刷', 'A4 인쇄');
+
+  setTxt('t-history-title', '支給履歴', '지급 이력');
+  setTxt('t-h-month', '月', '월');
+  setTxt('t-h-name', '氏名', '이름');
+  setTxt('t-h-pay', '支給総額', '지급총액');
+  setTxt('t-h-kojo', '控除総額', '공제총액');
+  setTxt('t-h-net', '手取り', '실수령액');
+  setTxt('t-h-nenkin', '厚生年金', '후생연금');
+  setTxt('t-h-kenko', '健康保険', '건강보험');
+  setTxt('t-h-shotoku', '所得税', '소득세');
+
+  setTxt('t-emp-select-hint', '左のリストから従業員を選択するか、「新規」ボタンで登録してください。', '좌측 목록에서 직원을 선택하거나, 「직원 추가」 버튼으로 등록해 주세요。');
+
+  setTxt('t-rates-title', '適用保険料率（2026年度・東京都）', '적용 보험료율（2026년도・도쿄도）');
+  setHtml('t-rt-kenko', '健康保険料率<br>（東京都）', '건강보험료율<br>（도쿄도）');
+  setHtml('t-rt-kaigo', '介護保険料率<br>（全国一律）', '개호보험료율<br>（전국 일률）');
+  setHtml('t-rt-kodomo', '子育て支援金率<br>（全国一律）', '자녀지원금율<br>（전국 일률）');
+  setHtml('t-rt-nenkin', '厚生年金<br>保険料率', '후생연금<br>보험료율');
+  setHtml('t-rt-koyo', '雇用保険料率<br>（労働者負担）', '고용보험료율<br>（근로자 부담）');
+  setTxt('t-calc-title', '給与計算情報', '급여 계산 정보');
+  setTxt('t-ci-kenko', '健康保険', '건강보험');
+  setTxt('t-ci-nenkin', '厚生年金', '후생연금');
+  setTxt('t-ci-koyo', '雇用保険', '고용보험');
+  setTxt('t-ci-shotoku', '所得税', '소득세');
+  setTxt('t-nencho-hint', '※ 還付はマイナス(-)入力', '※ 환급은 마이너스(-) 입력');
+  setTxt('t-banner-msg', '【保険料率更新】2026年度 協会けんぽ（東京都）の保険料率が改定されました。', '【보험료율 업데이트】2026년도 協会けんぽ（東京都）의 보험료율이 개정되었습니다。');
+
+  setTxt('t-mr-title', '✨ 最新保険料率（2026年度）', '✨ 최신 보험료율（2026년도）');
+  setTxt('t-mr-desc', '2026年度 東京都・協会けんぽの確定料率です。', '2026년도 도쿄도・協会けんぽ의 확정 요율입니다。');
+  setHtml('t-mr-src', '※ 出典：協会けんぽ東京支部（2026年2月16日発表）<br>※ 健康保険料率は毎年3月、雇用保険料率は毎年4月改定', '※ 출처：協会けんぽ東京支部（2026년 2월 16일 발표）<br>※ 건강보험료율은 매년 3월, 고용보험료율은 매년 4월 개정');
+  setTxt('t-mr-cancel', 'キャンセル', '취소');
+  setTxt('t-mr-apply', 'この料率を適用する', '이 요율을 적용');
 
   updateGasStatus();
 }

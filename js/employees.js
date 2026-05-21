@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 12:32 — Google 자동 동기화 추가 / 사원번호 입력란 4자리 표시 / const jp 중복 선언 버그 수정
+﻿// 수정: 2026-05-21 15:14 — cancelEmpForm 한국어 모드 「新規」→「직원 추가」 수정
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -87,7 +87,7 @@ function cancelEmpForm() {
   tempFamilies=[];
   empFormDirty=false;
   const body=document.getElementById('empFormBody');
-  body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--text3);"><div style="font-size:36px;margin-bottom:10px;">👈</div><div>${LANG==='JP'?'左のリストから選択、または「新規」ボタンで登録してください。':'좌측 목록에서 선택하거나 「新規」버튼으로 등록해 주세요.'}</div></div>`;
+  body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--text3);"><div style="font-size:36px;margin-bottom:10px;">👈</div><div>${LANG==='JP'?'左のリストから選択、または「新規」ボタンで登録してください。':'좌측 목록에서 선택하거나 「직원 추가」 버튼으로 등록해 주세요.'}</div></div>`;
   document.getElementById('empFormTitle').textContent=LANG==='JP'?'従業員を選択してください':'직원을 선택해 주세요';
   document.getElementById('empFormBtns').innerHTML='';
   renderEmpList();
