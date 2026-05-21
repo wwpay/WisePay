@@ -67,21 +67,24 @@ function renderRatesPage() {
     ? ['健康保険料率','介護保険料率','子育て支援金率','厚生年金料率','雇用保険料率']
     : ['건강보험료율','개호보험료율','자녀지원금율','후생연금료율','고용보험료율'];
 
-  let html = `<div style="overflow-x:auto;padding:0 2px;">
-  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
+    <colgroup>
+      <col style="width:20%;">
+      ${keys.map(()=>'<col style="width:14%;">').join('')}
+      <col style="width:10%;">
+    </colgroup>
     <thead>
       <tr style="background:var(--surface2);">
         <th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text2);">${jp?'適用開始月':'적용 시작월'}</th>
-        ${keys.map((k,i)=>`<th style="padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;">${labels[i]}</th>`).join('')}
-        <th style="padding:8px 6px;border-bottom:1px solid var(--border);"></th>
+        ${keys.map((k,i)=>`<th style="padding:8px 4px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;word-break:keep-all;line-height:1.3;">${labels[i]}</th>`).join('')}
+        <th style="padding:8px 4px;border-bottom:1px solid var(--border);"></th>
       </tr>
     </thead>
     <tbody id="rateHistoryTbody"></tbody>
   </table>
-  </div>
-  <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+  <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <button class="btn btn-success btn-sm" onclick="addRateHistoryRow()">${jp?'+ 新しい月の料率を追加':'+ 새 월 요율 추가'}</button>
-    <span style="font-size:11px;color:var(--text3);">${jp?'月を選択して「最新要率を取得」ボタンでも追加できます':'월을 선택하고 「최신 요율 가져오기」버튼으로도 추가 가능합니다'}</span>
+    <span style="font-size:11px;color:var(--text3);">${jp?'月を選択して「最新要率を取得」ボタンでも追加できます':'월 선택 후 「최신 요율 가져오기」로도 추가 가능'}</span>
   </div>`;
   area.innerHTML = html;
   renderRateHistoryRows();
@@ -100,18 +103,22 @@ function renderRateHistoryRows() {
     const tr = document.createElement('tr');
     tr.style.background = isCurrent ? 'var(--accent2)' : '';
     tr.innerHTML = `
-      <td style="padding:7px 10px;border-bottom:1px solid var(--border2);">
-        <input type="month" value="${r.from}" style="border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);"
+      <td style="padding:6px 8px;border-bottom:1px solid var(--border2);">
+        <input type="month" value="${r.from}"
+          style="width:100%;border:1px solid var(--border);border-radius:4px;padding:3px 4px;font-size:11px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;"
           onchange="updateRateHistoryFrom(${rateHistory.indexOf(r)}, this.value)">
-        ${isCurrent?`<span style="font-size:10px;background:var(--accent);color:white;border-radius:20px;padding:1px 6px;margin-left:4px;">${jp?'適用中':'적용 중'}</span>`:''}
+        ${isCurrent?`<div style="margin-top:3px;"><span style="font-size:10px;background:var(--accent);color:white;border-radius:20px;padding:1px 6px;">${jp?'適用中':'적용 중'}</span></div>`:''}
       </td>
-      ${keys.map(k=>`<td style="padding:7px 4px;border-bottom:1px solid var(--border2);text-align:center;">
-        <input type="number" step="0.01" value="${r[k]}" style="width:60px;text-align:right;border:1px solid var(--border);border-radius:4px;padding:3px 4px;font-size:12px;font-family:inherit;"
-          onchange="updateRateHistoryVal(${rateHistory.indexOf(r)},'${k}',this.value)">
-        <span style="font-size:10px;color:var(--text3);">%</span>
+      ${keys.map(k=>`<td style="padding:6px 4px;border-bottom:1px solid var(--border2);">
+        <div style="display:flex;align-items:center;gap:1px;">
+          <input type="number" step="0.01" value="${r[k]}"
+            style="width:0;flex:1;min-width:0;text-align:right;border:1px solid var(--border);border-radius:4px;padding:3px 3px;font-size:12px;font-family:inherit;box-sizing:border-box;"
+            onchange="updateRateHistoryVal(${rateHistory.indexOf(r)},'${k}',this.value)">
+          <span style="font-size:10px;color:var(--text3);flex-shrink:0;">%</span>
+        </div>
       </td>`).join('')}
-      <td style="padding:7px 6px;border-bottom:1px solid var(--border2);">
-        <button class="btn btn-sm" onclick="deleteRateHistoryRow(${rateHistory.indexOf(r)})" style="color:var(--red);padding:3px 7px;font-size:11px;">✕</button>
+      <td style="padding:6px 4px;border-bottom:1px solid var(--border2);text-align:center;">
+        <button class="btn btn-sm" onclick="deleteRateHistoryRow(${rateHistory.indexOf(r)})" style="color:var(--red);padding:2px 6px;font-size:11px;">✕</button>
       </td>`;
     tbody.appendChild(tr);
   });
