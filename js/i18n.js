@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-21 10:44 — 보험료율 설정 페이지 한국어 미적용 버그 수정
+﻿// 수정: 2026-05-21 10:57 — 사이드바 로고 WisePay CI 디자인 적용
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -30,7 +30,7 @@ function toggleLang() {
 function applyLang() {
   document.documentElement.lang = LANG === 'JP' ? 'ja' : 'ko';
 
-  setTxt('t-appname', '給与計算', '급여 계산');
+  setTxt('t-appname', '給与Pro by Wisewires', '급여Pro by Wisewires');
   setTxt('t-nav-main', 'メイン', '메인');
   setTxt('t-nav-payroll', '給与明細', '급여 명세');
   setTxt('t-nav-history', '支給履歴', '지급 이력');
