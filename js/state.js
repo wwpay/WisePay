@@ -21,6 +21,7 @@ const prevValues = {};
 
 const LS = { emp:'kyuyo_emp', rates:'kyuyo_rates', rateHistory:'kyuyo_rate_history', gas:'kyuyo_gas', lang:'kyuyo_lang' };
 let payrollDirty = false; // 급여명세 미저장 여부
+let _pendingScrapedRates = null; // 스크래핑 결과 임시 보관
 
 const PFIELDS = ['r-base','r-ot','r-kintai','r-commute','r-commutetax','r-kinmu','r-shokumu','r-field','k-jumin','k-nencho'];
 

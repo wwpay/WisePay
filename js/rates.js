@@ -1,55 +1,80 @@
 ﻿// 수정: 2026-05-21 10:44 — 빈 날짜 요율 이력 항목 방지 (updateRateHistoryFrom 유효성 검사)
 'use strict';
-function openRateModal() {
+async function openRateModal() {
   const jp = LANG==='JP';
-  const curRates = getRatesForYM(currentYear, currentMonth);
-  const ym = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
-  const defs=[
-    {key:'kenko', jp:'健康保険料率（東京都）', kr:'건강보험료율（도쿄도）'},
-    {key:'kaigo', jp:'介護保険料率（全国一律）', kr:'개호보험료율（전국）'},
-    {key:'kodomo',jp:'子育て支援金率（全国一律）',kr:'자녀지원금율（전국）'},
-    {key:'nenkin',jp:'厚生年金保険料率',kr:'후생연금보험료율'},
-    {key:'koyo',  jp:'雇用保険料率（労働者負担）',kr:'고용보험료율（근로자）'},
-  ];
-  const area=document.getElementById('rateModalRows');
-  area.innerHTML=`<div style="font-size:12px;background:var(--accent2);border:1px solid var(--accent3);border-radius:var(--r2);padding:8px 10px;margin-bottom:12px;color:#3730a3;">
-    ${jp?`${currentYear}年${currentMonth}月の保険料率を確認・登録します`:`${currentYear}년 ${currentMonth}월 보험료율을 확인・등록합니다`}
-    <br><span style="font-size:11px;opacity:0.8;">${jp?`（適用中: ${curRates.from}以降の料率）`:`（적용 중: ${curRates.from} 이후 요율）`}</span>
+  _pendingScrapedRates = null;
+
+  // 모달을 로딩 상태로 먼저 열기
+  const applyBtn = document.getElementById('t-mr-apply');
+  const titleEl  = document.getElementById('t-mr-title');
+  const descEl   = document.getElementById('t-mr-desc');
+  const srcEl    = document.getElementById('t-mr-src');
+  const area     = document.getElementById('rateModalRows');
+
+  if (titleEl) titleEl.textContent = jp ? '協会けんぽ 最新保険料率を取得中' : '협회건포 최신 요율 가져오는 중';
+  if (descEl)  descEl.textContent  = '';
+  if (srcEl)   srcEl.textContent   = '';
+  if (applyBtn) applyBtn.style.display = 'none';
+  area.innerHTML = `<div style="text-align:center;padding:28px 0;color:var(--text2);">
+    <div style="font-size:24px;margin-bottom:10px;">⏳</div>
+    <div style="font-size:13px;">${jp ? '協会けんぽ 東京都 公式サイトから取得中...' : '협회건포 도쿄도 공식 사이트에서 가져오는 중...'}</div>
   </div>`;
-  defs.forEach(d=>{
-    const row=document.createElement('div');
-    row.className='rate-row';
-    row.innerHTML=`<span>${jp?d.jp:d.kr}</span><div class="rate-row-r"><input class="rate-row-input" id="mi-${d.key}" type="number" step="0.01" value="${curRates[d.key]}"><span style="font-size:12px;color:var(--text3)">%</span></div>`;
-    area.appendChild(row);
-  });
+
   openModal('modal-rates');
+
+  try {
+    const result = await gasRequest({ action: 'scrapeRates' }, 30000);
+    if (!result.ok) throw new Error(result.error || (jp ? '取得失敗' : '가져오기 실패'));
+
+    _pendingScrapedRates = result;
+
+    const defs = [
+      { key:'kenko',  jp:'健康保険料率（東京都）',      kr:'건강보험료율（도쿄도）' },
+      { key:'kaigo',  jp:'介護保険料率（全国一律）',      kr:'개호보험료율（전국）' },
+      { key:'kodomo', jp:'子ども・子育て支援金率',        kr:'자녀・육아지원금율' },
+      { key:'nenkin', jp:'厚生年金保険料率',              kr:'후생연금보험료율' },
+      { key:'koyo',   jp:'雇用保険料率（労働者負担）',    kr:'고용보험료율（근로자）' },
+    ];
+
+    if (titleEl) titleEl.textContent = jp ? '✅ 最新保険料率（協会けんぽ）' : '✅ 최신 보험료율（협회건포）';
+    if (descEl)  descEl.textContent  = jp
+      ? `${result.from} 適用分　取得日時: ${result.scraped_at}`
+      : `${result.from} 적용분　취득일시: ${result.scraped_at}`;
+    if (srcEl)   srcEl.innerHTML = `<a href="${result.source}" target="_blank" style="color:var(--accent);font-size:11px;">${jp ? '出典：協会けんぽ公式サイト' : '출처: 협회건포 공식 사이트'}</a>`;
+
+    area.innerHTML = defs.map(d => `
+      <div class="rate-row" style="background:var(--surface2);border-radius:var(--r2);margin-bottom:6px;">
+        <span style="font-size:12px;">${jp ? d.jp : d.kr}</span>
+        <div class="rate-row-r" style="gap:4px;">
+          <span style="font-size:15px;font-weight:600;color:var(--accent);">${result[d.key].toFixed(2)}</span>
+          <span style="font-size:12px;color:var(--text3);">%</span>
+        </div>
+      </div>`).join('');
+
+    if (applyBtn) applyBtn.style.display = '';
+
+  } catch(err) {
+    if (titleEl) titleEl.textContent = jp ? '❌ 取得失敗' : '❌ 가져오기 실패';
+    area.innerHTML = `<div style="padding:16px;background:#fee2e2;border-radius:var(--r2);color:var(--red);font-size:12px;white-space:pre-wrap;">${err.message}</div>`;
+  }
 }
 
 function applyRates() {
+  if (!_pendingScrapedRates) return;
   const jp = LANG==='JP';
-  const newRates = {};
-  ['kenko','kaigo','kodomo','nenkin','koyo'].forEach(k=>{
-    const v=parseFloat(document.getElementById('mi-'+k).value);
-    if(!isNaN(v)) newRates[k]=v;
-  });
-  // 현재 선택 월에 요율 저장
-  const ym = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
-  const existing = rateHistory.findIndex(r => r.from === ym);
-  const entry = { from:ym, ...newRates };
+  const r = _pendingScrapedRates;
+  const entry = { from:r.from, kenko:r.kenko, kaigo:r.kaigo, kodomo:r.kodomo, nenkin:r.nenkin, koyo:r.koyo };
+  const existing = rateHistory.findIndex(h => h.from === r.from);
   if(existing >= 0) rateHistory[existing] = entry;
   else { rateHistory.push(entry); rateHistory.sort((a,b) => a.from > b.from ? 1 : -1); }
   saveRateHistory();
-  // 현재 rates 업데이트
-  rates = { ...rates, ...newRates };
+  rates = { kenko:r.kenko, kaigo:r.kaigo, kodomo:r.kodomo, nenkin:r.nenkin, koyo:r.koyo };
   updateRatesDisplay(); recalc(); renderRatesPage();
   closeModal('modal-rates');
-  // 배너 숨기기
-  const bannerEl = document.getElementById('rate-month-banner');
-  if(bannerEl) bannerEl.style.display = 'none';
-  const now=new Date();
-  document.getElementById('ratesUpdatedTxt').textContent=
-    (jp?`${currentYear}年${currentMonth}月の料率を登録しました ✓`:`${currentYear}년 ${currentMonth}월 요율을 등록했습니다 ✓`);
-  showToast(jp?`${currentYear}年${currentMonth}月の保険料率を登録しました ✓`:`${currentYear}년 ${currentMonth}월 요율 등록됨 ✓`,'s');
+  _pendingScrapedRates = null;
+  document.getElementById('ratesUpdatedTxt').textContent =
+    jp ? `協会けんぽ取得 ${r.from} ✓` : `협회건포 취득 ${r.from} ✓`;
+  showToast(jp ? `保険料率を更新しました ✓` : `보험료율 업데이트됨 ✓`, 's');
 }
 
 function updateRatesDisplay() {
@@ -82,9 +107,8 @@ function renderRatesPage() {
     </thead>
     <tbody id="rateHistoryTbody"></tbody>
   </table>
-  <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <button class="btn btn-success btn-sm" onclick="addRateHistoryRow()">${jp?'+ 新しい月の料率を追加':'+ 새 월 요율 추가'}</button>
-    <span style="font-size:11px;color:var(--text3);">${jp?'月を選択して「最新要率を取得」ボタンでも追加できます':'월 선택 후 「최신 요율 가져오기」로도 추가 가능'}</span>
+  <div style="margin-top:10px;font-size:11px;color:var(--text3);padding:6px 2px;">
+    ${jp?'※ 料率の変更は「最新料率を取得」ボタンから協会けんぽ公式サイトを参照して行ってください。':'※ 요율 변경은 상단 「최신 요율 가져오기」버튼을 통해 협회건포 공식 사이트에서 가져오세요.'}
   </div>`;
   area.innerHTML = html;
   renderRateHistoryRows();
@@ -103,19 +127,13 @@ function renderRateHistoryRows() {
     const tr = document.createElement('tr');
     tr.style.background = isCurrent ? 'var(--accent2)' : '';
     tr.innerHTML = `
-      <td style="padding:6px 8px;border-bottom:1px solid var(--border2);">
-        <input type="month" value="${r.from}"
-          style="width:100%;border:1px solid var(--border);border-radius:4px;padding:3px 4px;font-size:11px;font-family:inherit;background:var(--surface);color:var(--text);box-sizing:border-box;"
-          onchange="updateRateHistoryFrom(${rateHistory.indexOf(r)}, this.value)">
+      <td style="padding:6px 10px;border-bottom:1px solid var(--border2);">
+        <span style="font-size:12px;font-weight:500;">${r.from}</span>
         ${isCurrent?`<div style="margin-top:3px;"><span style="font-size:10px;background:var(--accent);color:white;border-radius:20px;padding:1px 6px;">${jp?'適用中':'적용 중'}</span></div>`:''}
       </td>
-      ${keys.map(k=>`<td style="padding:6px 4px;border-bottom:1px solid var(--border2);">
-        <div style="display:flex;align-items:center;gap:1px;">
-          <input type="number" step="0.01" value="${r[k]}"
-            style="width:0;flex:1;min-width:0;text-align:right;border:1px solid var(--border);border-radius:4px;padding:3px 3px;font-size:12px;font-family:inherit;box-sizing:border-box;"
-            onchange="updateRateHistoryVal(${rateHistory.indexOf(r)},'${k}',this.value)">
-          <span style="font-size:10px;color:var(--text3);flex-shrink:0;">%</span>
-        </div>
+      ${keys.map(k=>`<td style="padding:6px 4px;border-bottom:1px solid var(--border2);text-align:right;">
+        <span style="font-size:12px;font-weight:${isCurrent?'600':'400'};color:${isCurrent?'var(--accent)':'var(--text)'};">${Number(r[k]).toFixed(2)}</span>
+        <span style="font-size:10px;color:var(--text3);">%</span>
       </td>`).join('')}
       <td style="padding:6px 4px;border-bottom:1px solid var(--border2);text-align:center;">
         <button class="btn btn-sm" onclick="deleteRateHistoryRow(${rateHistory.indexOf(r)})" style="color:var(--red);padding:2px 6px;font-size:11px;">✕</button>

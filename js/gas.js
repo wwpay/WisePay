@@ -211,15 +211,15 @@ function updateGasStatus() {
 }
 
 // GAS 통신 - JSONP 방식 (CORS 완전 우회)
-function gasRequest(params) {
+function gasRequest(params, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     const cbName = 'wisepay_cb_' + Date.now();
     const script = document.createElement('script');
     const timeout = setTimeout(() => {
       delete window[cbName];
-      document.body.removeChild(script);
+      if (document.body.contains(script)) document.body.removeChild(script);
       reject(new Error('timeout'));
-    }, 15000);
+    }, timeoutMs);
 
     window[cbName] = (data) => {
       clearTimeout(timeout);

@@ -45,7 +45,7 @@ function applyLang() {
   setTxt('t-nav-gas', 'Google連携設定', 'Google 연동 설정');
 
   setTxt('t-langbtn', '한국어로 전환', '日本語に切替');
-  setTxt('t-ai-btn', '最新料率を取得', '최신 요율 가져오기');
+  setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '협회건포 최신 요율 가져오기');
   setTxt('t-save-btn', '保存', '저장');
   setTxt('t-print-btn', '印刷', '인쇄');
 
@@ -106,7 +106,7 @@ function applyLang() {
   setTxt('t-rates-page-title', '保険料率設定', '보험료율 설정');
   setTxt('t-rates-desc', '協会けんぽ東京都・2026年度の料率。改定時に更新してください。', '협회けんぽ 도쿄도・2026년도 요율. 개정 시 업데이트해 주세요.');
   setTxt('t-rates-current', '現在の適用料率', '현재 적용 요율');
-  setTxt('t-rates-ai', 'AIで最新料率を確認', 'AI로 최신 요율 확인');
+  setTxt('t-rates-ai', '協会けんぽから最新料率を取得', '협회건포에서 최신 요율 가져오기');
   setTxt('t-rates-save', '料率を保存', '요율 저장');
 
   setTxt('t-annual-print', 'A4印刷', 'A4 인쇄');

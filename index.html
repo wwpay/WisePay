@@ -316,8 +316,7 @@
     <div id="ratesFormArea" style="padding:14px 13px;"></div>
   </div>
   <div style="display:flex;gap:7px;">
-    <button class="btn btn-ai" onclick="openRateModal()" id="t-rates-ai">AIで最新要率を確認</button>
-    <button class="btn btn-primary" onclick="saveRatesPage()" id="t-rates-save">料率を保存</button>
+    <button class="btn btn-ai" onclick="openRateModal()" id="t-rates-ai">協会けんぽから最新料率を取得</button>
   </div>
 </div>
 
@@ -430,7 +429,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('modal-rates')" id="t-mr-cancel">キャンセル</button>
-      <button class="btn btn-primary" onclick="applyRates()" id="t-mr-apply">この料率を適用する</button>
+      <button class="btn btn-primary" onclick="applyRates()" id="t-mr-apply" style="display:none;">この料率を適用する</button>
     </div>
   </div>
 </div>
