@@ -98,6 +98,10 @@ function applyLang() {
   setTxt('t-gas-download-label', 'Google → ローカル', 'Google → 로컬');
   setTxt('t-gas-download-desc', '⚠️ ローカルデータが上書きされます', '⚠️ 로컬 데이터가 덮어써집니다');
   setTxt('t-gas-sync-note', '※ 初回は「ローカル → Google」で既存データをアップロードしてください', '※ 초회는 「로컬 → Google」로 기존 데이터를 업로드해 주세요');
+  setTxt('t-reset-zone', '危険区域', '위험 구역');
+  setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');
+  setTxt('t-reset-desc', '従業員・給与・保険料率などブラウザに保存されたデータをすべて削除します。', '직원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.');
+  setTxt('t-reset-btn', '初期化', '초기화');
 
   setTxt('t-rates-page-title', '保険料率設定', '보험료율 설정');
   setTxt('t-rates-desc', '協会けんぽ東京都・2026年度の料率。改定時に更新してください。', '협회けんぽ 도쿄도・2026년도 요율. 개정 시 업데이트해 주세요.');

@@ -110,6 +110,37 @@ function gotoPage(id, el) {
   if(id==='gas') openGasModal();
 }
 
+function resetLocalData() {
+  const jp = LANG === 'JP';
+  const msg = jp
+    ? '⚠️ ローカルデータをすべて削除します。\n\n従業員・給与・保険料率データが消去されます。\nGoogleのデータは影響を受けません。\n\n本当に初期化しますか？'
+    : '⚠️ 로컬 데이터를 모두 삭제합니다.\n\n직원·급여·보험료율 데이터가 지워집니다.\nGoogle 시트 데이터는 영향 없습니다.\n\n정말 초기화하시겠습니까?';
+  if (!confirm(msg)) return;
+
+  // kyuyo_ 접두사 키 전체 삭제 (lang, auth 제외)
+  const keepKeys = new Set([LS.lang, 'wisepay_auth']);
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('kyuyo_') && !keepKeys.has(k))
+    .forEach(k => localStorage.removeItem(k));
+
+  // 상태 변수 초기화
+  employees = [];
+  rateHistory = [
+    { from:'2026-01', kenko:9.91, kaigo:1.59, kodomo:0.00, nenkin:18.30, koyo:0.50 },
+    { from:'2026-03', kenko:9.85, kaigo:1.62, kodomo:0.00, nenkin:18.30, koyo:0.50 },
+    { from:'2026-04', kenko:9.85, kaigo:1.62, kodomo:0.23, nenkin:18.30, koyo:0.50 },
+  ];
+  currentEmpIdx = -1;
+
+  renderEmpSelect();
+  renderMonthTabs();
+  applyRatesForYM(currentYear, currentMonth);
+  loadPayrollForm();
+  updateRatesDisplay();
+
+  showToast(jp ? 'ローカルデータを初期化しました' : '로컬 데이터를 초기화했습니다', 's');
+}
+
 // 구버전 급여 localStorage 키 마이그레이션
 // kyuyo_p_1_2026_5 → kyuyo_p_0001_2026_5 형태로 일괄 변환
 function migratePayrollKeys() {

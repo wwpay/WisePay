@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-21 23:30 — 로그인 화면 추가, GAS URL 하드코딩, 로그인 시 자동 GAS 동기화
+  수정: 2026-05-21 23:50 — Google 연동 설정 페이지에 로컬 데이터 초기화 버튼 추가
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -399,6 +399,22 @@
     <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--border);background:var(--surface);">
       <button class="btn btn-sm" onclick="testGasConnection()" id="t-gas-test">🔌 접속 테스트</button>
       <button class="btn btn-primary" onclick="saveGasUrl()" id="t-gas-save">저장하고 연동</button>
+    </div>
+  </div>
+  <!-- 위험 구역: 로컬 데이터 초기화 -->
+  <div style="margin-top:16px;border:1px solid #fecaca;border-radius:10px;overflow:hidden;">
+    <div style="background:#fff5f5;padding:10px 16px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:7px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span style="font-size:12px;font-weight:600;color:#ef4444;" id="t-reset-zone">위험 구역</span>
+    </div>
+    <div style="padding:14px 16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#1e293b;" id="t-reset-title">로컬 데이터 초기화</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:3px;" id="t-reset-desc">직원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.</div>
+      </div>
+      <button onclick="resetLocalData()" style="flex-shrink:0;padding:8px 16px;background:#fff;color:#ef4444;border:1px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff'">
+        <span id="t-reset-btn">초기화</span>
+      </button>
     </div>
   </div>
 </div>
