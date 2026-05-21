@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 17:45 — 급여 입력란 포커스 시 0 클리어, 이탈 시 0 복원
+﻿// 수정: 2026-05-21 12:03 — localStorage 키 사원번호 4자리 패딩 통일 (급여 데이터 표시 버그 수정)
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -116,7 +116,8 @@ function loadPayrollForm() {
   showContent(true);
 
   const emp = employees[currentEmpIdx];
-  const key = `kyuyo_p_${emp.no}_${currentYear}_${currentMonth}`;
+  const pNo = String(emp.no).padStart(4,'0');
+  const key = `kyuyo_p_${pNo}_${currentYear}_${currentMonth}`;
   const saved = localStorage.getItem(key);
 
   if(saved) {
@@ -127,7 +128,7 @@ function loadPayrollForm() {
   } else {
     const prevM = currentMonth === 1 ? 12 : currentMonth - 1;
     const prevY = currentMonth === 1 ? currentYear - 1 : currentYear;
-    const prevKey = `kyuyo_p_${emp.no}_${prevY}_${prevM}`;
+    const prevKey = `kyuyo_p_${pNo}_${prevY}_${prevM}`;
     const prevSaved = localStorage.getItem(prevKey);
     if(prevSaved) {
       try {
@@ -273,7 +274,7 @@ function recalc() {
   }
   // diff
   if(emp) {
-    const pk=`kyuyo_p_${emp.no}_${currentYear}_${currentMonth-1}`;
+    const pk=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth-1}`;
     const ps=localStorage.getItem(pk);
     const de=document.getElementById('netDiffTxt');
     if(ps) { try { const pd=JSON.parse(ps); const diff=net-(pd._net||0); const u=LANG==='JP'?'前月比':'전월 대비'; de.textContent=`${u} ${diff>=0?'+':''}${fmt(diff)}`; de.className='net-diff '+(diff>=0?'up':'dn'); } catch(e){de.textContent='';} }
@@ -286,7 +287,7 @@ function recalc() {
 function saveCurrent() {
   if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'직원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
-  const key=`kyuyo_p_${emp.no}_${currentYear}_${currentMonth}`;
+  const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
   const d={}; PFIELDS.forEach(f=>{d[f]=document.getElementById(f)?.value||0;}); d._net=window._calc?.net||0;
   localStorage.setItem(key,JSON.stringify(d));
 

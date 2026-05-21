@@ -30,7 +30,7 @@ function toggleLang() {
 function applyLang() {
   document.documentElement.lang = LANG === 'JP' ? 'ja' : 'ko';
 
-  setTxt('t-appname', '給与Pro by Wisewires', '급여Pro by Wisewires');
+  setTxt('t-appname', '給与Pro', '급여Pro');
   setTxt('t-nav-main', 'メイン', '메인');
   setTxt('t-nav-payroll', '給与明細', '급여 명세');
   setTxt('t-nav-history', '支給履歴', '지급 이력');

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-20 17:55 — 연간 일람 미표시 버그 수정 (sel.value 미지정), 월별 요율 분리 적용
+﻿// 수정: 2026-05-21 12:03 — localStorage 키 사원번호 4자리 패딩 통일 (연간 일람 / 이력 표시 버그 수정)
 'use strict';
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
@@ -14,7 +14,7 @@ function buildAnnualEmpSel() {
 }
 
 function calcMonthData(emp, year, month) {
-  const key = `kyuyo_p_${emp.no}_${year}_${month}`;
+  const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${month}`;
   const s = localStorage.getItem(key);
   if(!s) return null;
   try {
@@ -152,7 +152,7 @@ function renderHistory() {
   employees.forEach((emp,ei)=>{
     if(empSel!=='all'&&parseInt(empSel)!==ei) return;
     for(let m=1;m<=12;m++){
-      const s=localStorage.getItem(`kyuyo_p_${emp.no}_${year}_${m}`);
+      const s=localStorage.getItem(`kyuyo_p_${String(emp.no).padStart(4,'0')}_${year}_${m}`);
       if(!s) continue;
       try { rows.push({m,emp,d:JSON.parse(s)}); } catch(e){}
     }
