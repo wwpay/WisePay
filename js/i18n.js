@@ -121,6 +121,7 @@ function applyLang() {
   setTxt('t-h-kenko', '健康保険', '건강보험');
   setTxt('t-h-shotoku', '所得税', '소득세');
 
+  setTxt('empFormTitle', '従業員を選択してください', '직원을 선택해 주세요');
   setTxt('t-emp-select-hint', '左のリストから従業員を選択するか、「新規」ボタンで登録してください。', '좌측 목록에서 직원을 선택하거나, 「직원 추가」 버튼으로 등록해 주세요。');
 
   setTxt('t-rates-title', '適用保険料率（2026年度・東京都）', '적용 보험료율（2026년도・도쿄도）');
