@@ -20,9 +20,9 @@ function doGet(e) {
   const callback = e.parameter.callback || '';
   let result;
   try {
-    if      (action === 'test')        result = { ok: true };
-    else if (action === 'getAll')      result = getAllData();
-    else if (action === 'scrapeRates') result = scrapeKenpoRates();
+    if      (action === 'test')                                    result = { ok: true };
+    else if (action === 'getAll')                                  result = getAllData();
+    else if (action === 'scrapeRates' || action === 'scrapeKenpoRates') result = scrapeKenpoRates();
     else result = { ok: false, error: 'Unknown action: ' + action };
   } catch(err) {
     result = { ok: false, error: err.message };
