@@ -1,4 +1,5 @@
 // WisePay GAS Script
+// 수정: 2026-05-22 — 협회けんぽ URL 수정 (premium_prefectures → rate_prefectures) + 연도 직접 URL fast path 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -9,9 +10,9 @@ const SHEET_EMP  = '従業員';
 const SHEET_PAY  = '給与データ';
 const SHEET_RATE = '保険料率履歴';
 
-// 협회けんぽ 새 URL
-const KENPO_INDEX_URL = 'https://kyoukaikenpo.or.jp/about/business/insurance_rate/premium_prefectures/';
-const KENPO_BASE_URL  = 'https://kyoukaikenpo.or.jp';
+// 협회けんぽ URL (2025년 사이트 개편 후 변경된 URL)
+const KENPO_INDEX_URL = 'https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/';
+const KENPO_BASE_URL  = 'https://www.kyoukaikenpo.or.jp';
 
 // ── Entry points ──────────────────────────────────────────────
 
@@ -111,6 +112,7 @@ function scrapeKenpoRates() {
   const fromYr = month >= 3 ? year : year - 1;
   const from   = fromYr + '-03';
 
+  const r2 = String(fiscal).padStart(2, '0');
   Logger.log('対象: ' + fromYr + '年度 (令和' + fiscal + '年度) / from=' + from);
 
   const opts = {
@@ -130,44 +132,46 @@ function scrapeKenpoRates() {
     }
   };
 
-  // ── Step 1: インデックスページ取得 ──────────────────────────
-  Logger.log('Step1: ' + KENPO_INDEX_URL);
-  const idxRes = kenpoFetch(KENPO_INDEX_URL, opts);
-  if (!idxRes) return { ok: false, error: 'インデックスページ取得失敗: ' + KENPO_INDEX_URL };
+  // ── Step 1: 年度ページを直接 URL 構築して取得（最速）──────────
+  const directYearUrl = KENPO_INDEX_URL + 'r' + r2 + '/';
+  Logger.log('Step1(direct): ' + directYearUrl);
+  let idxHtml = kenpoFetch(directYearUrl, opts);
+  let rates = idxHtml ? extractRatesFromHtml(idxHtml) : { kenko: null, kaigo: null };
+  Logger.log('年度直接URL抽出: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
 
-  const idxHtml = idxRes;
-  Logger.log('インデックスHTMLサイズ: ' + idxHtml.length);
-
-  // ── Step 2: インデックスページ内 HTML から直接料率を試みる ──
-  let rates = extractRatesFromHtml(idxHtml);
-  Logger.log('インデックスHTML直接抽出: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
-
-  // ── Step 3: 年度リンクを見つけて年度ページを試みる ──────────
+  // ── Step 2: インデックスページから年度リンクを探す ────────────
   if (rates.kenko == null) {
-    const yearUrl = findYearPageUrl(idxHtml, fromYr, fiscal);
-    Logger.log('年度ページURL: ' + yearUrl);
+    Logger.log('Step2(index): ' + KENPO_INDEX_URL);
+    const fetchedIdx = kenpoFetch(KENPO_INDEX_URL, opts);
+    if (fetchedIdx) {
+      if (!idxHtml) idxHtml = fetchedIdx;
+      rates = extractRatesFromHtml(fetchedIdx);
+      Logger.log('インデックスHTML抽出: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
 
-    if (yearUrl) {
-      const yearHtml = kenpoFetch(yearUrl, opts);
-      if (yearHtml) {
-        rates = extractRatesFromHtml(yearHtml);
-        Logger.log('年度ページHTML抽出: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
-
-        // ── Step 4: HTML失敗 → 年度ページ内PDFを探してテキスト化 ──
-        if (rates.kenko == null) {
-          const pdfUrl = findTokyoPdfUrl(yearHtml);
-          Logger.log('東京都PDFリンク: ' + pdfUrl);
-          if (pdfUrl) {
-            rates = extractRatesFromPdf(pdfUrl, opts);
-            Logger.log('PDF抽出結果: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
+      if (rates.kenko == null) {
+        const yearUrl = findYearPageUrl(fetchedIdx, fromYr, fiscal);
+        Logger.log('年度ページURL: ' + yearUrl);
+        if (yearUrl) {
+          const yearHtml = kenpoFetch(yearUrl, opts);
+          if (yearHtml) {
+            rates = extractRatesFromHtml(yearHtml);
+            Logger.log('年度ページHTML抽出: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
+            if (rates.kenko == null) {
+              const pdfUrl = findTokyoPdfUrl(yearHtml);
+              Logger.log('東京都PDFリンク: ' + pdfUrl);
+              if (pdfUrl) {
+                rates = extractRatesFromPdf(pdfUrl, opts);
+                Logger.log('PDF抽出結果: kenko=' + rates.kenko + ' kaigo=' + rates.kaigo);
+              }
+            }
           }
         }
       }
     }
   }
 
-  // ── Step 5: インデックスページのPDFを直接試みる ─────────────
-  if (rates.kenko == null) {
+  // ── Step 3: インデックスページのPDFを直接試みる ─────────────
+  if (rates.kenko == null && idxHtml) {
     const pdfUrl = findTokyoPdfUrl(idxHtml);
     Logger.log('インデックスPDF: ' + pdfUrl);
     if (pdfUrl) {
