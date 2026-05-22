@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-22 18:50 — importFreeeEmployees 추가 (freee CSV → 사원정보 upsert)
+// 수정: 2026-05-22 19:20 — importFreeePayrolls 추가 (freee 급여 CSV 3개 → 급여데이터 upsert)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -562,4 +562,98 @@ function importFreeeEmployees() {
   const merged = Object.values(empMap).sort(function(a, b) { return parseInt(a.no) - parseInt(b.no); });
   saveSheet(SHEET_EMP, merged);
   Logger.log('임포트 완료: ' + freeeEmps.length + '명 갱신, 합계 ' + merged.length + '명 → ' + SHEET_EMP);
+}
+
+// ── freee 급여 CSV → 급여데이터 시트 임포트 ─────────────────────────────
+// 사전 준비: 3개 CSV 파일을 Google Drive 루트에 업로드
+// 검색 조건: 파일명에 "payroll_books_2026" 포함
+function importFreeePayrolls() {
+  const iter = DriveApp.searchFiles("title contains 'payroll_books_2026'");
+  const payrolls = [];
+
+  while (iter.hasNext()) {
+    const file = iter.next();
+    const csv  = file.getBlob().getDataAsString('UTF-8');
+    const rows = Utilities.parseCsv(csv);
+    if (rows.length < 2) continue;
+
+    const headers = rows[0];
+    const col = function(name) { return headers.indexOf(name); };
+
+    for (var i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      // 지급일 없는 행(빈 행) 스킵
+      const dateStr = (r[col('支給月日')] || '').toString().trim();
+      if (!dateStr) continue;
+      const parts = dateStr.split('/');
+      if (parts.length < 2) continue;
+      const year  = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      if (!year || !month) continue;
+
+      const no = parseInt((r[col('従業員番号')] || '').toString().trim(), 10);
+      if (!no) continue;
+
+      // 컬럼이 없거나 빈 값이면 0 반환
+      const gv = function(name) {
+        const idx = col(name);
+        if (idx < 0 || idx >= r.length) return 0;
+        const v = (r[idx] || '').toString().replace(/,/g, '').trim();
+        return v === '' ? 0 : (parseInt(v, 10) || 0);
+      };
+
+      payrolls.push({
+        no:             no,
+        name:           (r[col('従業員名')] || '').toString().trim(),
+        year:           year,
+        month:          month,
+        'r-base':       gv('基本給'),
+        'r-ot':         gv('時間外手当'),           // PYG는 컬럼 없음 → 0
+        'r-kintai':     gv('欠勤控除') + gv('遅刻早退控除'),
+        'r-commute':    gv('非課税通勤手当'),
+        'r-commutetax': gv('課税通勤手当'),
+        'r-kinmu':      gv('勤務手当'),             // PYG는 컬럼 없음 → 0
+        'r-shokumu':    gv('職務手当'),
+        'r-field':      0,
+        'k-jumin':      gv('住民税'),
+        'k-nencho':     gv('年末調整'),             // 年末調整精算 아닌 年末調整 사용
+        '_net':         gv('差引支給金額'),
+      });
+    }
+    Logger.log('읽기 완료: ' + file.getName());
+  }
+
+  if (!payrolls.length) {
+    Logger.log('데이터 없음 — Google Drive에 payroll_books_2026 CSV가 있는지 확인하세요.');
+    return;
+  }
+
+  // 기존 급여데이터를 no+year+month 기준으로 맵
+  const existing = sheetToObjects(getSheet(SHEET_PAY));
+  const payMap   = {};
+  existing.forEach(function(p) {
+    payMap[String(parseInt(p.no)) + '_' + p.year + '_' + p.month] = p;
+  });
+
+  // upsert: 기존 레코드는 갱신, 신규는 추가
+  payrolls.forEach(function(fp) {
+    const k = fp.no + '_' + fp.year + '_' + fp.month;
+    if (payMap[k]) {
+      Object.assign(payMap[k], fp);
+    } else {
+      payMap[k] = fp;
+    }
+  });
+
+  // no → year → month 순 정렬
+  const merged = Object.values(payMap).sort(function(a, b) {
+    const nd = parseInt(a.no) - parseInt(b.no);
+    if (nd !== 0) return nd;
+    const yd = a.year - b.year;
+    if (yd !== 0) return yd;
+    return a.month - b.month;
+  });
+
+  saveSheet(SHEET_PAY, merged);
+  Logger.log('임포트 완료: ' + payrolls.length + '건 갱신, 합계 ' + merged.length + '건 → ' + SHEET_PAY);
 }
