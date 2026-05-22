@@ -1,7 +1,8 @@
-﻿// 수정: 2026-05-21 13:27 — renderHistory null 가드 추가 (toggleLang 호출 시 크래시 방지)
+﻿// 수정: 2026-05-22 14:00 — buildAnnualEmpSel/buildHistEmpSel null 가드 추가
 'use strict';
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
+  if (!sel) return;
   const prev = sel.value;
   sel.innerHTML = '';
   employees.forEach((e,i) => {
@@ -145,6 +146,7 @@ function renderAnnual() {
 // ══ HISTORY ══
 function buildHistEmpSel() {
   const sel=document.getElementById('histEmpSel');
+  if(!sel) return;
   sel.innerHTML=`<option value="all">${LANG==='JP'?'全員':'전체'}</option>`;
   employees.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${e.name}（${String(e.no).padStart(4,'0')}）`; sel.appendChild(o); });
 }

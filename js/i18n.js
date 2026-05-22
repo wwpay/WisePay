@@ -75,8 +75,6 @@ function applyLang() {
 
   setTxt('t-gas-title', '🔗 Google スプレッドシート連携設定', '🔗 Google 스프레드시트 연동 설정');
   setTxt('t-gas-cancel', 'キャンセル', '취소');
-  setTxt('t-gas-test', '🔌 接続テスト', '🔌 접속 테스트');
-  setTxt('t-gas-save', '保存して連携', '저장하고 연동');
 
   setTxt('t-gas-page-title', 'Google連携設定', 'Google 연동 설정');
   setTxt('t-gas-desc', 'Google Apps Script を使って給与データをスプレッドシートに自動保存・同期できます。', 'Google Apps Script를 사용해 급여 데이터를 스프레드시트에 자동 저장·동기화할 수 있습니다.');
