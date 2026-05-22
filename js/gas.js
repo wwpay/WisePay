@@ -1,4 +1,4 @@
-// 수정: 2026-05-23 07:09 — GAS 동기화 후 fuyouCount 재계산(syncFuyouFromFamilies), '사원' 변경
+// 수정: 2026-05-23 07:09 — freee CSV 支給月日 전월 변환 버그 수정, localStorage 즉시 갱신 추가
 'use strict';
 async function exportAllToGas() {
   if (!gasUrl) {
@@ -423,7 +423,9 @@ async function importFreeePayrollCSV() {
       if (!dateStr) continue;
       const parts = dateStr.split('/');
       if (parts.length < 2) continue;
-      const year = parseInt(parts[0]), month = parseInt(parts[1]);
+      // 支給月日는 지급일 → 전월이 급여 대상 월
+      let year = parseInt(parts[0]), month = parseInt(parts[1]) - 1;
+      if (month === 0) { month = 12; year -= 1; }
       if (!year || !month) continue;
       const no = parseInt((r[col('従業員番号')] || '').trim());
       if (!no) continue;
@@ -456,10 +458,19 @@ async function importFreeePayrollCSV() {
       headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ type:'importPayrolls', payrolls })
     });
-    const msg = `✅ ${payrolls.length}건 → Google 시트 저장 완료`;
+    // localStorage도 즉시 갱신
+    payrolls.forEach(p => {
+      const pNo = String(parseInt(p.no)).padStart(4, '0');
+      const key = 'kyuyo_p_' + pNo + '_' + p.year + '_' + p.month;
+      const existing = JSON.parse(localStorage.getItem(key) || '{}');
+      const { no: _n, name: _nm, year: _y, month: _m, ...fields } = p;
+      localStorage.setItem(key, JSON.stringify({ ...existing, ...fields }));
+    });
+    const msg = `✅ ${payrolls.length}건 → Google 시트 + 로컬 저장 완료`;
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">${msg}</span>`;
     showToast(msg, 's');
     input.value = '';
+    loadPayrollForm();
   } catch(err) {
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
   }
