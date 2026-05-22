@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-22 14:00 — buildAnnualEmpSel/buildHistEmpSel null 가드 추가
+﻿// 수정: 2026-05-22 18:13 — null 직원 요소 방어 + gotoPage 연계 안전성
 'use strict';
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
@@ -6,11 +6,11 @@ function buildAnnualEmpSel() {
   const prev = sel.value;
   sel.innerHTML = '';
   employees.forEach((e,i) => {
+    if (!e || e.no == null) return;
     const o = document.createElement('option');
     o.value = i; o.textContent = `${e.name}（${String(e.no).padStart(4,'0')}）`;
     sel.appendChild(o);
   });
-  // 이전 선택 유지, 없으면 첫 번째 직원 선택
   sel.value = (prev !== '' && employees[parseInt(prev)]) ? prev : (employees.length ? '0' : '');
 }
 
@@ -148,7 +148,7 @@ function buildHistEmpSel() {
   const sel=document.getElementById('histEmpSel');
   if(!sel) return;
   sel.innerHTML=`<option value="all">${LANG==='JP'?'全員':'전체'}</option>`;
-  employees.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${e.name}（${String(e.no).padStart(4,'0')}）`; sel.appendChild(o); });
+  employees.forEach((e,i)=>{ if(!e||e.no==null) return; const o=document.createElement('option'); o.value=i; o.textContent=`${e.name}（${String(e.no).padStart(4,'0')}）`; sel.appendChild(o); });
 }
 
 function renderHistory() {

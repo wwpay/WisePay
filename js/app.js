@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-22 18:08 — initApp 드롭다운 초기화 순서 수정 (renderMonthTabs 뒤로 이동)
+﻿// 수정: 2026-05-22 18:13 — gotoPage history/annual try-catch 보호
 'use strict';
 // ══ INIT ══
 window.addEventListener('DOMContentLoaded', () => {
@@ -105,10 +105,10 @@ function gotoPage(id, el) {
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   document.getElementById('btn-save').style.display = id==='payroll' ? '' : 'none';
   if(id==='payroll') loadPayrollForm();
-  if(id==='history') { buildHistEmpSel(); renderHistory(); }
+  if(id==='history') { try { buildHistEmpSel(); renderHistory(); } catch(e) { console.error('history render error:', e); } }
   if(id==='employees') renderEmpList();
   if(id==='rates') renderRatesPage();
-  if(id==='annual') { buildAnnualEmpSel(); renderAnnual(); }
+  if(id==='annual') { try { buildAnnualEmpSel(); renderAnnual(); } catch(e) { console.error('annual render error:', e); } }
   if(id==='gas') openGasModal();
 }
 

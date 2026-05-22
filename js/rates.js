@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-22 18:03 — 적용 중 행: 년월만 파란 pill 스타일, 행 전체 배경 제거
+﻿// 수정: 2026-05-22 18:13 — 년월 정렬 통일 + buildHistEmpSel/buildAnnualEmpSel null 안전성
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -133,7 +133,7 @@ function renderRateHistoryRows() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="padding:6px 10px;border-bottom:1px solid var(--border2);">
-        <span style="font-size:12px;font-weight:600;${isCurrent?'background:var(--accent);color:#fff;border-radius:20px;padding:2px 10px;display:inline-block;':''}">${fmtYM(r.from)}</span>
+        <span style="font-size:12px;font-weight:600;display:inline-block;padding:2px 10px;border-radius:20px;${isCurrent?'background:var(--accent);color:#fff;':''}">${fmtYM(r.from)}</span>
       </td>
       ${keys.map(k=>`<td style="padding:6px 4px;border-bottom:1px solid var(--border2);text-align:right;">
         <span style="font-size:12px;font-weight:${isCurrent?'600':'400'};color:${isCurrent?'var(--accent)':'var(--text)'};">${Number(r[k]).toFixed(2)}</span>
