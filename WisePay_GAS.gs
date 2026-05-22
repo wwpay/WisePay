@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-22 — 협회けんぽ URL 수정 (premium_prefectures → rate_prefectures) + 연도 직접 URL fast path 추가
+// 수정: 2026-05-22 — 협회けんぽ URL 수정 + 연도 직접 URL fast path + 전각 숫자 반각 변환 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -238,10 +238,18 @@ function findNumberNearKeyword(text, keywordPattern, min, max, windowSize = 300)
   return null;
 }
 
+// 全角数字・記号 → 半角変換 (e.g. １０．３１％ → 10.31%)
+function toHankaku(str) {
+  return str
+    .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    .replace(/．/g, '.')
+    .replace(/％/g, '%');
+}
+
 function extractRatesFromText(text) {
   if (!text) return { kenko: null, kaigo: null };
 
-  const normalized = text.replace(/[　\s]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const normalized = toHankaku(text.replace(/[　\s]+/g, ' ').replace(/\s+/g, ' ').trim());
   let kenko = null;
   let kaigo = null;
 
