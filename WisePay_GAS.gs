@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-22 13:50 — 잔여 시트 정리 함수 추가 (보험료율이력→보험요율데이터, 직원정보→사원정보)
+// 수정: 2026-05-22 14:40 — SHEET_RATE 보험요율→보험료율 수정 + renameRateSheet 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -8,7 +8,7 @@
 
 const SHEET_EMP  = '사원정보';
 const SHEET_PAY  = '급여데이터';
-const SHEET_RATE = '보험요율데이터';
+const SHEET_RATE = '보험료율데이터';
 
 // 일본어 시트명 (마이그레이션 후 삭제 대상)
 const SHEET_EMP_JP  = '従業員';
@@ -445,11 +445,11 @@ function migrateToKoreanSheets() {
 }
 
 // ── 잔여 한글 시트 정리 (한 번만 실행) ───────────────────────────
-// 보험료율이력 → 보험요율데이터, 직원정보 → 사원정보
+// 보험료율이력 → 보험료율데이터, 직원정보 → 사원정보
 function migrateExtraSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const pairs = [
-    { from: '보험료율이력', to: '보험요율데이터' },
+    { from: '보험료율이력', to: '보험료율데이터' },
     { from: '직원정보',     to: '사원정보'      },
   ];
 
@@ -473,4 +473,13 @@ function migrateExtraSheets() {
   });
 
   Logger.log('정리 완료');
+}
+
+// ── 보험요율데이터 → 보험료율데이터 시트 이름 수정 (한 번만 실행) ──
+function renameRateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const old = ss.getSheetByName('보험요율데이터');
+  if (!old) { Logger.log('보험요율데이터 시트 없음 — 스킵'); return; }
+  old.setName('보험료율데이터');
+  Logger.log('이름 변경 완료: 보험요율데이터 → 보험료율데이터');
 }
