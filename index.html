@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-22 19:30 — history.js const jp 중복 선언 SyntaxError 수정 (buildHistEmpSel not defined)
+  수정: 2026-05-22 19:50 — freee 급여 CSV 업로드 UI 추가 + GAS importPayrolls 핸들러
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -397,6 +397,19 @@
         </div>
         <div id="t-gas-sync-note" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
         <div id="gas-sync-status" style="margin-top:8px;font-size:12px;"></div>
+        <!-- freee 급여 CSV 임포트 -->
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">freee 급여 CSV → Google 시트</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="file" id="freeePayrollInput" multiple accept=".csv"
+              style="font-size:12px;flex:1;min-width:0;border:1px solid var(--border);border-radius:6px;padding:5px 8px;background:var(--bg2);cursor:pointer;">
+            <button onclick="importFreeePayrollCSV()"
+              style="flex-shrink:0;padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+              업로드
+            </button>
+          </div>
+          <div id="freeePayrollStatus" style="margin-top:6px;font-size:12px;"></div>
+        </div>
       </div>
     </div>
   </div>

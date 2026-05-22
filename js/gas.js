@@ -386,6 +386,101 @@ async function uploadRateHistoryToGas() {
   }
 }
 
+// ── freee 급여 CSV → Google 시트 임포트 (브라우저 업로드 방식) ──
+async function importFreeePayrollCSV() {
+  const input    = document.getElementById('freeePayrollInput');
+  const statusEl = document.getElementById('freeePayrollStatus');
+  if (!gasUrl) { showToast(LANG==='JP'?'先にURLを設定してください':'먼저 URL을 설정해 주세요','w'); return; }
+  if (!input?.files?.length) { showToast(LANG==='JP'?'CSVファイルを選択してください':'CSV 파일을 선택해 주세요','w'); return; }
+
+  if (statusEl) statusEl.innerHTML = '처리 중... ⏳';
+  const payrolls = [];
+
+  for (const file of input.files) {
+    const text = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.onerror = rej;
+      r.readAsText(file, 'UTF-8');
+    });
+
+    const rows = _parseCSV(text);
+    if (rows.length < 2) continue;
+    const headers = rows[0];
+    const col = n => headers.indexOf(n);
+    const gv  = (r, n) => {
+      const i = col(n);
+      if (i < 0 || i >= r.length) return 0;
+      const v = (r[i] || '').toString().replace(/,/g,'').trim();
+      return v === '' ? 0 : (parseInt(v) || 0);
+    };
+
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const dateStr = (r[col('支給月日')] || '').trim();
+      if (!dateStr) continue;
+      const parts = dateStr.split('/');
+      if (parts.length < 2) continue;
+      const year = parseInt(parts[0]), month = parseInt(parts[1]);
+      if (!year || !month) continue;
+      const no = parseInt((r[col('従業員番号')] || '').trim());
+      if (!no) continue;
+
+      payrolls.push({
+        no, name: (r[col('従業員名')]||'').trim(), year, month,
+        'r-base':       gv(r,'基本給'),
+        'r-ot':         gv(r,'時間外手当'),
+        'r-kintai':     gv(r,'欠勤控除') + gv(r,'遅刻早退控除'),
+        'r-commute':    gv(r,'非課税通勤手当'),
+        'r-commutetax': gv(r,'課税通勤手当'),
+        'r-kinmu':      gv(r,'勤務手当'),
+        'r-shokumu':    gv(r,'職務手当'),
+        'r-field':      0,
+        'k-jumin':      gv(r,'住民税'),
+        'k-nencho':     gv(r,'年末調整'),
+        '_net':         gv(r,'差引支給金額'),
+      });
+    }
+  }
+
+  if (!payrolls.length) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">❌ 유효한 데이터 없음</span>';
+    return;
+  }
+
+  try {
+    await fetch(gasUrl, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ type:'importPayrolls', payrolls })
+    });
+    const msg = `✅ ${payrolls.length}건 → Google 시트 저장 완료`;
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">${msg}</span>`;
+    showToast(msg, 's');
+    input.value = '';
+  } catch(err) {
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
+  }
+}
+
+function _parseCSV(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // BOM 제거
+  const rows = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const row = []; let field = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { row.push(field); field = ''; }
+      else { field += c; }
+    }
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
 // GAS 코드 클립보드 복사
 function copyGasCode() {
   const text = document.getElementById('gasCodePreview')?.textContent || GAS_CODE;

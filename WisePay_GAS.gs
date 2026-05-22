@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-22 19:20 — importFreeePayrolls 추가 (freee 급여 CSV 3개 → 급여데이터 upsert)
+// 수정: 2026-05-22 19:50 — doPost importPayrolls 핸들러 추가 (앱 CSV 업로드 수신)
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -47,6 +47,29 @@ function doPost(e) {
       if (data.payrolls)    saveSheet(SHEET_PAY,  data.payrolls);
       if (data.rateHistory) saveSheet(SHEET_RATE, data.rateHistory);
       return jsonResponse({ ok: true });
+    }
+    if (data.type === 'importPayrolls') {
+      const incoming = data.payrolls || [];
+      if (incoming.length) {
+        const existing = sheetToObjects(getSheet(SHEET_PAY));
+        const payMap = {};
+        existing.forEach(function(p) {
+          payMap[String(parseInt(p.no)) + '_' + p.year + '_' + p.month] = p;
+        });
+        incoming.forEach(function(fp) {
+          const k = fp.no + '_' + fp.year + '_' + fp.month;
+          if (payMap[k]) { Object.assign(payMap[k], fp); } else { payMap[k] = fp; }
+        });
+        const merged = Object.values(payMap).sort(function(a, b) {
+          const nd = parseInt(a.no) - parseInt(b.no);
+          if (nd !== 0) return nd;
+          const yd = a.year - b.year;
+          if (yd !== 0) return yd;
+          return a.month - b.month;
+        });
+        saveSheet(SHEET_PAY, merged);
+      }
+      return jsonResponse({ ok: true, count: incoming.length });
     }
     return jsonResponse({ ok: false, error: 'Unknown type' });
   } catch(err) {
