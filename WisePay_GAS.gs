@@ -1,14 +1,19 @@
 // WisePay GAS Script
-// 수정: 2026-05-22 12:45 — 디버그 로그 제거 (파싱 정상 확인 후)
+// 수정: 2026-05-22 13:30 — 시트명 한글화 (従業員→사원정보 등) + 마이그레이션 함수 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
 // ⚠️ PDF 파싱 기능을 쓰려면:
 //   GAS 편집기 왼쪽 메뉴 「서비스(+)」→ Drive API v2 추가 필요
 
-const SHEET_EMP  = '従業員';
-const SHEET_PAY  = '給与データ';
-const SHEET_RATE = '保険料率履歴';
+const SHEET_EMP  = '사원정보';
+const SHEET_PAY  = '급여데이터';
+const SHEET_RATE = '보험요율데이터';
+
+// 일본어 시트명 (마이그레이션 후 삭제 대상)
+const SHEET_EMP_JP  = '従業員';
+const SHEET_PAY_JP  = '給与データ';
+const SHEET_RATE_JP = '保険料率履歴';
 
 // 협회けんぽ URL (2025년 사이트 개편 후 변경된 URL)
 const KENPO_INDEX_URL = 'https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/';
@@ -400,4 +405,41 @@ function kenpoFetch(url, opts) {
 }
 
 // ── GAS 通信 (JSONP) ───────────────────────────────────────────
-// フロントエンドは gasRequest() で呼び出す (gas.js 参照)
+// フロントエンドは gasRequest() で呼び出す (gas.js 참조)
+
+// ── 일본어 시트 → 한글 시트 마이그레이션 (한 번만 실행) ──────────
+// GAS 편집기에서 직접 실행: migrateToKoreanSheets 선택 후 ▶ 실행
+function migrateToKoreanSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pairs = [
+    { from: SHEET_EMP_JP,  to: SHEET_EMP  },
+    { from: SHEET_PAY_JP,  to: SHEET_PAY  },
+    { from: SHEET_RATE_JP, to: SHEET_RATE },
+  ];
+
+  pairs.forEach(({ from, to }) => {
+    const srcSheet = ss.getSheetByName(from);
+    if (!srcSheet) {
+      Logger.log('스킵 (없음): ' + from);
+      return;
+    }
+
+    const srcData = srcSheet.getDataRange().getValues();
+    if (srcData.length <= 1) {
+      Logger.log('스킵 (데이터 없음): ' + from);
+    } else {
+      // 한글 시트가 없으면 생성, 있으면 내용 덮어쓰기
+      let dstSheet = ss.getSheetByName(to);
+      if (!dstSheet) dstSheet = ss.insertSheet(to);
+      dstSheet.clearContents();
+      dstSheet.getRange(1, 1, srcData.length, srcData[0].length).setValues(srcData);
+      Logger.log('이전 완료: ' + from + ' → ' + to + ' (' + (srcData.length - 1) + '행)');
+    }
+
+    // 일본어 시트 삭제
+    ss.deleteSheet(srcSheet);
+    Logger.log('삭제 완료: ' + from);
+  });
+
+  Logger.log('마이그레이션 완료');
+}
