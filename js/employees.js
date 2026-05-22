@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-21 15:14 — cancelEmpForm 한국어 모드 「新規」→「직원 추가」 수정
+﻿// 수정: 2026-05-22 14:20 — normalizeDate 적용 (입사일/생년월일 ISO→YYYY-MM-DD)
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -140,7 +140,7 @@ function renderEmpFormFields(emp) {
           <span class="form-error" id="f-join-err"></span>
         </div>
       </div>
-      <input class="form-input" id="f-join" type="text" value="${v('join')}"
+      <input class="form-input" id="f-join" type="text" value="${normalizeDate(v('join'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-join-err')"
         onkeydown="onDateKeydown(event,'f-birth','f-join-err')" oninput="onDateInput(this)">
@@ -152,7 +152,7 @@ function renderEmpFormFields(emp) {
           <span class="form-error" id="f-birth-err"></span>
         </div>
       </div>
-      <input class="form-input" id="f-birth" type="text" value="${v('birth')}"
+      <input class="form-input" id="f-birth" type="text" value="${normalizeDate(v('birth'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-birth-err')"
         onkeydown="onDateKeydown(event,'f-kaigo','f-birth-err')" oninput="onDateInput(this)">
@@ -574,7 +574,7 @@ function renderFamTable() {
     const age = currentYear - parseInt(f.birth.substring(0,4));
     const isTarget = age >= 16;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${f.name}</td><td>${f.birth}</td><td><span class="fam-badge ${isTarget?'badge-ok':'badge-no'}">${isTarget?(jp?'対象':'대상'):(jp?'16歳未満':'16세 미만')}</span></td><td><button class="btn btn-sm" onclick="removeFam(${i})" style="color:var(--red);padding:3px 7px;">${jp?'削除':'삭제'}</button></td>`;
+    tr.innerHTML=`<td>${f.name}</td><td>${normalizeDate(f.birth)}</td><td><span class="fam-badge ${isTarget?'badge-ok':'badge-no'}">${isTarget?(jp?'対象':'대상'):(jp?'16歳未満':'16세 미만')}</span></td><td><button class="btn btn-sm" onclick="removeFam(${i})" style="color:var(--red);padding:3px 7px;">${jp?'削除':'삭제'}</button></td>`;
     tbody.appendChild(tr);
   });
 }

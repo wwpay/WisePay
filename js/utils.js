@@ -1,4 +1,5 @@
-﻿'use strict';
+﻿// 수정: 2026-05-22 14:20 — normalizeDate 함수 추가
+'use strict';
 
 function openModal(id) {
   const el = document.getElementById(id);
@@ -44,6 +45,14 @@ function normalizeYM(val) {
   } catch(e) {}
   const match = s.match(/^(\d{4})-(\d{2})/);
   return match ? `${match[1]}-${match[2]}` : s;
+}
+
+// ISO 날짜 문자열 → YYYY-MM-DD (예: '1973-07-18T15:00:00.000Z' → '1973-07-18')
+function normalizeDate(val) {
+  if (!val) return '';
+  const s = String(val).trim();
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : s;
 }
 
 function fmtYM(ym) {

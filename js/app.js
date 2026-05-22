@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-22 13:10 — resetLocalData 후 renderRatesPage 등 누락 렌더 추가
+﻿// 수정: 2026-05-22 14:20 — resetLocalData 시 직원 편집 폼 강제 초기화 추가
 'use strict';
 // ══ INIT ══
 window.addEventListener('DOMContentLoaded', () => {
@@ -122,6 +122,10 @@ function resetLocalData() {
   Object.keys(localStorage)
     .filter(k => k.startsWith('kyuyo_') && !keepKeys.has(k))
     .forEach(k => localStorage.removeItem(k));
+
+  // 직원 편집 폼 초기화 (이전 데이터가 화면에 남지 않도록)
+  empFormDirty = false;
+  cancelEmpForm();
 
   // 상태 변수 초기화
   employees = [];
