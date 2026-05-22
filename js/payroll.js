@@ -61,7 +61,7 @@ function renderEmpSelect() {
   // 미선택 옵션 항상 첫 번째에
   const blank = document.createElement('option');
   blank.value = '-1';
-  blank.textContent = jp ? '── 従業員を選択 ──' : '── 직원을 선택 ──';
+  blank.textContent = jp ? '── 従業員を選択 ──' : '── 사원을 선택 ──';
   sel.appendChild(blank);
   if(!employees.length) return;
   employees.forEach((e,i) => {
@@ -288,7 +288,7 @@ function recalc() {
 
 // ══ SAVE PAYROLL ══
 function saveCurrent() {
-  if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'직원을 먼저 등록해 주세요','w'); return; }
+  if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'사원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
   const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
   const d={}; PFIELDS.forEach(f=>{d[f]=document.getElementById(f)?.value||0;}); d._net=window._calc?.net||0;

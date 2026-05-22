@@ -1,4 +1,4 @@
-// 수정: 2026-05-22 17:32 — autoLoad/import 시 직원 자동선택(currentEmpIdx=0) 제거
+// 수정: 2026-05-22 17:32 — autoLoad/import 시 사원 자동선택(currentEmpIdx=0) 제거
 'use strict';
 async function exportAllToGas() {
   if (!gasUrl) {
@@ -57,12 +57,12 @@ async function exportAllToGas() {
     const rateCount = (saved.rateHistory || []).length;
 
     if (empCount < employees.length) {
-      throw new Error('저장 확인 실패: 직원 ' + empCount + '/' + employees.length);
+      throw new Error('저장 확인 실패: 사원 ' + empCount + '/' + employees.length);
     }
 
     const msg = LANG === 'JP'
       ? '✅ 保存確認完了！従業員 ' + empCount + '名、給与 ' + payrollCount + '件、料率 ' + rateCount + '件'
-      : '✅ 저장 확인 완료! 직원 ' + empCount + '명, 급여 ' + payrollCount + '건, 요율 ' + rateCount + '건';
+      : '✅ 저장 확인 완료! 사원 ' + empCount + '명, 급여 ' + payrollCount + '건, 요율 ' + rateCount + '건';
 
     if (statusEl) {
       statusEl.innerHTML = '<span style="color:var(--green)">' + msg + '</span>';
@@ -275,7 +275,7 @@ async function importAllFromGas() {
       }));
       saveRateHistory();
     }
-    const msg=jp?'✅ 完了！従業員'+(d.employees||[]).length+'名、給与'+(d.payrolls||[]).length+'件':'✅ 완료! 직원 '+(d.employees||[]).length+'명, 급여 '+(d.payrolls||[]).length+'건';
+    const msg=jp?'✅ 完了！従業員'+(d.employees||[]).length+'名、給与'+(d.payrolls||[]).length+'件':'✅ 완료! 사원 '+(d.employees||[]).length+'명, 급여 '+(d.payrolls||[]).length+'건';
     if(statusEl) statusEl.innerHTML='<span style="color:var(--green)">'+msg+'</span>';
     renderEmpSelect(); renderEmpList(); loadPayrollForm();
     applyRatesForYM(currentYear,currentMonth); updateRatesDisplay(); renderRatesPage();

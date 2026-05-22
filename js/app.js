@@ -12,6 +12,16 @@ function initApp() {
   // load storage
   try { const s = localStorage.getItem(LS.emp); if(s) employees = JSON.parse(s); } catch(e){}
   try { const s = localStorage.getItem(LS.rateHistory); if(s) rateHistory = JSON.parse(s); } catch(e){}
+  // 마이그레이션: 부양가족 families 기반으로 fuyouCount 자동 갱신
+  let fuyouMigrated = false;
+  employees.forEach(emp => {
+    const cnt = Math.min((emp.families||[]).filter(f=>{
+      if(!f.birth) return false;
+      return (currentYear - parseInt(f.birth.substring(0,4))) >= 16;
+    }).length, 7);
+    if((emp.fuyouCount||0) !== cnt) { emp.fuyouCount = cnt; fuyouMigrated = true; }
+  });
+  if(fuyouMigrated) localStorage.setItem(LS.emp, JSON.stringify(employees));
   // 마이그레이션: 2026-04 이전 항목의 kodomo가 0.23이면 0으로 수정
   // 2026-01~02의 kaigo가 1.60이면 1.59로 수정 (令和7年度 실제 요율)
   let migrated = false;
@@ -100,7 +110,7 @@ function gotoPage(id, el) {
     const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'직원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'年間給与一覧',KR:'연간 급여 일람'},gas:{JP:'Google連携設定',KR:'Google 연동 설정'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'年間給与一覧',KR:'연간 급여 일람'},gas:{JP:'Google連携設定',KR:'Google 연동 설정'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   document.getElementById('btn-save').style.display = id==='payroll' ? '' : 'none';
@@ -116,7 +126,7 @@ function resetLocalData() {
   const jp = LANG === 'JP';
   const msg = jp
     ? '⚠️ ローカルデータをすべて削除します。\n\n従業員・給与・保険料率データが消去されます。\nGoogleのデータは影響を受けません。\n\n本当に初期化しますか？'
-    : '⚠️ 로컬 데이터를 모두 삭제합니다.\n\n직원·급여·보험료율 데이터가 지워집니다.\nGoogle 시트 데이터는 영향 없습니다.\n\n정말 초기화하시겠습니까?';
+    : '⚠️ 로컬 데이터를 모두 삭제합니다.\n\n사원·급여·보험료율 데이터가 지워집니다.\nGoogle 시트 데이터는 영향 없습니다.\n\n정말 초기화하시겠습니까?';
   if (!confirm(msg)) return;
 
   // kyuyo_ 접두사 키 전체 삭제 (lang, auth 제외)
@@ -125,7 +135,7 @@ function resetLocalData() {
     .filter(k => k.startsWith('kyuyo_') && !keepKeys.has(k))
     .forEach(k => localStorage.removeItem(k));
 
-  // 직원 편집 폼 초기화 (이전 데이터가 화면에 남지 않도록)
+  // 사원 편집 폼 초기화 (이전 데이터가 화면에 남지 않도록)
   empFormDirty = false;
   cancelEmpForm();
 

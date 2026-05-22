@@ -1,12 +1,12 @@
-﻿// 수정: 2026-05-22 14:20 — normalizeDate 적용 (입사일/생년월일 ISO→YYYY-MM-DD)
+﻿// 수정: 2026-05-23 — 부양가족 자동 계산 반영, '직원' → '사원' 전체 변경
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
   const title=document.getElementById('empListTitle');
-  title.textContent=(LANG==='JP'?`従業員一覧（${employees.length}名）`:`직원 목록（${employees.length}명）`);
+  title.textContent=(LANG==='JP'?`従業員一覧（${employees.length}名）`:`사원 목록（${employees.length}명）`);
   body.innerHTML='';
   if(!employees.length) {
-    body.innerHTML=`<div class="emp-list-empty">${LANG==='JP'?'従業員が登録されていません':'등록된 직원이 없습니다'}</div>`;
+    body.innerHTML=`<div class="emp-list-empty">${LANG==='JP'?'従業員が登録されていません':'등록된 사원이 없습니다'}</div>`;
     return;
   }
   employees.forEach((emp,i)=>{
@@ -47,7 +47,7 @@ function clearFieldError(errId, inputId) {
 }
 
 function openEmpForm(idx) {
-  // 수정 중인데 다른 직원 선택 시 경고
+  // 수정 중인데 다른 사원 선택 시 경고
   if(editingEmpIdx !== -1 && empFormDirty && idx !== editingEmpIdx) {
     const jp = LANG==='JP';
     const msg = jp
@@ -63,7 +63,7 @@ function openEmpForm(idx) {
 
   if(idx===-1) {
     tempFamilies=[];
-    title.textContent=LANG==='JP'?'新規従業員登録':'신규 직원 등록';
+    title.textContent=LANG==='JP'?'新規従業員登録':'신규 사원 등록';
     btns.innerHTML=`<button class="btn btn-success btn-sm" onclick="saveEmployee()">${LANG==='JP'?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${LANG==='JP'?'キャンセル':'취소'}</button>`;
     renderEmpFormFields(null);
   } else {
@@ -87,8 +87,8 @@ function cancelEmpForm() {
   tempFamilies=[];
   empFormDirty=false;
   const body=document.getElementById('empFormBody');
-  body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--text3);"><div style="font-size:36px;margin-bottom:10px;">👈</div><div>${LANG==='JP'?'左のリストから選択、または「新規」ボタンで登録してください。':'좌측 목록에서 선택하거나 「직원 추가」 버튼으로 등록해 주세요.'}</div></div>`;
-  document.getElementById('empFormTitle').textContent=LANG==='JP'?'従業員を選択してください':'직원을 선택해 주세요';
+  body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--text3);"><div style="font-size:36px;margin-bottom:10px;">👈</div><div>${LANG==='JP'?'左のリストから選択、または「新規」ボタンで登録してください。':'좌측 목록에서 선택하거나 「사원 추가」 버튼으로 등록해 주세요.'}</div></div>`;
+  document.getElementById('empFormTitle').textContent=LANG==='JP'?'従業員を選択してください':'사원을 선택해 주세요';
   document.getElementById('empFormBtns').innerHTML='';
   renderEmpList();
 }
@@ -196,10 +196,10 @@ function renderEmpFormFields(emp) {
         <div class="form-label-row">
           <label class="form-label">${jp?'扶養親族等の数（所得税用）':'부양친족 수（소득세용）'}</label>
         </div>
-        <div class="form-label-hint">${jp?'扶養控除等申告書に記載の人数（配偶者含む）':'부양공제신고서 기재 인원（배우자 포함）'}</div>
+        <div class="form-label-hint">${jp?'扶養家族（16歳以上）から自動計算':'부양가족（16세 이상）에서 자동 계산'}</div>
       </div>
       <select class="form-select" id="f-fuyou" onchange="markDirty()">
-        ${[0,1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${parseInt(v('fuyouCount','0'))===n?'selected':''}>${n}${jp?'人':'명'}</option>`).join('')}
+        ${[0,1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${(emp ? countFamilies(emp) : 0)===n?'selected':''}>${n}${jp?'人':'명'}</option>`).join('')}
       </select>
     </div>
     <div class="form-group">
@@ -584,6 +584,8 @@ function updateFamCount() {
   if(!el) return;
   const cnt = tempFamilies.filter(f=>{ if(!f.birth) return false; return (currentYear-parseInt(f.birth.substring(0,4)))>=16; }).length;
   el.textContent = cnt+(LANG==='JP'?'名':'명');
+  const fuyouEl = document.getElementById('f-fuyou');
+  if(fuyouEl) fuyouEl.value = String(Math.min(cnt, 7));
 }
 
 // ══ SAVE EMP ══
@@ -639,7 +641,7 @@ function saveEmployee() {
 
   if(editingEmpIdx===-1) {
     employees.push(empData);
-    // 신규 등록 후 해당 직원 편집 모드로 전환
+    // 신규 등록 후 해당 사원 편집 모드로 전환
     editingEmpIdx = employees.length - 1;
   } else {
     const oldNo = employees[editingEmpIdx].no;
@@ -676,7 +678,7 @@ function saveEmployee() {
   if(btns) btns.innerHTML = `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${LANG==='JP'?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${editingEmpIdx})">${LANG==='JP'?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${LANG==='JP'?'キャンセル':'취소'}</button>`;
   showToast(gasUrl
     ? (jp?'保存 & Google同期 ✓':'저장 & Google 동기화 ✓')
-    : (jp?'従業員情報を保存しました ✓':'직원 정보를 저장했습니다 ✓'), 's');
+    : (jp?'従業員情報を保存しました ✓':'사원 정보를 저장했습니다 ✓'), 's');
 }
 
 function deleteEmp(i) {

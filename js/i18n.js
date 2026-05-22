@@ -39,8 +39,8 @@ function applyLang() {
   setTxt('t-nav-annual', '年間給与一覧', '연간 급여 일람');
   setTxt('t-annual-title', '年間給与一覧', '연간 급여 일람');
   setTxt('t-nav-setting', '設定', '설정');
-  setTxt('t-nav-emp', '従業員管理', '직원 관리');
-  setTxt('t-emp-add', '+ 新規', '+ 직원 추가');
+  setTxt('t-nav-emp', '従業員管理', '사원 관리');
+  setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
   setTxt('t-nav-rates', '保険料率設定', '보험료율 설정');
   setTxt('t-nav-gas', 'Google連携設定', 'Google 연동 설정');
 
@@ -98,7 +98,7 @@ function applyLang() {
   setTxt('t-gas-sync-note', '※ 初回は「ローカル → Google」で既存データをアップロードしてください', '※ 초회는 「로컬 → Google」로 기존 데이터를 업로드해 주세요');
   setTxt('t-reset-zone', '危険区域', '위험 구역');
   setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');
-  setTxt('t-reset-desc', '従業員・給与・保険料率などブラウザに保存されたデータをすべて削除します。', '직원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.');
+  setTxt('t-reset-desc', '従業員・給与・保険料率などブラウザに保存されたデータをすべて削除します。', '사원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.');
   setTxt('t-reset-btn', '初期化', '초기화');
 
   setTxt('t-rates-page-title', '保険料率設定', '보험료율 설정');
@@ -119,11 +119,11 @@ function applyLang() {
   setTxt('t-h-kenko', '健康保険', '건강보험');
   setTxt('t-h-shotoku', '所得税', '소득세');
 
-  setTxt('empFormTitle', '従業員を選択してください', '직원을 선택해 주세요');
-  setTxt('t-emp-select-hint', '左のリストから従業員を選択するか、「新規」ボタンで登録してください。', '좌측 목록에서 직원을 선택하거나, 「직원 추가」 버튼으로 등록해 주세요。');
+  setTxt('empFormTitle', '従業員を選択してください', '사원을 선택해 주세요');
+  setTxt('t-emp-select-hint', '左のリストから従業員を選択するか、「新規」ボタンで登録してください。', '좌측 목록에서 사원을 선택하거나, 「사원 추가」 버튼으로 등록해 주세요。');
 
-  setTxt('t-payroll-ph-main', '従業員を選択してください', '직원을 선택해 주세요');
-  setTxt('t-payroll-ph-sub', '上のドロップダウンから従業員を選択すると給与明細が表示されます。', '위 드롭다운에서 직원을 선택하면 급여 명세가 표시됩니다.');
+  setTxt('t-payroll-ph-main', '従業員を選択してください', '사원을 선택해 주세요');
+  setTxt('t-payroll-ph-sub', '上のドロップダウンから従業員を選択すると給与明細が表示されます。', '위 드롭다운에서 사원을 선택하면 급여 명세가 표시됩니다.');
   setTxt('t-rates-title', '適用保険料率（2026年度・東京都）', '적용 보험료율（2026년도・도쿄도）');
   setHtml('t-rt-kenko', '健康保険料率<br>（東京都）', '건강보험료율<br>（도쿄도）');
   setHtml('t-rt-kaigo', '介護保険料率<br>（全国一律）', '개호보험료율<br>（전국 일률）');
