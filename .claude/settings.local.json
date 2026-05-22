@@ -16,7 +16,8 @@
       "Bash(Get-Content \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\\\\js\\\\i18n.js\" -TotalCount 1)",
       "Bash(Get-Content \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\\\\js\\\\payroll.js\" -TotalCount 1)",
       "Bash(Get-Content \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\\\\js\\\\gas.js\" -TotalCount 1)",
-      "PowerShell(Get-Content *)"
+      "PowerShell(Get-Content *)",
+      "WebSearch"
     ]
   }
 }
