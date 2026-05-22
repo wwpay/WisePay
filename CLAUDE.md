@@ -39,4 +39,4 @@
 - 날짜/시간은 실제 수정 시각으로 기재 (모를 경우 사용자에게 확인)
 - 날짜/시간은 반드시 **JST(일본 표준시, Asia/Tokyo)** 기준으로 기록한다
 - 코드에서 날짜/시간을 다룰 때는 `Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd HH:mm:ss")` 사용
-- 내용은 한국어 또는 일본어로 작성
+- 내용은 한국어로 작성
