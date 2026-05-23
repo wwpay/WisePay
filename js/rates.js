@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-23 08:21 — 보험료율 설정 페이지 UI 개선: 적용 기간 표시, 변경 요율 강조
+﻿// 수정: 2026-05-23 09:09 — 오늘 기준/선택월 기준 적용 행 분리 표시
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -127,62 +127,68 @@ function renderRateHistoryRows() {
   const keys = ['kenko','kaigo','kodomo','nenkin','koyo'];
   tbody.innerHTML = '';
 
-  // 오래된 순으로 정렬해 "until" 날짜 계산, 표시는 새로운 순
+  // 오래된 순 정렬 → "until" 날짜 계산, 표시는 새로운 순
   const sorted = [...rateHistory].sort((a,b) => a.from > b.from ? 1 : -1);
-  const curApplied = getRatesForYM(currentYear, currentMonth);
+
+  // 오늘 날짜 기준 / 선택월 기준 적용 요율 (별도 계산)
+  const now = new Date();
+  const todayApplied = getRatesForYM(now.getFullYear(), now.getMonth() + 1);
+  const selApplied   = getRatesForYM(currentYear, currentMonth);
+  const selDiffersFromToday = selApplied.from !== todayApplied.from;
 
   // 새로운 순으로 표시
   [...sorted].reverse().forEach((r, revIdx) => {
-    const origIdx = sorted.length - 1 - revIdx;
-    const nextEntry = sorted[origIdx + 1]; // 다음(더 새로운) 항목
-    const prevEntry = origIdx > 0 ? sorted[origIdx - 1] : null; // 이전(더 오래된) 항목
+    const origIdx  = sorted.length - 1 - revIdx;
+    const nextEntry = sorted[origIdx + 1];
+    const prevEntry = origIdx > 0 ? sorted[origIdx - 1] : null;
 
-    const isCurrent = curApplied.from === r.from;
+    const isToday = todayApplied.from === r.from;
+    const isSel   = selDiffersFromToday && selApplied.from === r.from;
 
     // 적용 기간 "from ~ until"
     let untilStr;
     if (!nextEntry) {
       untilStr = jp ? '現在' : '현재';
     } else {
-      // until = next entry's from - 1 month
       let [ny, nm] = nextEntry.from.split('-').map(Number);
       nm -= 1; if (nm === 0) { nm = 12; ny -= 1; }
       const untilYM = `${ny}-${String(nm).padStart(2,'0')}`;
-      untilStr = untilYM === r.from
-        ? '' // 단일월은 until 생략
-        : (jp ? `${ny}年${nm}月` : `${ny}.${nm}`);
+      untilStr = untilYM === r.from ? '' : (jp ? `${ny}年${nm}月` : `${ny}.${nm}`);
     }
     const fromFmt = jp
       ? `${r.from.split('-')[0]}年${parseInt(r.from.split('-')[1])}月`
       : `${r.from.split('-')[0]}.${parseInt(r.from.split('-')[1])}`;
-    const periodLabel = untilStr
-      ? `${fromFmt} ~ ${untilStr}`
-      : fromFmt;
+    const periodLabel = untilStr ? `${fromFmt} ~ ${untilStr}` : fromFmt;
 
     // 이전 항목 대비 변경된 요율 키
     const changed = prevEntry
       ? keys.filter(k => Math.abs((r[k]||0) - (prevEntry[k]||0)) > 0.0001)
       : keys;
 
-    const rowBg = isCurrent ? 'background:var(--accent2);' : (revIdx % 2 === 0 ? '' : 'background:var(--surface2);');
+    const rowBg = isToday
+      ? 'background:var(--accent2);'
+      : isSel
+        ? 'background:#fffbe6;'
+        : (revIdx % 2 === 0 ? '' : 'background:var(--surface2);');
+
+    const badge = isToday
+      ? `<div style="font-size:10px;color:var(--accent);margin-top:1px;">${jp?'▶ 本日適用中':'▶ 오늘 기준 적용 중'}</div>`
+      : isSel
+        ? `<div style="font-size:10px;color:var(--orange);margin-top:1px;">${jp?`▶ 選択月(${currentYear}/${currentMonth})適用`:`▶ 선택월(${currentYear}/${currentMonth}) 적용`}</div>`
+        : '';
 
     const tr = document.createElement('tr');
     tr.style.cssText = rowBg;
     tr.innerHTML = `
       <td style="padding:7px 10px;border-bottom:1px solid var(--border2);">
-        <div style="font-size:12px;font-weight:${isCurrent?'700':'500'};color:${isCurrent?'var(--accent)':'var(--text)'};">${periodLabel}</div>
-        ${isCurrent ? `<div style="font-size:10px;color:var(--accent);margin-top:1px;">${jp?'▶ 現在適用中':'▶ 현재 적용 중'}</div>` : ''}
+        <div style="font-size:12px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--accent)':isSel?'var(--orange)':'var(--text)'};">${periodLabel}</div>
+        ${badge}
       </td>
       ${keys.map(k => {
         const isChanged = changed.includes(k);
         const val = Number(r[k]).toFixed(2);
         return `<td style="padding:7px 4px;border-bottom:1px solid var(--border2);text-align:right;">
-          <span style="
-            font-size:13px;
-            font-weight:${isCurrent||isChanged?'700':'400'};
-            color:${isCurrent?'var(--accent)':isChanged?'var(--orange)':'var(--text)'};
-            ${isChanged&&!isCurrent?'border-bottom:2px solid var(--orange);padding-bottom:1px;':''}
-          ">${val}</span>
+          <span style="font-size:13px;font-weight:${isToday||isChanged?'700':'400'};color:${isToday?'var(--accent)':isChanged?'var(--orange)':'var(--text)'};${isChanged&&!isToday?'border-bottom:2px solid var(--orange);padding-bottom:1px;':''}">${val}</span>
           <span style="font-size:10px;color:var(--text3);">%</span>
         </td>`;
       }).join('')}
@@ -195,9 +201,11 @@ function renderRateHistoryRows() {
   // 범례
   const legend = document.createElement('tr');
   legend.innerHTML = `<td colspan="${keys.length+2}" style="padding:6px 10px;font-size:10px;color:var(--text3);">
-    <span style="color:var(--orange);font-weight:700;">■</span> ${jp?'前期比 変更あり':'이전 대비 변경된 요율'}
-    &nbsp;&nbsp;
-    <span style="color:var(--accent);font-weight:700;">■</span> ${jp?'現在適用中':'현재 적용 중'}
+    <span style="color:var(--accent);font-weight:700;">■</span> ${jp?'本日適用中':'오늘 기준 적용 중'}
+    &nbsp;
+    <span style="color:var(--orange);font-weight:700;">■</span> ${jp?'選択月適用':'선택월 적용'}
+    &nbsp;
+    <span style="color:var(--orange);text-decoration:underline;">0.00</span> ${jp?'前期比変更':'이전 대비 변경'}
   </td>`;
   tbody.appendChild(legend);
 }
