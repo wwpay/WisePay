@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-23 07:09 — '사원' 변경
+﻿// 수정: 2026-05-23 09:51 — 연도 변경 시 이전 연도→12월, 다음 연도→1월 자동 포커스
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -27,7 +27,7 @@ function changeYear(d) {
     const msg = jp ? '保存されていない給与データがあります。このまま切り替えますか？' : '저장되지 않은 급여 데이터가 있습니다. 전환하시겠습니까?';
     if(!confirm(msg)) return;
   }
-  currentYear+=d; renderMonthTabs(); onMonthYearChange();
+  currentYear+=d; currentMonth = d < 0 ? 12 : 1; renderMonthTabs(); onMonthYearChange();
 }
 
 // 월/연도 변경 시 요율 자동 전환 + 알림
