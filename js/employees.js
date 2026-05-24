@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 12:59 — 날짜 전각 입력 자동 반각 변환(compositionend), 드롭다운 사원번호+이름 형식
+﻿// 수정: 2026-05-24 13:30 — IME 조합 중 oninput·Enter 건너뜀으로 전각→반각 변환 오류 수정
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -143,7 +143,7 @@ function renderEmpFormFields(emp) {
       <input class="form-input" id="f-join" type="text" value="${normalizeDate(v('join'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-join-err')"
-        onkeydown="onDateKeydown(event,'f-birth','f-join-err')" oninput="onDateInput(this)"
+        onkeydown="onDateKeydown(event,'f-birth','f-join-err')" oninput="onDateInput(event)"
         oncompositionend="onDateCompositionEnd(event)">
     </div>
     <div class="form-group">
@@ -156,7 +156,7 @@ function renderEmpFormFields(emp) {
       <input class="form-input" id="f-birth" type="text" value="${normalizeDate(v('birth'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-birth-err')"
-        onkeydown="onDateKeydown(event,'f-kaigo','f-birth-err')" oninput="onDateInput(this)"
+        onkeydown="onDateKeydown(event,'f-kaigo','f-birth-err')" oninput="onDateInput(event)"
         oncompositionend="onDateCompositionEnd(event)">
     </div>
     <div class="form-group">
@@ -235,7 +235,7 @@ function renderEmpFormFields(emp) {
         <input class="form-input" id="fam-birth" type="text"
           placeholder="YYYY-MM-DD" autocomplete="off"
           onfocus="onDateFocus(this)" onblur="onDateBlur(this,'fam-birth-err')"
-          onkeydown="onDateKeydown(event,'addFam','fam-birth-err')" oninput="onDateInput(this)"
+          onkeydown="onDateKeydown(event,'addFam','fam-birth-err')" oninput="onDateInput(event)"
           oncompositionend="onDateCompositionEnd(event)">
       </div>
       <button class="btn btn-success btn-sm" onclick="addFam()">${jp?'追加':'추가'}</button>
@@ -326,7 +326,10 @@ function toDateHalf(v) {
   return v.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFF10 + 0x30));
 }
 
-function onDateInput(input) {
+function onDateInput(event) {
+  // IME 조합 중에는 건너뜀 — compositionend에서 처리
+  if (event.isComposing) return;
+  const input = event.target;
   const half = toDateHalf(input.value);
   const digits = half.replace(/\D/g, '');
   if (digits.length >= 8) {
@@ -440,6 +443,8 @@ function onDateKeydown(event, nextId, errId) {
 
   if (event.key === 'Enter') {
     event.preventDefault();
+    // IME 확정 중 Enter는 조합 커밋만 수행 — 필드 이동은 하지 않음
+    if (event.isComposing) return;
     if (!tryAdvanceDateField(input, nextId, errId)) {
       input.focus();
     }
