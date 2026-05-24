@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 12:48 — 날짜 일 한 자리 입력 후 엔터 시 0 패딩 자동 완성
+﻿// 수정: 2026-05-24 13:12 — 날짜 입력란 포커스 시 IME 반각 강제, 해제 시 이전 모드 복원
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -293,6 +293,10 @@ function clearDateErrorForInput(input) {
 }
 
 function onDateFocus(input) {
+  // 포커스 시 IME 모드 저장 후 반각(직접 입력) 강제
+  input._prevImeMode = input.style.imeMode;
+  input.style.imeMode = 'disabled';
+
   const norm = normalizeDateInput(input.value);
   if (norm) {
     input.value = norm;
@@ -314,6 +318,10 @@ function finalizeDateInput(input) {
 }
 
 function onDateBlur(input, errId) {
+  // 포커스 해제 시 이전 IME 모드로 복원
+  input.style.imeMode = input._prevImeMode !== undefined ? input._prevImeMode : '';
+  delete input._prevImeMode;
+
   finalizeDateInput(input);
   validateDateText(input, errId, input.dataset.required === '1');
 }
