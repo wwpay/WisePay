@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-23 07:09 — '사원' 변경
+﻿// 수정: 2026-05-24 13:40 — 동기화 아이콘 설명 텍스트 업데이트, freee 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -92,9 +92,9 @@ function applyLang() {
   setTxt('t-gas-step4-title', 'WebアプリのURLを入力', '웹 앱 URL 입력');
   setTxt('t-gas-sync-title', 'データ同期', '데이터 동기화');
   setTxt('t-gas-upload-label', 'ローカル → Google', '로컬 → Google');
-  setTxt('t-gas-upload-desc', '現在のデータをGoogleに保存', '현재 데이터를 Google에 저장');
+  setTxt('t-gas-upload-desc', '現在のデータをGoogleに保存', '현재 데이터를 구글에 저장');
   setTxt('t-gas-download-label', 'Google → ローカル', 'Google → 로컬');
-  setTxt('t-gas-download-desc', '⚠️ ローカルデータが上書きされます', '⚠️ 로컬 데이터가 덮어써집니다');
+  setTxt('t-gas-download-desc', 'ローカルデータを上書きします', '로컬 데이터를 덮어씁니다');
   setTxt('t-gas-sync-note', '※ 初回は「ローカル → Google」で既存データをアップロードしてください', '※ 초회는 「로컬 → Google」로 기존 데이터를 업로드해 주세요');
   setTxt('t-reset-zone', '危険区域', '위험 구역');
   setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');

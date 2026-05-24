@@ -1,4 +1,4 @@
-// 수정: 2026-05-23 09:20 — autoLoadFromGas/importAllFromGas 후 migrateRateHistory 호출
+// 수정: 2026-05-24 13:40 — 급여 CSV 함수 주석에서 freee 제거
 'use strict';
 async function exportAllToGas() {
   if (!gasUrl) {
@@ -391,7 +391,7 @@ async function uploadRateHistoryToGas() {
   }
 }
 
-// ── freee 급여 CSV → Google 시트 임포트 (브라우저 업로드 방식) ──
+// ── 급여 CSV → Google 시트 임포트 (브라우저 업로드 방식) ──
 async function importFreeePayrollCSV() {
   const input    = document.getElementById('freeePayrollInput');
   const statusEl = document.getElementById('freeePayrollStatus');
