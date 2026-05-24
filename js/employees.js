@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 13:30 — IME 조합 중 oninput·Enter 건너뜀으로 전각→반각 변환 오류 수정
+﻿// 수정: 2026-05-24 14:17 — IME Enter: preventDefault를 isComposing 체크 이후로 이동 (조합 확정 막힘 버그)
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -442,9 +442,9 @@ function onDateKeydown(event, nextId, errId) {
   const input = event.target;
 
   if (event.key === 'Enter') {
-    event.preventDefault();
-    // IME 확정 중 Enter는 조합 커밋만 수행 — 필드 이동은 하지 않음
+    // IME 확정 중 Enter는 preventDefault 없이 리턴 → 브라우저가 조합을 정상 커밋
     if (event.isComposing) return;
+    event.preventDefault();
     if (!tryAdvanceDateField(input, nextId, errId)) {
       input.focus();
     }
