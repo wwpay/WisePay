@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 14:26 — 사원 편집 중 페이지 이동 경고 추가, beforeunload empFormDirty 포함
+// 수정: 2026-05-24 17:56 — migrateRateHistory에서 kaigo 자동 수정 제거하여 2024-12 요율 보존
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -34,7 +34,7 @@ function migrateRateHistory() {
   // 오류 값 수정
   rateHistory.forEach(r => {
     if(r.from < '2026-04' && r.kodomo > 0)                      { r.kodomo = 0.00; migrated = true; }
-    if(r.from < '2026-03' && Math.abs(r.kaigo - 1.60) < 0.001) { r.kaigo  = 1.59; migrated = true; }
+    // 介護保険(kaigo) 자동 보정 제거 — 과거 월의 요율을 보존하기 위함
     if(r.from < '2026-04' && Math.abs(r.koyo  - 0.50) < 0.001) { r.koyo   = 0.55; migrated = true; }
   });
   // 누락 항목 추가 (변경 시점 기준 전체 이력)

@@ -22,7 +22,23 @@
       "PowerShell($enc = [System.Text.Encoding]::GetEncoding\\('shift_jis'\\); $lines = Get-Content 'C:\\\\Users\\\\lucky\\\\Desktop\\\\JKS-payroll_books_2026_20260522231112.csv' -Encoding Default; $lines[1] -split ',' | Select-Object -First 5)",
       "Bash(date /t)",
       "Bash(time /t)",
-      "PowerShell([System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId\\([datetime]::UtcNow, 'Tokyo Standard Time'\\).ToString\\('yyyy-MM-dd HH:mm'\\))"
+      "PowerShell([System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId\\([datetime]::UtcNow, 'Tokyo Standard Time'\\).ToString\\('yyyy-MM-dd HH:mm'\\))",
+      "WebFetch(domain:www.mks.or.jp)",
+      "WebFetch(domain:www.nta.go.jp)",
+      "WebFetch(domain:www.nenkin.go.jp)",
+      "WebFetch(domain:www.kyoukaikenpo.or.jp)",
+      "WebFetch(domain:fpsr-tanaka.jp)",
+      "WebFetch(domain:www.ieyasu.co)",
+      "WebFetch(domain:keisan.site)",
+      "WebFetch(domain:hrmos.co)",
+      "WebFetch(domain:www.psrn.jp)",
+      "WebFetch(domain:www.ht-tax.or.jp)",
+      "WebFetch(domain:www.tjk.gr.jp)",
+      "WebFetch(domain:yokaikei.com)",
+      "WebFetch(domain:www.cells.co.jp)",
+      "WebFetch(domain:help-timecard.smaregi.jp)",
+      "WebFetch(domain:support.yayoi-kk.co.jp)",
+      "WebFetch(domain:jinjer-kyuyo.zendesk.com)"
     ]
   }
 }

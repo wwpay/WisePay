@@ -29,6 +29,30 @@ function doGet(e) {
     if      (action === 'test')                                    result = { ok: true };
     else if (action === 'getAll')                                  result = getAllData();
     else if (action === 'scrapeRates' || action === 'scrapeKenpoRates') result = scrapeKenpoRates();
+    else if (action === 'importPayrolls') {
+      let incoming = [];
+      try { incoming = JSON.parse(e.parameter.payrolls || '[]'); } catch(err) { incoming = []; }
+      if (incoming.length) {
+        const existing = sheetToObjects(getSheet(SHEET_PAY));
+        const payMap = {};
+        existing.forEach(function(p) {
+          payMap[String(parseInt(p.no)) + '_' + p.year + '_' + p.month] = p;
+        });
+        incoming.forEach(function(fp) {
+          const k = fp.no + '_' + fp.year + '_' + fp.month;
+          if (payMap[k]) { Object.assign(payMap[k], fp); } else { payMap[k] = fp; }
+        });
+        const merged = Object.values(payMap).sort(function(a, b) {
+          const nd = parseInt(a.no) - parseInt(b.no);
+          if (nd !== 0) return nd;
+          const yd = a.year - b.year;
+          if (yd !== 0) return yd;
+          return a.month - b.month;
+        });
+        saveSheet(SHEET_PAY, merged);
+      }
+      result = { ok: true, count: incoming.length };
+    }
     else result = { ok: false, error: 'Unknown action: ' + action };
   } catch(err) {
     result = { ok: false, error: err.message };
@@ -292,18 +316,25 @@ function extractRatesFromText(text) {
   const normalized = toHankaku(text.replace(/[　\s]+/g, ' ').replace(/\s+/g, ' ').trim());
   let kenko = null;
   let kaigo = null;
+  let tokyoSegment = null;
 
-  // 「東京都」を見つけ、直後〜次の都道府県名の前までを切り出して当年度率（最後の値）を取得
+  // 「東京都」を見つけ、直後〜次の都道府県名の前までを切り出し、そのセグメント内で率を抽出
   const tokyoIdx = normalized.indexOf('東京都');
   if (tokyoIdx >= 0) {
     const afterStart = tokyoIdx + 3; // '東京都' の3文字をスキップ
     const nextPrefPos = normalized.slice(afterStart).search(/[一-鿿]+[都道府県]/);
-    const endPos = nextPrefPos > 0 ? afterStart + nextPrefPos : tokyoIdx + 150;
-    const segment = normalized.slice(tokyoIdx, endPos);
-    const nums = extractNumbers(segment).filter(v => v >= 8.0 && v <= 12.0);
-    if (nums.length > 0) kenko = nums[nums.length - 1]; // 末尾が当年度率
+    const endPos = nextPrefPos > 0 ? afterStart + nextPrefPos : Math.min(normalized.length, tokyoIdx + 250);
+    tokyoSegment = normalized.slice(tokyoIdx, endPos);
+    const tokyoNums = extractNumbers(tokyoSegment).filter(v => v >= 1.0 && v <= 12.0);
+    if (tokyoNums.length > 0) {
+      const kenkoCandidates = tokyoNums.filter(v => v >= 8.0 && v <= 12.0);
+      if (kenkoCandidates.length) kenko = kenkoCandidates[kenkoCandidates.length - 1];
+      const kaigoCandidates = tokyoNums.filter(v => v >= 1.0 && v <= 3.5 && Math.abs(v - kenko) > 0.001);
+      if (kaigoCandidates.length) kaigo = kaigoCandidates[kaigoCandidates.length - 1];
+    }
   }
-  // フォールバック
+
+  // フォールバック: 東京セグメントに値がない場合はページ全体を検索
   if (kenko == null) {
     kenko = findNumberNearKeyword(normalized, '健康保険料率|健康保険料|協会けんぽ', 8.0, 12.0, 400);
   }
@@ -312,11 +343,17 @@ function extractRatesFromText(text) {
   }
   Logger.log('健康保険料率(東京)候補: ' + kenko);
 
-  // 介護保険料率を探す
-  const kaigoPatterns = ['介護保険料率', '介護保険.*?料率', '介護保険料', '介護保険'];
-  for (const pattern of kaigoPatterns) {
-    kaigo = findNumberNearKeyword(normalized, pattern, 1.0, 3.5, 400);
-    if (kaigo != null) break;
+  if (kaigo == null && tokyoSegment) {
+    for (const pattern of ['介護保険料率', '介護保険.*?料率', '介護保険料', '介護保険']) {
+      const found = findNumberNearKeyword(tokyoSegment, pattern, 1.0, 3.5, 200);
+      if (found != null) { kaigo = found; break; }
+    }
+  }
+  if (kaigo == null) {
+    for (const pattern of ['介護保険料率', '介護保険.*?料率', '介護保険料', '介護保険']) {
+      kaigo = findNumberNearKeyword(normalized, pattern, 1.0, 3.5, 400);
+      if (kaigo != null) break;
+    }
   }
   if (kaigo == null) {
     kaigo = extractNumbers(normalized).find(v => v >= 1.0 && v <= 3.5) || null;
