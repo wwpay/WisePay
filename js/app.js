@@ -1,4 +1,4 @@
-// 수정: 2026-05-24 17:56 — migrateRateHistory에서 kaigo 자동 수정 제거하여 2024-12 요율 보존
+// 수정: 2026-05-24 18:18 — migrateRateHistory: 2024/2025 kenko·kaigo 기존 오류값 강제 교정 + 연간 일람 전년12월~당년11월 대응
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -34,8 +34,13 @@ function migrateRateHistory() {
   // 오류 값 수정
   rateHistory.forEach(r => {
     if(r.from < '2026-04' && r.kodomo > 0)                      { r.kodomo = 0.00; migrated = true; }
-    // 介護保険(kaigo) 자동 보정 제거 — 과거 월의 요율을 보존하기 위함
     if(r.from < '2026-04' && Math.abs(r.koyo  - 0.50) < 0.001) { r.koyo   = 0.55; migrated = true; }
+    // 2024년도(R6) 건강·개호보험 요율: 이전 버전에서 잘못 보정된 값 복구
+    if((r.from === '2024-03' || r.from === '2024-04') && Math.abs(r.kenko - 9.98) > 0.001) { r.kenko = 9.98; migrated = true; }
+    if((r.from === '2024-03' || r.from === '2024-04') && Math.abs(r.kaigo - 1.60) > 0.001) { r.kaigo = 1.60; migrated = true; }
+    // 2025년도(R7) 건강·개호보험 요율 보정
+    if((r.from === '2025-03' || r.from === '2025-04') && Math.abs(r.kenko - 9.91) > 0.001) { r.kenko = 9.91; migrated = true; }
+    if((r.from === '2025-03' || r.from === '2025-04') && Math.abs(r.kaigo - 1.59) > 0.001) { r.kaigo = 1.59; migrated = true; }
   });
   // 누락 항목 추가 (변경 시점 기준 전체 이력)
   const defaults = [

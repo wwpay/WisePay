@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 14:20 — calcMonthData GAS 숫자값 처리 버그 수정
+﻿// 수정: 2026-05-24 18:18 — renderAnnual 익월지급 대응: 전년12월~당년11월 표시 + 연도 드롭다운 年度 표기
 'use strict';
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
@@ -72,7 +72,7 @@ function renderAnnual() {
   // 인쇄 헤더
   const ph = document.getElementById('annualPrintHeader');
   ph.style.display='block';
-  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年':'년'} ${jp?'年間給与一覧':'연간 급여 일람'}`;
+  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'年間給与一覧':'연간 급여 일람'}`;
   document.getElementById('annualPrintSub').textContent = jp?`出力日：${new Date().toLocaleDateString('ja-JP')}`:`출력일：${new Date().toLocaleDateString('ko-KR')}`;
 
   const rows = [
@@ -89,33 +89,42 @@ function renderAnnual() {
     {key:'net',      label:jp?'手取り':'실수령액'},
   ];
 
-  // 각 월 데이터 수집
-  const monthData = [];
-  for(let m=1;m<=12;m++) monthData.push(calcMonthData(emp,year,m));
+  // 익월 10일 지급: 前年12月～当年11月 (12ヶ月) を表示
+  // 예) 2026년도 = 2025-12 근무분(2026-01 지급) ~ 2026-11 근무분(2026-12 지급)
+  const fiscalMonths = [
+    { year: year-1, month: 12 },
+    ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
+  ];
+
+  const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
   const hasAny = monthData.some(d=>d!==null);
 
   if(!hasAny) {
     document.getElementById('annualContent').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この年のデータがありません':'이 연도의 데이터가 없습니다'}</div>`;
+      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この年度のデータがありません':'이 연도의 데이터가 없습니다'}</div>`;
     return;
   }
 
-  // 데이터 있는 마지막 월까지만 표시
-  let lastDataMonth = 0;
-  for(let m = 1; m <= 12; m++) { if(monthData[m-1] !== null) lastDataMonth = m; }
-  const showMonths = lastDataMonth;
-  const cols = `grid-template-columns:100px repeat(${showMonths},1fr);`;
+  // 데이터 있는 마지막 인덱스까지만 표시
+  let lastIdx = 0;
+  for(let i=0; i<12; i++) { if(monthData[i] !== null) lastIdx = i; }
+  const showCount = lastIdx + 1;
+  const cols = `grid-template-columns:100px repeat(${showCount},1fr);`;
 
   // 합계 (표시 범위 내에서만)
   const totals = {};
   rows.forEach(r => {
-    totals[r.key] = monthData.slice(0, showMonths).reduce((s,d) => s+(d?d[r.key]:0), 0);
+    totals[r.key] = monthData.slice(0, showCount).reduce((s,d) => s+(d?d[r.key]:0), 0);
   });
 
   let html = `<div class="annual-wrap">`;
-  // 헤더
+  // 헤더: 전년12월은 별도 표기
   html += `<div class="annual-head-row" style="${cols}"><div>${jp?'項目':'항목'}</div>`;
-  for(let m=1;m<=showMonths;m++) html += `<div>${m}${mu}</div>`;
+  for(let i=0; i<showCount; i++) {
+    const {year:y, month:m} = fiscalMonths[i];
+    const label = (m===12 && y===year-1) ? (jp?`前年${m}${mu}`:`전년${m}${mu}`) : `${m}${mu}`;
+    html += `<div>${label}</div>`;
+  }
   html += `</div>`;
 
   // 데이터 행
@@ -123,8 +132,8 @@ function renderAnnual() {
     const isBold = r.key==='net'||r.key==='totalPay';
     html += `<div class="annual-data-row${r.key==='net'?' total-row':''}" style="${cols}">`;
     html += `<div style="${isBold?'font-weight:600;':''}">${r.label}</div>`;
-    for(let m=0;m<showMonths;m++) {
-      const d = monthData[m];
+    for(let i=0;i<showCount;i++) {
+      const d = monthData[i];
       if(d) {
         const val = d[r.key];
         const color = r.key==='net'?'color:var(--accent);font-weight:600;':'';
@@ -139,9 +148,9 @@ function renderAnnual() {
   // 합계 행
   html += `<div class="annual-data-row total-row" style="${cols}">`;
   html += `<div>${jp?'年計':'연계'}</div>`;
-  for(let m=0;m<showMonths;m++) {
-    html += monthData[m]
-      ? `<div style="color:var(--accent);font-weight:600;">${fmt(monthData[m].net)}</div>`
+  for(let i=0;i<showCount;i++) {
+    html += monthData[i]
+      ? `<div style="color:var(--accent);font-weight:600;">${fmt(monthData[i].net)}</div>`
       : `<div class="annual-no-data">-</div>`;
   }
   html += `</div>`;

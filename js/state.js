@@ -1,5 +1,5 @@
 ﻿'use strict';
-// 수정: 2026-05-24 17:56 — migrateRateHistory에서 kaigo 자동 수정 제거하여 2024-12 요율 보존
+// 수정: 2026-05-24 18:18 — 참조만, 실제 수정은 app.js·history.js
 let LANG = 'KR';
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
