@@ -1,17 +1,19 @@
-﻿// 수정: 2026-05-24 12:59 — 사원 드롭다운 형식: 사원번호 이름
+﻿// 수정: 2026-05-24 13:50 — buildAnnualEmpSel 첫 유효 인덱스 사용, renderAnnual 공백 방지
 'use strict';
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
   if (!sel) return;
   const prev = sel.value;
   sel.innerHTML = '';
+  let firstVal = '';
   employees.forEach((e,i) => {
     if (!e || e.no == null) return;
     const o = document.createElement('option');
     o.value = i; o.textContent = `${e.name}（${String(e.no).padStart(4,'0')}）`;
+    if (firstVal === '') firstVal = String(i);
     sel.appendChild(o);
   });
-  sel.value = (prev !== '' && employees[parseInt(prev)]) ? prev : (employees.length ? '0' : '');
+  sel.value = (prev !== '' && employees[parseInt(prev)]) ? prev : firstVal;
 }
 
 function calcMonthData(emp, year, month) {
@@ -55,7 +57,11 @@ function renderAnnual() {
   }
   const empIdx = parseInt(document.getElementById('annualEmpSel')?.value);
   const year = parseInt(document.getElementById('annualYearSel')?.value)||2026;
-  if(isNaN(empIdx)||!employees[empIdx]) return;
+  if(isNaN(empIdx)||!employees[empIdx]) {
+    document.getElementById('annualContent').innerHTML =
+      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員を選択してください':'사원을 선택해 주세요'}</div>`;
+    return;
+  }
   const emp = employees[empIdx];
   const mu = jp?'月':'월';
   const fmt = n => n.toLocaleString();

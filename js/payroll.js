@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 12:59 — 사원 드롭다운 형식: 사원번호 이름
+﻿// 수정: 2026-05-24 13:50 — 사원 선택 드롭다운 텍스트 변경
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -63,7 +63,7 @@ function renderEmpSelect() {
   // 미선택 옵션 항상 첫 번째에
   const blank = document.createElement('option');
   blank.value = '-1';
-  blank.textContent = jp ? '── 従業員を選択 ──' : '── 사원을 선택 ──';
+  blank.textContent = jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
   sel.appendChild(blank);
   if(!employees.length) return;
   employees.forEach((e,i) => {
