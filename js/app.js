@@ -1,4 +1,4 @@
-// 수정: 2026-05-25 23:33 — beforeprint/afterprint 핸들러 추가로 인쇄 시 스크롤바 제거
+// 수정: 2026-05-25 23:42 — beforeprint: annual-wrap overflow:hidden 해제로 page-break 동작 보장
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -113,12 +113,18 @@ window.addEventListener('beforeunload', e => {
   }
 });
 
-// 인쇄 시 스크롤바 제거 (인라인 스타일로 CSS 우선순위 보장)
+// 인쇄 시 스크롤바 제거 + overflow:hidden 해제 (page-break 동작 보장)
 window.addEventListener('beforeprint', () => {
-  document.querySelectorAll('.annual-scroll-wrap').forEach(el => el.style.overflow = 'visible');
+  document.querySelectorAll('.annual-scroll-wrap, .annual-wrap').forEach(el => {
+    el.style.overflow = 'visible';
+    el.style.minWidth = '0';
+  });
 });
 window.addEventListener('afterprint', () => {
-  document.querySelectorAll('.annual-scroll-wrap').forEach(el => el.style.overflow = '');
+  document.querySelectorAll('.annual-scroll-wrap, .annual-wrap').forEach(el => {
+    el.style.overflow = '';
+    el.style.minWidth = '';
+  });
 });
 
 function gotoPage(id, el) {

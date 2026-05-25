@@ -1,4 +1,4 @@
-﻿/* 수정: 2026-05-25 23:35 — @page margin:0으로 인쇄 헤더/푸터 제거, 체크리스트 최대 5명 높이 */
+﻿/* 수정: 2026-05-25 23:42 — 임금대장 인쇄: 스크롤바 제거·사원 간 페이지 분리·표 잘림 방지 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -230,11 +230,18 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
   .sidebar,.topbar,.no-print{display:none!important;}
   .content{padding:8mm 10mm;}
   body{background:#fff;padding:0;}
+  /* 스크롤바 완전 제거 */
   .annual-scroll-wrap{overflow:visible !important;}
-  .annual-wrap{box-shadow:none;border:1px solid #ccc;min-width:0 !important;width:100%;}
+  .annual-scroll-wrap::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important;}
+  /* overflow:hidden 해제 → page-break 동작 보장 */
+  .annual-wrap{overflow:visible !important;box-shadow:none;border:1px solid #ccc;min-width:0 !important;width:100%;}
   .annual-data-row:hover{background:transparent;}
+  /* 사원 블록 간 새 페이지 시작 (CSS2+3 모두 지정) */
   .annual-emp-block{margin-bottom:0;}
-  .annual-page-break{page-break-before:always;}
+  .annual-page-break{page-break-before:always;break-before:page;}
+  /* 행/블록이 페이지 경계에서 잘리지 않도록 */
+  .annual-emp-block{page-break-inside:avoid;break-inside:avoid;}
+  .annual-wrap table tr{page-break-inside:avoid;break-inside:avoid;}
 }
 
 /* MODAL */
