@@ -1,4 +1,4 @@
-// 수정: 2026-05-25 22:55 — gotoPage: notifications 페이지 추가, btn-del-month 가시성 제어
+// 수정: 2026-05-25 23:33 — beforeprint/afterprint 핸들러 추가로 인쇄 시 스크롤바 제거
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -111,6 +111,14 @@ window.addEventListener('beforeunload', e => {
     e.preventDefault();
     e.returnValue = '';
   }
+});
+
+// 인쇄 시 스크롤바 제거 (인라인 스타일로 CSS 우선순위 보장)
+window.addEventListener('beforeprint', () => {
+  document.querySelectorAll('.annual-scroll-wrap').forEach(el => el.style.overflow = 'visible');
+});
+window.addEventListener('afterprint', () => {
+  document.querySelectorAll('.annual-scroll-wrap').forEach(el => el.style.overflow = '');
 });
 
 function gotoPage(id, el) {
