@@ -224,12 +224,15 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .annual-net-row{background:#e8effd !important;border-top:2px solid #b3c6f5 !important;}
 .annual-net-row div{color:#2a52b5;font-weight:700;}
 .annual-net-row div:first-child{color:var(--text);}
+.annual-emp-block{margin-bottom:32px;}
 @media print{
   .sidebar,.topbar,.no-print{display:none!important;}
   .content{padding:0;}
   body{background:#fff;}
   .annual-wrap{box-shadow:none;border:1px solid #ccc;}
   .annual-data-row:hover{background:transparent;}
+  .annual-emp-block{margin-bottom:0;}
+  .annual-page-break{page-break-before:always;}
 }
 
 /* MODAL */

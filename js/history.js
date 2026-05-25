@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 22:34 — 임금대장: 가로 스크롤 래퍼 추가 (min-width 780px)
+// 수정: 2026-05-25 23:08 — 임금대장 전사원 인쇄 기능 추가 (전사원 선택 시 일괄 출력)
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -19,17 +19,21 @@ function buildAnnualYearSel() {
 function buildAnnualEmpSel() {
   const sel = document.getElementById('annualEmpSel');
   if (!sel) return;
+  const jp = LANG === 'JP';
   const prev = sel.value;
   sel.innerHTML = '';
-  let firstVal = '';
-  employees.forEach((e,i) => {
+  // 전사원 옵션
+  const allOpt = document.createElement('option');
+  allOpt.value = 'all';
+  allOpt.textContent = jp ? '全従業員' : '전사원';
+  sel.appendChild(allOpt);
+  employees.forEach((e, i) => {
     if (!e || e.no == null) return;
     const o = document.createElement('option');
     o.value = i; o.textContent = `${e.name}（${String(e.no).padStart(4,'0')}）`;
-    if (firstVal === '') firstVal = String(i);
     sel.appendChild(o);
   });
-  sel.value = (prev !== '' && employees[parseInt(prev)]) ? prev : firstVal;
+  if (prev === 'all' || (prev !== '' && employees[parseInt(prev)])) sel.value = prev;
 }
 
 // GAS import 시 숫자값으로 저장될 수 있으므로 string/number 모두 처리
@@ -72,65 +76,35 @@ function calcMonthData(emp, year, month) {
   } catch(e){ return null; }
 }
 
-function renderAnnual() {
-  const jp = LANG==='JP';
-  if (!employees.length) {
-    document.getElementById('annualContent').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員データがありません。まずGoogle同期を行ってください。':'사원 데이터가 없습니다. Google 동기화를 먼저 해주세요.'}</div>`;
-    return;
+// 중도입사 주석 반환
+function getJoinNote(emp, year, jp) {
+  if (!emp.join) return '';
+  const parts = emp.join.split('-');
+  const jy = parseInt(parts[0]), jm = parseInt(parts[1]);
+  if ((jy*100+jm) > (year-1)*100+12) {
+    return jp ? `　入社日：${jy}年${jm}月` : `　입사일：${jy}년 ${jm}월`;
   }
-  const empIdx = parseInt(document.getElementById('annualEmpSel')?.value);
-  const year = parseInt(document.getElementById('annualYearSel')?.value)||2026;
-  if(isNaN(empIdx)||!employees[empIdx]) {
-    document.getElementById('annualContent').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員を選択してください':'사원을 선택해 주세요'}</div>`;
-    return;
-  }
-  const emp = employees[empIdx];
-  const mu = jp?'月':'월';
+  return '';
+}
+
+// 한 사원의 임금대장 표 + 요약바 HTML 반환 (데이터 없으면 null)
+function buildEmpTableHtml(emp, year, jp) {
+  const mu = jp ? '月' : '월';
   const fmt = n => n.toLocaleString();
 
-  // 인쇄 헤더
-  const ph = document.getElementById('annualPrintHeader');
-  ph.style.display='block';
-  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
-  // 중도입사 판정: 해당 연도(전년12월~당년11월) 이내에 입사
-  let joinNote = '';
-  if(emp.join) {
-    const jp2 = jp;
-    const parts = emp.join.split('-');
-    const jy = parseInt(parts[0]), jm = parseInt(parts[1]);
-    const fiscalStart = (year-1)*100 + 12; // 전년 12월
-    const joinYM = jy*100 + jm;
-    if(joinYM > fiscalStart) {
-      joinNote = jp2 ? `　入社日：${jy}年${jm}月` : `　입사일：${jy}년 ${jm}월`;
-    }
-  }
-  document.getElementById('annualPrintSub').textContent = (jp?`出力日：${new Date().toLocaleDateString('ja-JP')}`:`출력일：${new Date().toLocaleDateString('ko-KR')}`) + joinNote;
-
-  // 익월 10일 지급: 前年12月～当年11月
   const fiscalMonths = [
     { year: year-1, month: 12 },
     ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
   ];
   const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
-  const hasAny = monthData.some(d=>d!==null);
-
-  if(!hasAny) {
-    document.getElementById('annualContent').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この年度のデータがありません':'이 연도의 데이터가 없습니다'}</div>`;
-    return;
-  }
+  if (!monthData.some(d => d !== null)) return null;
 
   let lastIdx = 0;
-  for(let i=0; i<12; i++) { if(monthData[i] !== null) lastIdx = i; }
-  const showCount = lastIdx + 1;
-  // 항목열 + 월열들 + 연계열
+  for(let i=0;i<12;i++) { if(monthData[i]!==null) lastIdx=i; }
+  const showCount = lastIdx+1;
   const cols = `grid-template-columns:110px repeat(${showCount},1fr) 86px;`;
+  const sumKey = k => monthData.slice(0,showCount).reduce((s,d)=>s+(d?d[k]:0),0);
 
-  const sumKey = key => monthData.slice(0, showCount).reduce((s,d) => s+(d?d[key]:0), 0);
-
-  // 지급 세부 — 급여 명세와 동일 항목, 전 사원 레이아웃 통일을 위해 무조건 전체 표시
   const payItems = [
     {key:'base',    label:jp?'基本給':'기본급'},
     {key:'ot',      label:jp?'残業手当':'잔업수당'},
@@ -139,8 +113,6 @@ function renderAnnual() {
     {key:'shokumu', label:jp?'職務手当':'직무수당'},
     {key:'field',   label:jp?'現場手当':'현장수당'},
   ];
-
-  // 공제 세부 — 마찬가지로 무조건 전체 표시
   const deductItems = [
     {key:'kenko',   label:jp?'健康保険料':'건강보험료'},
     {key:'kaigo',   label:jp?'介護保険料':'개호보험료'},
@@ -152,66 +124,113 @@ function renderAnnual() {
     {key:'nencho',  label:jp?'年末調整':'연말정산'},
   ];
 
-  // 셀 렌더 헬퍼
   const noDataCell = `<div style="color:var(--text3)">0</div>`;
-  function valCell(val, neg) {
-    if(val === 0) return `<div style="color:var(--text3)">0</div>`;
-    const c = neg ? 'color:var(--red);' : '';
-    return `<div style="${c}">${neg?'-':''}${fmt(val)}</div>`;
-  }
-  function sumCell(key, neg, accent) {
-    const t = sumKey(key);
-    const c = accent ? 'color:var(--accent);font-weight:700;' : (neg ? 'color:var(--red);font-weight:600;' : 'font-weight:600;');
-    return `<div style="${c}">${neg?'-':''}${fmt(t)}</div>`;
-  }
+  const valCell = val => val===0
+    ? `<div style="color:var(--text3)">0</div>`
+    : `<div>${fmt(val)}</div>`;
+  const sumCell = k => `<div style="font-weight:600;">${fmt(sumKey(k))}</div>`;
 
   let html = `<div class="annual-scroll-wrap"><div class="annual-wrap">`;
 
-  // ── 헤더 행 ──
+  // 헤더 행
   html += `<div class="annual-head-row" style="${cols}"><div>${jp?'項目':'항목'}</div>`;
   for(let i=0;i<showCount;i++) {
-    const {year:y,month:m} = fiscalMonths[i];
+    const {year:y,month:m}=fiscalMonths[i];
     html += `<div>${(m===12&&y===year-1)?(jp?`前年<br>12${mu}`:`전년<br>12${mu}`):`${m}${mu}`}</div>`;
   }
   html += `<div>${jp?'年計':'연계'}</div></div>`;
 
-  // ── 지급 세부 ──
+  // 지급 세부
   payItems.forEach(r => {
     html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
-    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key], false) : noDataCell;
-    html += sumCell(r.key, false, false) + `</div>`;
+    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key]) : noDataCell;
+    html += sumCell(r.key) + `</div>`;
   });
   // 지급합계
   html += `<div class="annual-data-row annual-subtotal-pay" style="${cols}"><div>${jp?'支給合計':'지급합계'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalPay)}</div>` : `<div style="color:var(--text3)">0</div>`;
+  for(let i=0;i<showCount;i++) html += monthData[i]?`<div>${fmt(monthData[i].totalPay)}</div>`:`<div style="color:var(--text3)">0</div>`;
   html += `<div style="font-weight:700;">${fmt(sumKey('totalPay'))}</div></div>`;
 
-  // ── 공제 세부 ──
+  // 공제 세부
   deductItems.forEach(r => {
     html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
-    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key], false) : noDataCell;
-    html += sumCell(r.key, false, false) + `</div>`;
+    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key]) : noDataCell;
+    html += sumCell(r.key) + `</div>`;
   });
   // 공제합계
   html += `<div class="annual-data-row annual-subtotal-deduct" style="${cols}"><div>${jp?'控除合計':'공제합계'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalKojo)}</div>` : `<div style="color:var(--text3)">0</div>`;
+  for(let i=0;i<showCount;i++) html += monthData[i]?`<div>${fmt(monthData[i].totalKojo)}</div>`:`<div style="color:var(--text3)">0</div>`;
   html += `<div style="font-weight:700;">${fmt(sumKey('totalKojo'))}</div></div>`;
 
-  // ── 차인지급액 ──
+  // 차인지급액
   html += `<div class="annual-data-row annual-net-row" style="${cols}"><div>${jp?'差引支給額':'차인지급액'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>¥${fmt(monthData[i].net)}</div>` : `<div style="color:var(--text3)">¥0</div>`;
+  for(let i=0;i<showCount;i++) html += monthData[i]?`<div>¥${fmt(monthData[i].net)}</div>`:`<div style="color:var(--text3)">¥0</div>`;
   html += `<div>¥${fmt(sumKey('net'))}</div></div>`;
-
   html += `</div></div>`;
 
-  // 연간 합계 요약 바
+  // 요약 바
   html += `<div style="margin-top:12px;background:var(--accent2);border:1px solid var(--accent3);border-radius:var(--r);padding:12px 16px;display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;">`;
   html += `<span><strong>${jp?'年間支給合計':'연간 지급 합계'}:</strong> ¥${fmt(sumKey('totalPay'))}</span>`;
   html += `<span><strong>${jp?'年間控除合計':'연간 공제 합계'}:</strong> ¥${fmt(sumKey('totalKojo'))}</span>`;
   html += `<span style="font-size:14px;font-weight:700;color:var(--accent);"><strong>${jp?'年間手取り合計':'연간 실수령 합계'}:</strong> ¥${fmt(sumKey('net'))}</span>`;
   html += `</div>`;
+  return html;
+}
 
-  document.getElementById('annualContent').innerHTML = html;
+function renderAnnual() {
+  const jp = LANG==='JP';
+  const ph = document.getElementById('annualPrintHeader');
+
+  if (!employees.length) {
+    ph.style.display = 'none';
+    document.getElementById('annualContent').innerHTML =
+      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員データがありません。まずGoogle同期を行ってください。':'사원 데이터가 없습니다. Google 동기화를 먼저 해주세요.'}</div>`;
+    return;
+  }
+
+  const empSelVal = document.getElementById('annualEmpSel')?.value;
+  const year = parseInt(document.getElementById('annualYearSel')?.value)||2026;
+  const today = jp ? new Date().toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ko-KR');
+  const noDataMsg = `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この年度のデータがありません':'이 연도의 데이터가 없습니다'}</div>`;
+
+  // ── 전사원 모드 ──
+  if (empSelVal === 'all') {
+    ph.style.display = 'none';
+    let allHtml = '';
+    let count = 0;
+    employees.forEach(emp => {
+      if (!emp || emp.no == null) return;
+      const tableHtml = buildEmpTableHtml(emp, year, jp);
+      if (!tableHtml) return;
+      const title = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
+      const sub = (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
+      allHtml += `<div class="annual-emp-block${count>0?' annual-page-break':''}">` +
+        `<div style="font-size:16px;font-weight:700;margin-bottom:3px;">${title}</div>` +
+        `<div style="font-size:12px;color:#666;margin-bottom:10px;">${sub}</div>` +
+        tableHtml + `</div>`;
+      count++;
+    });
+    document.getElementById('annualContent').innerHTML = allHtml || noDataMsg;
+    return;
+  }
+
+  // ── 단일 사원 모드 ──
+  const empIdx = parseInt(empSelVal);
+  if(isNaN(empIdx)||!employees[empIdx]) {
+    ph.style.display = 'none';
+    document.getElementById('annualContent').innerHTML =
+      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員を選択してください':'사원을 선택해 주세요'}</div>`;
+    return;
+  }
+  const emp = employees[empIdx];
+  ph.style.display = 'block';
+  document.getElementById('annualPrintTitle').textContent =
+    `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
+  document.getElementById('annualPrintSub').textContent =
+    (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
+
+  const tableHtml = buildEmpTableHtml(emp, year, jp);
+  document.getElementById('annualContent').innerHTML = tableHtml || noDataMsg;
 }
 
 // ══ HISTORY ══
@@ -267,5 +286,3 @@ function renderHistory() {
     tbody.appendChild(tr);
   });
 }
-
-

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 22:40 — t-del-month-btn 정적 텍스트 제거 (renderMonthTabs 동적 처리)
+﻿// 수정: 2026-05-25 23:08 — t-annual-print 텍스트 인쇄/PDF로 업데이트
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -107,7 +107,7 @@ function applyLang() {
   setTxt('t-rates-ai', '協会けんぽから最新料率を取得', '협회건포에서 최신 요율 가져오기');
   setTxt('t-rates-save', '料率を保存', '요율 저장');
 
-  setTxt('t-annual-print', 'A4印刷', 'A4 인쇄');
+  setTxt('t-annual-print', '印刷 / PDF', '인쇄 / PDF');
 
   setTxt('t-history-title', '支給履歴', '지급 이력');
   setTxt('t-h-month', '月', '월');

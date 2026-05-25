@@ -6,7 +6,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-25 23:01 — payroll.js: 데이터 초기화 버튼 월 2자리 0패딩 고정 (레이아웃 이동 방지)
+  수정: 2026-05-25 23:08 — history.js: 임금대장 전사원 인쇄 기능 추가 + 인쇄 페이지 구분 CSS
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -243,7 +243,7 @@
       </select>
       <button class="btn btn-primary" onclick="window.print()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        <span id="t-annual-print">A4印刷</span>
+        <span id="t-annual-print">印刷 / PDF</span>
       </button>
     </div>
   </div>
