@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 17:44 — 임금대장: 섹션헤더 삭제 + 파스텔 소계 색상 + kintai·commutetax 제거
+﻿// 수정: 2026-05-25 17:51 — 임금대장: 지급·공제 항목 필터 제거(전 사원 레이아웃 통일)
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -118,7 +118,7 @@ function renderAnnual() {
 
   const sumKey = key => monthData.slice(0, showCount).reduce((s,d) => s+(d?d[key]:0), 0);
 
-  // 지급 세부 — 급여 명세와 동일 항목, 한 달이라도 값 있는 것만 표시
+  // 지급 세부 — 급여 명세와 동일 항목, 전 사원 레이아웃 통일을 위해 무조건 전체 표시
   const payItems = [
     {key:'base',    label:jp?'基本給':'기본급'},
     {key:'ot',      label:jp?'残業手当':'잔업수당'},
@@ -126,9 +126,9 @@ function renderAnnual() {
     {key:'kinmu',   label:jp?'勤務手当':'근무수당'},
     {key:'shokumu', label:jp?'職務手当':'직무수당'},
     {key:'field',   label:jp?'現場手当':'현장수당'},
-  ].filter(r => monthData.slice(0,showCount).some(d => d && d[r.key] > 0));
+  ];
 
-  // 공제 세부 — 0이 아닌 달이 하나라도 있는 항목만 표시
+  // 공제 세부 — 마찬가지로 무조건 전체 표시
   const deductItems = [
     {key:'kenko',   label:jp?'健康保険料':'건강보험료'},
     {key:'kaigo',   label:jp?'介護保険料':'개호보험료'},
@@ -138,7 +138,7 @@ function renderAnnual() {
     {key:'shotoku', label:jp?'所得税':'소득세'},
     {key:'jumin',   label:jp?'住民税':'주민세'},
     {key:'nencho',  label:jp?'年末調整':'연말정산'},
-  ].filter(r => monthData.slice(0,showCount).some(d => d && d[r.key] !== 0));
+  ];
 
   // 셀 렌더 헬퍼
   const noDataCell = `<div class="annual-no-data">-</div>`;
