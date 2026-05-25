@@ -34,25 +34,17 @@ function changeYear(d) {
 
 // 월/연도 변경 시 요율 자동 전환 + 알림
 function onMonthYearChange() {
-  const jp = LANG==='JP';
   const ym = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
   applyRatesForYM(currentYear, currentMonth);
-  // 최신 이력보다 이후 달을 보고 있을 때만 경고 (이력 범위 내 달은 정상 상속)
   const sortedHistory = [...rateHistory].sort((a,b) => a.from > b.from ? 1 : -1);
   const lastKnown = sortedHistory[sortedHistory.length - 1];
   const isBeyondKnown = lastKnown && ym > lastKnown.from;
-  const bannerEl = document.getElementById('rate-month-banner');
-  if(bannerEl) {
-    if(isBeyondKnown) {
-      const applied = getRatesForYM(currentYear, currentMonth);
-      const msg = jp
-        ? `【要率確認】${currentYear}年${currentMonth}月の保険料率は未登録のため、${applied.from}以降の料率を適用中です。「最新要率を取得」で確認・登録してください。`
-        : `【요율 확인】${currentYear}년 ${currentMonth}월 요율이 미등록이어서 ${applied.from} 이후 요율을 적용 중입니다. 「최신 요율 가져오기」로 확인・등록해 주세요.`;
-      bannerEl.querySelector('#rate-month-msg').textContent = msg;
-      bannerEl.style.display = '';
-    } else {
-      bannerEl.style.display = 'none';
-    }
+  if(isBeyondKnown) {
+    const applied = getRatesForYM(currentYear, currentMonth);
+    addNotification(`rate-missing-${ym}`, 'warn',
+      `【요율 확인】${currentYear}년 ${currentMonth}월 요율이 미등록이어서 ${applied.from} 이후 요율을 적용 중입니다. 「최신 요율 가져오기」로 확인・등록해 주세요.`,
+      `【要率確認】${currentYear}年${currentMonth}月の保険料率は未登録のため、${applied.from}以降の料率を適用中です。「最新要率を取得」で確認・登録してください。`
+    );
   }
   loadPayrollForm();
 }

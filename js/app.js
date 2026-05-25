@@ -1,4 +1,4 @@
-// 수정: 2026-05-25 17:06 — initApp: employees 로드 시 shaho_start ISO 날짜 → YYYY-MM 정규화
+// 수정: 2026-05-25 22:55 — gotoPage: notifications 페이지 추가, btn-del-month 가시성 제어
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -142,16 +142,19 @@ function gotoPage(id, el) {
     const sideNav = document.querySelector(`.nav-item[data-page="${id}"]`);
     if(sideNav) sideNav.classList.add('active');
   }
-  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금대장'},gas:{JP:'Google連携設定',KR:'Google 연동 설정'}};
+  const titles = {payroll:{JP:'給与明細',KR:'급여 명세'},history:{JP:'支給履歴',KR:'지급 이력'},employees:{JP:'従業員管理',KR:'사원 관리'},rates:{JP:'保険料率設定',KR:'보험료율 설정'},annual:{JP:'賃金台帳',KR:'임금대장'},gas:{JP:'Google連携設定',KR:'Google 연동 설정'},notifications:{JP:'通知',KR:'알림'}};
   const t = titles[id];
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
-  document.getElementById('btn-save').style.display = id==='payroll' ? '' : 'none';
+  const isPayroll = id === 'payroll';
+  document.getElementById('btn-save').style.display = isPayroll ? '' : 'none';
+  document.getElementById('btn-del-month').style.display = isPayroll ? '' : 'none';
   if(id==='payroll') loadPayrollForm();
   if(id==='history') { try { buildHistEmpSel(); renderHistory(); } catch(e) { console.error('history render error:', e); } }
   if(id==='employees') renderEmpList();
   if(id==='rates') renderRatesPage();
   if(id==='annual') { try { buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); } catch(e) { console.error('annual render error:', e); } }
   if(id==='gas') openGasModal();
+  if(id==='notifications') renderNotificationsPage();
 }
 
 function resetLocalData() {

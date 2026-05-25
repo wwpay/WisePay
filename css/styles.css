@@ -1,4 +1,4 @@
-﻿/* 수정: 2026-05-25 22:34 — 임금대장 가로 스크롤 래퍼 + min-width 780px 추가 */
+﻿/* 수정: 2026-05-25 22:55 — 알림 벨 버튼 뱃지 + 알림 페이지 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -196,6 +196,12 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 
 /* RATES PAGE */
 .rates-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px 13px;}
+
+/* NOTIFICATION BELL */
+.notif-btn-wrap{position:relative;display:inline-flex;}
+#notif-badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;font-size:10px;font-weight:700;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px;pointer-events:none;}
+/* NOTIFICATION PAGE */
+.notif-page-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
 
 /* ANNUAL PRINT PAGE */
 .annual-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}

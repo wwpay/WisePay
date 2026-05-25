@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-23 09:20 — applyRates 3월/4월 분리, autoLoadFromGas 마이그레이션 역업로드
+﻿// 수정: 2026-05-25 22:55 — checkRateBanner → 알림 시스템으로 전환
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -322,10 +322,17 @@ function saveRateHistory() {
   localStorage.setItem(LS.rateHistory, JSON.stringify(rateHistory));
 }
 function checkRateBanner() {
-  const alarmBanner = document.getElementById('rate-alarm-banner');
-  if (alarmBanner) {
-    const has2026 = rateHistory.some(r => r.from >= '2026-03');
-    alarmBanner.style.display = has2026 ? 'none' : '';
+  const has2026 = rateHistory.some(r => r.from >= '2026-03');
+  addNotification('rate-update-2026-04', 'info',
+    '【보험료율 업데이트】2026년도 협회건포（도쿄도）보험료율이 개정되었습니다.',
+    '【保険料率更新】2026年度 協会けんぽ（東京都）の保険料率が改定されました。'
+  );
+  if(!has2026) {
+    addNotification('rate-alarm-2026-03', 'warn',
+      '【요율 등록 필요】2026년도 보험료율이 미등록 상태입니다. 「최신 요율 가져오기」를 실행해 주세요.',
+      '【要率登録が必要】2026年度の保険料率が未登録です。「最新要率を取得」を実行してください。'
+    );
   }
+  updateNotifBadge();
 }
 
