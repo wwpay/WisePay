@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 22:18 — 임금대장: 전년12월 항상 표시 + 중도입사 시 헤더에 입사일 표시
+﻿// 수정: 2026-05-25 22:28 — 임금대장: 데이터 없는 월 0 표시 (전년12월 포함)
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -153,7 +153,7 @@ function renderAnnual() {
   ];
 
   // 셀 렌더 헬퍼
-  const noDataCell = `<div class="annual-no-data">-</div>`;
+  const noDataCell = `<div style="color:var(--text3)">0</div>`;
   function valCell(val, neg) {
     if(val === 0) return `<div style="color:var(--text3)">0</div>`;
     const c = neg ? 'color:var(--red);' : '';
@@ -183,7 +183,7 @@ function renderAnnual() {
   });
   // 지급합계
   html += `<div class="annual-data-row annual-subtotal-pay" style="${cols}"><div>${jp?'支給合計':'지급합계'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalPay)}</div>` : noDataCell;
+  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalPay)}</div>` : `<div style="color:var(--text3)">0</div>`;
   html += `<div style="font-weight:700;">${fmt(sumKey('totalPay'))}</div></div>`;
 
   // ── 공제 세부 ──
@@ -194,12 +194,12 @@ function renderAnnual() {
   });
   // 공제합계
   html += `<div class="annual-data-row annual-subtotal-deduct" style="${cols}"><div>${jp?'控除合計':'공제합계'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalKojo)}</div>` : noDataCell;
+  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalKojo)}</div>` : `<div style="color:var(--text3)">0</div>`;
   html += `<div style="font-weight:700;">${fmt(sumKey('totalKojo'))}</div></div>`;
 
   // ── 차인지급액 ──
   html += `<div class="annual-data-row annual-net-row" style="${cols}"><div>${jp?'差引支給額':'차인지급액'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>¥${fmt(monthData[i].net)}</div>` : noDataCell;
+  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>¥${fmt(monthData[i].net)}</div>` : `<div style="color:var(--text3)">¥0</div>`;
   html += `<div>¥${fmt(sumKey('net'))}</div></div>`;
 
   html += `</div>`;
