@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 13:40 — 동기화 아이콘 설명 텍스트 업데이트, freee 제거
+﻿// 수정: 2026-05-25 22:40 — t-del-month-btn 정적 텍스트 제거 (renderMonthTabs 동적 처리)
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -47,7 +47,7 @@ function applyLang() {
   setTxt('t-langbtn', '한국어로 전환', '日本語に切替');
   setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '협회건포 최신 요율 가져오기');
   setTxt('t-save-btn', '保存', '저장');
-  setTxt('t-del-month-btn', 'この月を削除', '이 월 삭제');
+  // t-del-month-btn은 renderMonthTabs()에서 동적으로 갱신
   setTxt('t-print-btn', '印刷', '인쇄');
 
   setTxt('t-net-label', '差引総支給額（手取り）', '차인지급액');

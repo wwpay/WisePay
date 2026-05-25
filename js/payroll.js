@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 18:00 — 이 월 삭제(deleteCurrentMonth) 기능 추가
+﻿// 수정: 2026-05-25 22:40 — 이 월 삭제 버튼 → N월 데이터 초기화로 동적 표시
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -19,6 +19,8 @@ function renderMonthTabs() {
     c.appendChild(b);
   }
   document.getElementById('yearTxt').textContent = currentYear + (LANG==='JP'?'年':'년');
+  const delBtn = document.getElementById('t-del-month-btn');
+  if(delBtn) delBtn.textContent = LANG==='JP' ? `${currentMonth}月データをリセット` : `${currentMonth}월 데이터 초기화`;
 }
 
 function changeYear(d) {
