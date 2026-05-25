@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-24 19:56 — r-hyo 표준보수월액 수동 지정: 0이면 자동계산, 양수면 우선 사용
+﻿// 수정: 2026-05-25 17:16 — 전월대비: 1월은 전년 12월과 비교 + 데이터 없을 때 공란 유지(레이아웃 고정)
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -283,13 +283,15 @@ function recalc() {
     document.getElementById('ci-koyo').textContent=koyoEnabled?`労働者：${rates.koyo.toFixed(2)}%、賃金総額：${fmt(totalPay)}円`:(LANG==='JP'?'未加入':'미가입');
     document.getElementById('ci-shotoku').textContent=`${shotokuKbn==='otsu'?(LANG==='JP'?'乙欄':'을란'):(LANG==='JP'?'甲欄':'갑란')}、課税対象：${fmt(shotokuBase)}円${fuyouTxt}`;
   }
-  // diff
+  // diff (1월이면 전년 12월과 비교)
   if(emp) {
-    const pk=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth-1}`;
+    const prevY = currentMonth===1 ? currentYear-1 : currentYear;
+    const prevM = currentMonth===1 ? 12 : currentMonth-1;
+    const pk=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${prevY}_${prevM}`;
     const ps=localStorage.getItem(pk);
     const de=document.getElementById('netDiffTxt');
-    if(ps) { try { const pd=JSON.parse(ps); const diff=net-(pd._net||0); const u=LANG==='JP'?'前月比':'전월 대비'; de.textContent=`${u} ${diff>=0?'+':''}${fmt(diff)}`; de.className='net-diff '+(diff>=0?'up':'dn'); } catch(e){de.textContent='';} }
-    else de.textContent='';
+    if(ps) { try { const pd=JSON.parse(ps); const diff=net-(pd._net||0); const u=LANG==='JP'?'前月比':'전월 대비'; de.textContent=`${u} ${diff>=0?'+':''}${fmt(diff)}`; de.className='net-diff '+(diff>=0?'up':'dn'); } catch(e){ de.textContent=' '; de.className='net-diff'; } }
+    else { de.textContent=' '; de.className='net-diff'; }
   }
   window._calc = {kenko,nenkin,shotoku,totalPay,totalKojo,net};
 }
