@@ -1,16 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Skill(update-config)",
-      "PowerShell($repo = \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\"; $status = git -C $repo status --porcelain; if \\($status\\) { Write-Output \"변경사항 있음: $status\" } else { Write-Output \"변경사항 없음 \\(clean\\)\" })",
-      "PowerShell($json = Get-Content \"C:\\\\Users\\\\lucky\\\\Documents\\\\WisePay\\\\WisePay\\\\.claude\\\\settings.json\" -Raw | ConvertFrom-Json; $json.hooks.Stop[0].hooks[0].command)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(git commit -m '배지 위치를 ④ 웹 앱 URL 입력 제목 옆으로 이동 *)",
-      "Bash(gh auth *)",
-      "PowerShell(gh auth *)",
-      "Bash(git commit *)"
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(Get-Date *)",
+      "WebFetch(domain:wisewires.com)",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\WiseWires\\\\Documents\\\\WisePay\\\\logoColor.png\"\\); \"$\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\))",
+      "PowerShell(Copy-Item *)",
+      "WebFetch(domain:www.kyoukaikenpo.or.jp)"
     ]
   }
 }

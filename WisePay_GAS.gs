@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-22 14:40 — SHEET_RATE 보험요율→보험료율 수정 + renameRateSheet 추가
+// 수정: 2026-05-22 16:15 — SHEET_RATE 보험요율→보험료율 수정 + renameRateSheet 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
