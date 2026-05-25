@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-25 11:31 — importWageLedgerR7 추가: 賃金台帳(令和7年) PDF 데이터 Google 시트 반영
+// 수정: 2026-05-25 11:42 — importWageLedgerR8 추가: payroll_book-2026 CSV 데이터 Google 시트 반영
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -30,6 +30,7 @@ function doGet(e) {
     else if (action === 'getAll')                                  result = getAllData();
     else if (action === 'scrapeRates' || action === 'scrapeKenpoRates') result = scrapeKenpoRates();
     else if (action === 'importWageLedgerR7')                       result = importWageLedgerR7()
+    else if (action === 'importWageLedgerR8')                       result = importWageLedgerR8()
     else if (action === 'importPayrolls') {
       let incoming = [];
       try { incoming = JSON.parse(e.parameter.payrolls || '[]'); } catch(err) { incoming = []; }
@@ -805,5 +806,50 @@ function importWageLedgerR7() {
   });
   saveSheet(SHEET_PAY, merged);
   Logger.log('importWageLedgerR7 완료: ' + incoming.length + '건 → ' + SHEET_PAY);
+  return { ok: true, count: incoming.length };
+}
+
+function importWageLedgerR8() {
+  // payroll_book-2026 CSV 데이터 (익월 10일 지급: 지급일 전월이 급여월)
+  // 鄭 基石(no=2) 5건, 朴 娟慶(no=17) 5건, 朴 修完(no=19) 5건
+  const incoming = [
+    // 鄭 基石 (no=2)
+    { no:2,  name:'鄭 基石', year:2025, month:12, 'r-base':200000,'r-ot':28000,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':15000,'r-field':0,'r-hyo':220000,'k-jumin':4900,'k-nencho':-61980,'_net':262600 },
+    { no:2,  name:'鄭 基石', year:2026, month:1,  'r-base':200000,'r-ot':26600,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':15000,'r-field':0,'r-hyo':220000,'k-jumin':4900,'k-nencho':0,'_net':199290 },
+    { no:2,  name:'鄭 基石', year:2026, month:2,  'r-base':200000,'r-ot':1400, 'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':15000,'r-field':0,'r-hyo':220000,'k-jumin':4900,'k-nencho':0,'_net':174950 },
+    { no:2,  name:'鄭 基石', year:2026, month:3,  'r-base':200000,'r-ot':37800,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':15000,'r-field':0,'r-hyo':220000,'k-jumin':4900,'k-nencho':0,'_net':210103 },
+    { no:2,  name:'鄭 基石', year:2026, month:4,  'r-base':200000,'r-ot':2800, 'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':15000,'r-field':0,'r-hyo':220000,'k-jumin':4900,'k-nencho':0,'_net':176130 },
+    // 朴 娟慶 (no=17)
+    { no:17, name:'朴 娟慶', year:2025, month:12, 'r-base':360000,'r-ot':0,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':0,'r-field':0,'r-hyo':360000,'k-jumin':6700,'k-nencho':-39700,'_net':332560 },
+    { no:17, name:'朴 娟慶', year:2026, month:1,  'r-base':360000,'r-ot':0,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':0,'r-field':0,'r-hyo':360000,'k-jumin':6700,'k-nencho':0,'_net':292860 },
+    { no:17, name:'朴 娟慶', year:2026, month:2,  'r-base':360000,'r-ot':0,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':0,'r-field':0,'r-hyo':360000,'k-jumin':6700,'k-nencho':0,'_net':292860 },
+    { no:17, name:'朴 娟慶', year:2026, month:3,  'r-base':360000,'r-ot':0,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':0,'r-field':0,'r-hyo':360000,'k-jumin':6700,'k-nencho':0,'_net':292914 },
+    { no:17, name:'朴 娟慶', year:2026, month:4,  'r-base':360000,'r-ot':0,'r-kintai':0,'r-commute':0,'r-commutetax':0,'r-kinmu':0,'r-shokumu':0,'r-field':0,'r-hyo':360000,'k-jumin':6700,'k-nencho':0,'_net':292680 },
+    // 朴 修完 (no=19)
+    { no:19, name:'朴 修完', year:2025, month:12, 'r-base':200000,'r-ot':47500,'r-kintai':0,'r-commute':13150,'r-commutetax':0,'r-kinmu':100000,'r-shokumu':0,    'r-field':0,'r-hyo':300000,'k-jumin':0,'k-nencho':-31860,'_net':340151 },
+    { no:19, name:'朴 修完', year:2026, month:1,  'r-base':200000,'r-ot':12500,'r-kintai':0,'r-commute':13150,'r-commutetax':0,'r-kinmu':100000,'r-shokumu':0,    'r-field':0,'r-hyo':300000,'k-jumin':0,'k-nencho':0,'_net':274794 },
+    { no:19, name:'朴 修完', year:2026, month:2,  'r-base':200000,'r-ot':2500, 'r-kintai':0,'r-commute':13150,'r-commutetax':0,'r-kinmu':100000,'r-shokumu':0,    'r-field':0,'r-hyo':300000,'k-jumin':0,'k-nencho':0,'_net':265169 },
+    { no:19, name:'朴 修完', year:2026, month:3,  'r-base':200000,'r-ot':80000,'r-kintai':0,'r-commute':13150,'r-commutetax':0,'r-kinmu':100000,'r-shokumu':0,    'r-field':0,'r-hyo':300000,'k-jumin':0,'k-nencho':0,'_net':338253 },
+    { no:19, name:'朴 修完', year:2026, month:4,  'r-base':200000,'r-ot':1250, 'r-kintai':0,'r-commute':21930,'r-commutetax':0,'r-kinmu':100000,'r-shokumu':8333,'r-field':0,'r-hyo':320000,'k-jumin':0,'k-nencho':0,'_net':277917 },
+  ];
+
+  const existing = sheetToObjects(getSheet(SHEET_PAY));
+  const payMap = {};
+  existing.forEach(function(p) {
+    payMap[String(parseInt(p.no)) + '_' + p.year + '_' + p.month] = p;
+  });
+  incoming.forEach(function(fp) {
+    const k = fp.no + '_' + fp.year + '_' + fp.month;
+    if (payMap[k]) { Object.assign(payMap[k], fp); } else { payMap[k] = fp; }
+  });
+  const merged = Object.values(payMap).sort(function(a, b) {
+    const nd = parseInt(a.no) - parseInt(b.no);
+    if (nd !== 0) return nd;
+    const yd = a.year - b.year;
+    if (yd !== 0) return yd;
+    return a.month - b.month;
+  });
+  saveSheet(SHEET_PAY, merged);
+  Logger.log('importWageLedgerR8 완료: ' + incoming.length + '건 → ' + SHEET_PAY);
   return { ok: true, count: incoming.length };
 }
