@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 23:24 — 임금대장 사원선택 모달 i18n 추가
+﻿// 수정: 2026-05-25 23:48 — 백업 UI i18n 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -96,6 +96,16 @@ function applyLang() {
   setTxt('t-gas-download-label', 'Google → ローカル', 'Google → 로컬');
   setTxt('t-gas-download-desc', 'ローカルデータを上書きします', '로컬 데이터를 덮어씁니다');
   setTxt('t-gas-sync-note', '※ 初回は「ローカル → Google」で既存データをアップロードしてください', '※ 초회는 「로컬 → Google」로 기존 데이터를 업로드해 주세요');
+  setTxt('t-backup-title', '手動バックアップ', '수동 백업');
+  setTxt('t-backup-json-btn', '📄 JSONバックアップ', '📄 JSON 백업');
+  setTxt('t-backup-excel-btn', '📊 Excelバックアップ', '📊 Excel 백업');
+  setTxt('t-backup-file-desc', 'ファイル名: WisePay_backup_YYYYMMDD', '파일명: WisePay_backup_YYYYMMDD');
+  setTxt('t-backup-auto-title', '📅 GAS 自動バックアップ（毎週月曜日）', '📅 GAS 자동 백업 (매주 월요일)');
+  setHtml('t-backup-auto-desc',
+    'GASエディタで <code style="background:#e0e7ff;padding:1px 4px;border-radius:3px;">createWeeklyBackupTrigger</code> を一度実行すると<br>毎週月曜日の午前9時に別のスプレッドシートへ自動バックアップされます（最大26個保持）。',
+    'GAS 편집기에서 <code style="background:#e0e7ff;padding:1px 4px;border-radius:3px;">createWeeklyBackupTrigger</code> 함수를 한 번 실행하면<br>매주 월요일 오전 9시에 별도 스프레드시트로 자동 백업됩니다 (최대 26개 유지).'
+  );
+
   setTxt('t-reset-zone', '危険区域', '위험 구역');
   setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');
   setTxt('t-reset-desc', '従業員・給与・保険料率などブラウザに保存されたデータをすべて削除します。', '사원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.');

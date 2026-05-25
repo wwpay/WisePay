@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-25 22:57 — appendLog 함수 추가 + doPost appendLog 핸들러 + 동기화로그 시트 기록
+// 수정: 2026-05-25 23:48 — backupWeekly / deleteOldBackups / createWeeklyBackupTrigger 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -537,6 +537,81 @@ function migrateToKoreanSheets() {
   });
 
   Logger.log('마이그레이션 완료');
+}
+
+// ── 주간 자동 백업 ────────────────────────────────────────────────
+// 매주 월요일 오전 9시 GAS 트리거로 자동 실행
+// 별도 스프레드시트 WisePay_backup_YYYYMMDD 를 Drive에 생성, 최대 26개 유지
+function backupWeekly() {
+  const ts   = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyyMMdd');
+  const name = 'WisePay_backup_' + ts;
+  const main = SpreadsheetApp.getActiveSpreadsheet();
+
+  // 새 스프레드시트 생성
+  const backup = SpreadsheetApp.create(name);
+
+  // 메인 시트 복사
+  [SHEET_EMP, SHEET_PAY, SHEET_RATE, SHEET_LOG].forEach(function(sn) {
+    const src = main.getSheetByName(sn);
+    if (!src) return;
+    const nr = src.getLastRow(), nc = src.getLastColumn();
+    if (nr === 0 || nc === 0) return;
+    const vals = src.getRange(1, 1, nr, nc).getValues();
+    var dst = backup.getSheetByName(sn) || backup.insertSheet(sn);
+    dst.getRange(1, 1, vals.length, vals[0].length).setValues(vals);
+  });
+
+  // 기본 Sheet1 삭제
+  try {
+    var s1 = backup.getSheetByName('Sheet1');
+    if (s1 && backup.getSheets().length > 1) backup.deleteSheet(s1);
+  } catch(e) {}
+
+  // 백업 이력 기록 (newest-first)
+  var hist = getSheet('백업이력');
+  if (hist.getLastRow() === 0) {
+    hist.getRange(1, 1, 1, 3).setValues([['timestamp', 'filename', 'fileId']]);
+  }
+  hist.insertRowAfter(1);
+  hist.getRange(2, 1, 1, 3).setValues([[ts, name, backup.getId()]]);
+
+  deleteOldBackups();
+  Logger.log('자동 백업 완료: ' + name + ' (ID: ' + backup.getId() + ')');
+  return { ok: true, name: name };
+}
+
+// 26개 초과 시 오래된 백업 스프레드시트를 휴지통으로 이동
+function deleteOldBackups() {
+  var MAX = 26;
+  var hist = getSheet('백업이력');
+  if (hist.getLastRow() < 2) return;
+  var data    = hist.getDataRange().getValues();
+  var headers = data[0];
+  var idIdx   = headers.indexOf('fileId');
+  var rows    = data.slice(1); // newest first
+  if (rows.length <= MAX) return;
+  var toDelete = rows.slice(MAX);
+  toDelete.forEach(function(row) {
+    var fid = row[idIdx];
+    if (!fid) return;
+    try { DriveApp.getFileById(String(fid)).setTrashed(true); }
+    catch(e) { Logger.log('백업 삭제 실패: ' + fid + ' / ' + e.message); }
+  });
+  hist.deleteRows(MAX + 2, rows.length - MAX);
+  Logger.log((rows.length - MAX) + '개 오래된 백업 삭제');
+}
+
+// GAS 편집기에서 한 번만 실행 → 매주 월요일 오전 9시 트리거 등록
+function createWeeklyBackupTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter(function(t) { return t.getHandlerFunction() === 'backupWeekly'; })
+    .forEach(function(t) { ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('backupWeekly')
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(9)
+    .create();
+  Logger.log('✅ 매주 월요일 오전 9시 자동 백업 트리거 설정 완료');
 }
 
 // ── 잔여 한글 시트 정리 (한 번만 실행) ───────────────────────────

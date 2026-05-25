@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-25 23:42 — 임금대장 인쇄 3종 수정: 스크롤바·페이지분리·표잘림
+  수정: 2026-05-25 23:48 — 백업 기능: JSON/Excel 다운로드 버튼 + GAS 자동백업 안내 + SheetJS CDN
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -405,6 +405,31 @@
       </div>
     </div>
   </div>
+  <!-- 수동 백업 -->
+  <div style="margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+    <div style="background:var(--surface2);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span style="font-size:12px;font-weight:600;color:var(--text2);" id="t-backup-title">수동 백업</span>
+    </div>
+    <div style="padding:14px 16px;background:#fff;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <button onclick="downloadBackupJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="t-backup-json-btn">JSON 백업</span>
+        </button>
+        <button onclick="downloadBackupExcel()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          <span id="t-backup-excel-btn">Excel 백업</span>
+        </button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);" id="t-backup-file-desc">파일명: WisePay_backup_YYYYMMDD</div>
+    </div>
+    <div style="padding:11px 16px;background:var(--accent2);border-top:1px solid var(--border);">
+      <div style="font-size:12px;font-weight:600;color:#3730a3;margin-bottom:4px;" id="t-backup-auto-title">📅 GAS 자동 백업 (매주 월요일)</div>
+      <div style="font-size:11px;color:#4338ca;line-height:1.7;" id="t-backup-auto-desc">GAS 편집기에서 <code style="background:#e0e7ff;padding:1px 4px;border-radius:3px;">createWeeklyBackupTrigger</code> 함수를 한 번 실행하면<br>매주 월요일 오전 9시에 별도 스프레드시트로 자동 백업됩니다 (최대 26개 유지).</div>
+    </div>
+  </div>
+
   <!-- 위험 구역: 로컬 데이터 초기화 -->
   <div style="margin-top:16px;border:1px solid #fecaca;border-radius:10px;overflow:hidden;">
     <div style="background:#fff5f5;padding:10px 16px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:7px;">
@@ -484,6 +509,8 @@
 <script src="js/history.js"></script>
 <script src="js/gas.js"></script>
 <script src="js/notifications.js"></script>
+<script src="js/backup.js"></script>
 <script src="js/app.js"></script>
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </body>
 </html>

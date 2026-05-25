@@ -1,4 +1,4 @@
-// 수정: 2026-05-25 23:42 — beforeprint: annual-wrap overflow:hidden 해제로 page-break 동작 보장
+// 수정: 2026-05-25 23:48 — checkBackupReminder 호출 추가
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -103,6 +103,8 @@ function initApp() {
   setTimeout(() => onMonthYearChange(), 100);
   // 로그인 후 Google 시트에서 최신 데이터 자동 로드
   autoLoadFromGas();
+  // 월요일 접속 시 수동 백업 알림
+  checkBackupReminder();
 }
 
 // 페이지 닫기/새로고침 시 미저장 경고
