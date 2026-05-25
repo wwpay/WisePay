@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 15:14 — renderHistory: shahoExempt + koyoEnabled + Math.round(koyo) + year/month→calcShotoku 버그 수정
+﻿// 수정: 2026-05-25 17:27 — 임금대장: 이름 변경 + 지급/공제 세부 항목·소계·연계열 표시
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -68,7 +68,7 @@ function calcMonthData(emp, year, month) {
     let shotoku = Math.max(0, calcShotoku(shotokuBase, fuyou, isOtsu, year, month));
     const totalKojo=shakai+shotoku+jumin+nencho;
     const net=totalPay-totalKojo;
-    return {totalPay,kenko,kaigo:kaigo2,kodomo,nenkin,koyo,shakai,shotoku,jumin,nencho,totalKojo,net};
+    return {base,ot,kintai,commute,commutetax,kinmu,shokumu,field,totalPay,kenko,kaigo:kaigo2,kodomo,nenkin,koyo,shakai,shotoku,jumin,nencho,totalKojo,net};
   } catch(e){ return null; }
 }
 
@@ -93,30 +93,14 @@ function renderAnnual() {
   // 인쇄 헤더
   const ph = document.getElementById('annualPrintHeader');
   ph.style.display='block';
-  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'年間給与一覧':'연간 급여 일람'}`;
+  document.getElementById('annualPrintTitle').textContent = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
   document.getElementById('annualPrintSub').textContent = jp?`出力日：${new Date().toLocaleDateString('ja-JP')}`:`출력일：${new Date().toLocaleDateString('ko-KR')}`;
 
-  const rows = [
-    {key:'totalPay', label:jp?'支給総額':'지급총액'},
-    {key:'shakai',   label:jp?'社会保険計':'사회보험계'},
-    {key:'kenko',    label:jp?'健康保険料':'건강보험료'},
-    {key:'kaigo',    label:jp?'介護保険料':'개호보험료'},
-    {key:'nenkin',   label:jp?'厚生年金':'후생연금'},
-    {key:'koyo',     label:jp?'雇用保険':'고용보험'},
-    {key:'shotoku',  label:jp?'所得税':'소득세'},
-    {key:'jumin',    label:jp?'住民税':'주민세'},
-    {key:'nencho',   label:jp?'年末調整':'연말정산'},
-    {key:'totalKojo',label:jp?'控除合計':'공제합계'},
-    {key:'net',      label:jp?'手取り':'실수령액'},
-  ];
-
-  // 익월 10일 지급: 前年12月～当年11月 (12ヶ月) を表示
-  // 예) 2026년도 = 2025-12 근무분(2026-01 지급) ~ 2026-11 근무분(2026-12 지급)
+  // 익월 10일 지급: 前年12月～当年11月
   const fiscalMonths = [
     { year: year-1, month: 12 },
     ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
   ];
-
   const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
   const hasAny = monthData.some(d=>d!==null);
 
@@ -126,62 +110,97 @@ function renderAnnual() {
     return;
   }
 
-  // 데이터 있는 마지막 인덱스까지만 표시
   let lastIdx = 0;
   for(let i=0; i<12; i++) { if(monthData[i] !== null) lastIdx = i; }
   const showCount = lastIdx + 1;
-  const cols = `grid-template-columns:100px repeat(${showCount},1fr);`;
+  // 항목열 + 월열들 + 연계열
+  const cols = `grid-template-columns:110px repeat(${showCount},1fr) 86px;`;
 
-  // 합계 (표시 범위 내에서만)
-  const totals = {};
-  rows.forEach(r => {
-    totals[r.key] = monthData.slice(0, showCount).reduce((s,d) => s+(d?d[r.key]:0), 0);
-  });
+  const sumKey = key => monthData.slice(0, showCount).reduce((s,d) => s+(d?d[key]:0), 0);
+
+  // 지급 세부 — 한 달이라도 값 있는 항목만 표시 (kintai는 음수 표시)
+  const payItems = [
+    {key:'base',       label:jp?'基本給':'기본급'},
+    {key:'ot',         label:jp?'残業手当':'잔업수당'},
+    {key:'kintai',     label:jp?'勤怠控除':'근태공제', neg:true},
+    {key:'commute',    label:jp?'通勤費':'통근비'},
+    {key:'commutetax', label:jp?'非課税通勤':'비과세통근'},
+    {key:'kinmu',      label:jp?'勤務手当':'근무수당'},
+    {key:'shokumu',    label:jp?'職務手当':'직무수당'},
+    {key:'field',      label:jp?'現場手当':'현장수당'},
+  ].filter(r => monthData.slice(0,showCount).some(d => d && d[r.key] > 0));
+
+  // 공제 세부 — 0이 아닌 달이 하나라도 있는 항목만 표시
+  const deductItems = [
+    {key:'kenko',   label:jp?'健康保険料':'건강보험료'},
+    {key:'kaigo',   label:jp?'介護保険料':'개호보험료'},
+    {key:'kodomo',  label:jp?'子育て支援金':'아동육성지원금'},
+    {key:'nenkin',  label:jp?'厚生年金':'후생연금'},
+    {key:'koyo',    label:jp?'雇用保険':'고용보험'},
+    {key:'shotoku', label:jp?'所得税':'소득세'},
+    {key:'jumin',   label:jp?'住民税':'주민세'},
+    {key:'nencho',  label:jp?'年末調整':'연말정산'},
+  ].filter(r => monthData.slice(0,showCount).some(d => d && d[r.key] !== 0));
+
+  // 셀 렌더 헬퍼
+  const noDataCell = `<div class="annual-no-data">-</div>`;
+  function valCell(val, neg) {
+    if(val === 0) return `<div style="color:var(--text3)">0</div>`;
+    const c = neg ? 'color:var(--red);' : '';
+    return `<div style="${c}">${neg?'-':''}${fmt(val)}</div>`;
+  }
+  function sumCell(key, neg, accent) {
+    const t = sumKey(key);
+    const c = accent ? 'color:var(--accent);font-weight:700;' : (neg ? 'color:var(--red);font-weight:600;' : 'font-weight:600;');
+    return `<div style="${c}">${neg?'-':''}${fmt(t)}</div>`;
+  }
 
   let html = `<div class="annual-wrap">`;
-  // 헤더: 전년12월은 별도 표기
+
+  // ── 헤더 행 ──
   html += `<div class="annual-head-row" style="${cols}"><div>${jp?'項目':'항목'}</div>`;
-  for(let i=0; i<showCount; i++) {
-    const {year:y, month:m} = fiscalMonths[i];
-    const label = (m===12 && y===year-1) ? (jp?`前年${m}${mu}`:`전년${m}${mu}`) : `${m}${mu}`;
-    html += `<div>${label}</div>`;
-  }
-  html += `</div>`;
-
-  // 데이터 행
-  rows.forEach(r => {
-    const isBold = r.key==='net'||r.key==='totalPay';
-    html += `<div class="annual-data-row${r.key==='net'?' total-row':''}" style="${cols}">`;
-    html += `<div style="${isBold?'font-weight:600;':''}">${r.label}</div>`;
-    for(let i=0;i<showCount;i++) {
-      const d = monthData[i];
-      if(d) {
-        const val = d[r.key];
-        const color = r.key==='net'?'color:var(--accent);font-weight:600;':'';
-        html += `<div style="${color}">${fmt(val)}</div>`;
-      } else {
-        html += `<div class="annual-no-data">-</div>`;
-      }
-    }
-    html += `</div>`;
-  });
-
-  // 합계 행
-  html += `<div class="annual-data-row total-row" style="${cols}">`;
-  html += `<div>${jp?'年計':'연계'}</div>`;
   for(let i=0;i<showCount;i++) {
-    html += monthData[i]
-      ? `<div style="color:var(--accent);font-weight:600;">${fmt(monthData[i].net)}</div>`
-      : `<div class="annual-no-data">-</div>`;
+    const {year:y,month:m} = fiscalMonths[i];
+    html += `<div>${(m===12&&y===year-1)?(jp?`前年${m}${mu}`:`전년${m}${mu}`):`${m}${mu}`}</div>`;
   }
+  html += `<div>${jp?'年計':'연계'}</div></div>`;
+
+  // ── 지급 섹션 ──
+  html += `<div class="annual-section-head" style="${cols}"><div>${jp?'【支給】':'【지급】'}</div>${'<div></div>'.repeat(showCount+1)}</div>`;
+  payItems.forEach(r => {
+    html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
+    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key], r.neg) : noDataCell;
+    html += sumCell(r.key, r.neg, false) + `</div>`;
+  });
+  // 지급합계
+  html += `<div class="annual-data-row annual-subtotal" style="${cols}"><div>${jp?'支給合計':'지급합계'}</div>`;
+  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalPay)}</div>` : noDataCell;
+  html += `<div style="font-weight:700;">${fmt(sumKey('totalPay'))}</div></div>`;
+
+  // ── 공제 섹션 ──
+  html += `<div class="annual-section-head" style="${cols}"><div>${jp?'【控除】':'【공제】'}</div>${'<div></div>'.repeat(showCount+1)}</div>`;
+  deductItems.forEach(r => {
+    html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
+    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key], false) : noDataCell;
+    html += sumCell(r.key, false, false) + `</div>`;
+  });
+  // 공제합계
+  html += `<div class="annual-data-row annual-subtotal" style="${cols}"><div>${jp?'控除合計':'공제합계'}</div>`;
+  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>${fmt(monthData[i].totalKojo)}</div>` : noDataCell;
+  html += `<div style="font-weight:700;">${fmt(sumKey('totalKojo'))}</div></div>`;
+
+  // ── 차인지급액 ──
+  html += `<div class="annual-data-row annual-net-row" style="${cols}"><div>${jp?'差引支給額':'차인지급액'}</div>`;
+  for(let i=0;i<showCount;i++) html += monthData[i] ? `<div>¥${fmt(monthData[i].net)}</div>` : noDataCell;
+  html += `<div>¥${fmt(sumKey('net'))}</div></div>`;
+
   html += `</div>`;
 
-  // 연간 합계 요약
-  html += `</div>`;
+  // 연간 합계 요약 바
   html += `<div style="margin-top:12px;background:var(--accent2);border:1px solid var(--accent3);border-radius:var(--r);padding:12px 16px;display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;">`;
-  html += `<span><strong>${jp?'年間支給合計':'연간 지급 합계'}:</strong> ¥${fmt(totals.totalPay)}</span>`;
-  html += `<span><strong>${jp?'年間控除合計':'연간 공제 합계'}:</strong> ¥${fmt(totals.totalKojo)}</span>`;
-  html += `<span style="font-size:14px;font-weight:700;color:var(--accent);"><strong>${jp?'年間手取り合計':'연간 실수령 합계'}:</strong> ¥${fmt(totals.net)}</span>`;
+  html += `<span><strong>${jp?'年間支給合計':'연간 지급 합계'}:</strong> ¥${fmt(sumKey('totalPay'))}</span>`;
+  html += `<span><strong>${jp?'年間控除合計':'연간 공제 합계'}:</strong> ¥${fmt(sumKey('totalKojo'))}</span>`;
+  html += `<span style="font-size:14px;font-weight:700;color:var(--accent);"><strong>${jp?'年間手取り合計':'연간 실수령 합계'}:</strong> ¥${fmt(sumKey('net'))}</span>`;
   html += `</div>`;
 
   document.getElementById('annualContent').innerHTML = html;

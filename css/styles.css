@@ -205,6 +205,13 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .annual-data-row div:first-child{text-align:left;color:var(--text2);font-weight:500;}
 .annual-data-row.total-row{background:var(--surface2);font-weight:600;border-top:2px solid var(--border);}
 .annual-no-data{padding:5px 4px;color:var(--text3);}
+.annual-section-head{display:grid;font-size:10.5px;font-weight:700;background:#e6eaf4;color:var(--text2);border-bottom:1px solid var(--border);}
+.annual-section-head div{padding:4px 4px;border-right:1px solid var(--border2);}
+.annual-subtotal{background:var(--surface2) !important;border-top:1.5px solid var(--border) !important;border-bottom:1.5px solid var(--border) !important;}
+.annual-subtotal div:first-child{font-weight:700;color:var(--text);}
+.annual-net-row{background:var(--accent2) !important;border-top:2px solid var(--accent3) !important;}
+.annual-net-row div{color:var(--accent);font-weight:700;}
+.annual-net-row div:first-child{color:var(--text);}
 @media print{
   .sidebar,.topbar,.no-print{display:none!important;}
   .content{padding:0;}

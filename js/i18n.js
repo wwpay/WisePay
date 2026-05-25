@@ -36,8 +36,8 @@ function applyLang() {
   setTxt('t-nav-main', 'メイン', '메인');
   setTxt('t-nav-payroll', '給与明細', '급여 명세');
   setTxt('t-nav-history', '支給履歴', '지급 이력');
-  setTxt('t-nav-annual', '年間給与一覧', '연간 급여 일람');
-  setTxt('t-annual-title', '年間給与一覧', '연간 급여 일람');
+  setTxt('t-nav-annual', '賃金台帳', '임금대장');
+  setTxt('t-annual-title', '賃金台帳', '임금대장');
   setTxt('t-nav-setting', '設定', '설정');
   setTxt('t-nav-emp', '従業員管理', '사원 관리');
   setTxt('t-emp-add', '+ 新規', '+ 사원 추가');
