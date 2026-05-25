@@ -43,3 +43,25 @@
 - 코드에서 날짜/시간을 다룰 때는 `Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd HH:mm:ss")` 사용
 - 내용은 한국어로 작성
 - 수정이 끝나면 무조건 커밋&푸쉬할 것
+
+## 수정 완료 후 출력 형식
+
+수정이 완료되면 반드시 아래 형식으로 결과를 출력한다:
+
+```
+### 요구사항
+[사용자가 요청한 내용을 그대로 또는 요약하여 기재]
+
+### 수정 내용
+[변경된 파일과 변경 내용을 구체적으로 기재]
+```
+
+예시:
+```
+### 요구사항
+임금대장 인쇄 시 스크롤바가 출력된다 — 숨김 처리해 줘.
+
+### 수정 내용
+- css/styles.css: @media print에 .annual-scroll-wrap::-webkit-scrollbar { display:none } 추가
+- js/app.js: beforeprint 이벤트에서 overflow:visible 인라인 스타일 적용
+```
