@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-26 09:44 — .vscode/tasks.json 추가: VS Code 시작 시 git pull·claude 자동 실행
+  수정: 2026-05-26 09:44 — PDF 저장 버튼 추가: 현재 페이지 종류에 따라 파일명 자동 지정
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -118,6 +118,10 @@
     <button class="btn" onclick="window.print()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       <span id="t-print-btn">印刷</span>
+    </button>
+    <button class="btn" id="btn-pdf" onclick="savePdf()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+      <span id="t-pdf-btn">PDF保存</span>
     </button>
   </div>
 </div>

@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 04:39 — localStorage 로딩 시 join/birth normalizeDate 추가
+// 수정: 2026-05-26 09:44 — savePdf() 함수 추가: 현재 페이지에 맞는 파일명으로 PDF 저장
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -114,6 +114,49 @@ window.addEventListener('beforeunload', e => {
     e.returnValue = '';
   }
 });
+
+function savePdf() {
+  const jp = LANG === 'JP';
+  const activePage = document.querySelector('.page.active')?.id || '';
+  let filename = 'WisePay';
+
+  if (activePage === 'page-payroll' && currentEmpIdx >= 0) {
+    const emp = employees[currentEmpIdx];
+    if (emp) {
+      const no = String(emp.no).padStart(4, '0');
+      filename = jp
+        ? `${no}_${emp.name}_給与明細_${currentYear}年${currentMonth}月`
+        : `${no}_${emp.name}_급여명세_${currentYear}년${currentMonth}월`;
+    }
+  } else if (activePage === 'page-annual') {
+    const year = parseInt(document.getElementById('annualYearSel')?.value) || currentYear;
+    const nos = (typeof getSelectedAnnualNos === 'function') ? getSelectedAnnualNos() : [];
+    if (nos.length === 1) {
+      const emp = employees.find(e => e.no === nos[0]);
+      if (emp) {
+        const no = String(emp.no).padStart(4, '0');
+        filename = jp
+          ? `${no}_${emp.name}_賃金台帳_${year}年度`
+          : `${no}_${emp.name}_임금대장_${year}년도`;
+      }
+    } else if (nos.length > 1) {
+      filename = jp ? `賃金台帳_${year}年度` : `임금대장_${year}년도`;
+    }
+  } else if (activePage === 'page-employees' && editingEmpIdx >= 0) {
+    const emp = employees[editingEmpIdx];
+    if (emp) {
+      const no = String(emp.no).padStart(4, '0');
+      filename = jp
+        ? `${no}_${emp.name}_従業員情報`
+        : `${no}_${emp.name}_사원정보`;
+    }
+  }
+
+  const origTitle = document.title;
+  document.title = filename;
+  window.addEventListener('afterprint', () => { document.title = origTitle; }, { once: true });
+  window.print();
+}
 
 // 인쇄 시 스크롤바 제거 + overflow:hidden 해제 (page-break 동작 보장)
 window.addEventListener('beforeprint', () => {

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 23:48 — 백업 UI i18n 추가
+﻿// 수정: 2026-05-26 09:44 — t-pdf-btn 번역 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -49,6 +49,7 @@ function applyLang() {
   setTxt('t-save-btn', '保存', '저장');
   // t-del-month-btn은 renderMonthTabs()에서 동적으로 갱신
   setTxt('t-print-btn', '印刷', '인쇄');
+  setTxt('t-pdf-btn', 'PDF保存', 'PDF 저장');
 
   setTxt('t-net-label', '差引総支給額（手取り）', '차인지급액');
   setTxt('t-card-shikyuu', '支給', '지급');
