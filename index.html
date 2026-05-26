@@ -6,7 +6,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-27 00:00 — 임금대장 미선택 시 빈 페이지(플레이스홀더) 표시
+  수정: 2026-05-27 00:05 — 임금대장 사원 선택을 인라인 드롭다운으로 교체 (검색+재직자만 버튼)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -233,11 +233,26 @@
 <div class="page" id="page-annual">
   <div class="no-print" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button class="btn" onclick="openAnnualEmpModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span id="t-annual-sel-btn">従業員選択</span>
-      </button>
-      <span id="annualEmpSelSummary" style="font-size:12px;color:var(--text2);">—</span>
+      <!-- 인라인 드롭다운 사원 선택 -->
+      <div style="position:relative;" id="annualEmpDropWrap">
+        <button class="btn" id="annualEmpDropBtn" onclick="toggleAnnualEmpDrop(event)" style="display:flex;align-items:center;gap:5px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span id="annualEmpSelLabel">사원 선택</span>
+          <span id="annualEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="annualEmpDrop" style="display:none;position:absolute;top:calc(100% + 5px);right:0;min-width:290px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,0.13);z-index:300;padding:10px;">
+          <input type="text" id="annualEmpSearch" placeholder="이름 또는 사번 검색..." autocomplete="off"
+            style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--r2);padding:7px 10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;outline:none;"
+            oninput="filterAnnualEmpList()">
+          <div style="display:flex;gap:5px;margin-bottom:8px;">
+            <button class="btn btn-sm" onclick="selectAllAnnualEmps()"><span id="t-annual-sel-all">全選択</span></button>
+            <button class="btn btn-sm" onclick="clearAllAnnualEmps()"><span id="t-annual-sel-clear">全解除</span></button>
+            <button class="btn btn-sm" onclick="selectActiveOnlyAnnual()"><span id="t-annual-sel-active">在職者のみ</span></button>
+          </div>
+          <div id="annualEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
+        </div>
+      </div>
       <select id="annualYearSel" onchange="renderAnnual()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);">
         <option value="2026">2026年度</option><option value="2025">2025年度</option><option value="2024">2024年度</option>
       </select>
@@ -508,26 +523,6 @@
 <script src="js/utils.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/tax-tables.js"></script>
-<!-- ══ MODAL: 임금대장 사원 선택 ══ -->
-<div id="annualEmpModal" class="overlay" onclick="if(event.target===this)closeAnnualEmpModal()">
-  <div class="modal" style="max-width:340px;width:92vw;">
-    <div class="modal-head">
-      <span class="modal-title" id="t-annual-modal-title">従業員を選択</span>
-      <span class="modal-x" onclick="closeAnnualEmpModal()">×</span>
-    </div>
-    <div class="modal-body" style="padding:12px 16px;">
-      <div style="display:flex;gap:6px;margin-bottom:12px;">
-        <button class="btn btn-sm" onclick="selectAllAnnualEmps()"><span id="t-annual-sel-all">全選択</span></button>
-        <button class="btn btn-sm" onclick="clearAllAnnualEmps()"><span id="t-annual-sel-clear">全解除</span></button>
-      </div>
-      <div id="annualEmpCheckList" style="max-height:175px;overflow-y:auto;"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-primary" onclick="applyAnnualEmpSel()"><span id="t-annual-sel-ok">確認</span></button>
-      <button class="btn" onclick="closeAnnualEmpModal()"><span id="t-annual-sel-cancel">キャンセル</span></button>
-    </div>
-  </div>
-</div>
 
 <script src="js/undo.js"></script>
 <script src="js/payroll.js"></script>

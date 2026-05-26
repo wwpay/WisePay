@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 00:00 — renderAnnual: 미선택 시 플레이스홀더 표시 (급여명세와 동일 패턴)
+// 수정: 2026-05-27 00:05 — 사원 선택 인라인 드롭다운으로 교체 (검색·재직자만·외부클릭 닫기)
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -16,28 +16,38 @@ function buildAnnualYearSel() {
   if(years.map(String).includes(prev)) sel.value = prev;
 }
 
-// 체크리스트 빌드 — 이전 선택 유지 (첫 빌드 시 첫 번째 사원 선택)
+// 체크리스트 빌드 — 이전 선택 유지 (첫 빌드 시 첫 번째 활성 사원 선택)
 function buildAnnualEmpSel() {
   const list = document.getElementById('annualEmpCheckList');
   if (!list) return;
   const isFirstBuild = list.children.length === 0;
   const prevNos = new Set(getSelectedAnnualNos().map(String));
   list.innerHTML = '';
-  employees.forEach((e, idx) => {
+  let firstActive = true;
+  employees.forEach(e => {
     if (!e || e.no == null) return;
     const noStr = String(e.no);
-    const checked = isFirstBuild ? idx === 0 : prevNos.has(noStr);
+    const checked = isFirstBuild ? (firstActive && !e.deleted) : prevNos.has(noStr);
+    if (isFirstBuild && !e.deleted && firstActive) firstActive = false;
     const label = document.createElement('label');
-    label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 6px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;user-select:none;';
+    label.dataset.no = noStr;
+    label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 6px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;user-select:none;';
+    if (e.deleted) label.style.opacity = '0.45';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.value = noStr;
     cb.checked = checked;
     cb.style.cssText = 'width:15px;height:15px;flex-shrink:0;cursor:pointer;accent-color:var(--accent);';
-    const span = document.createElement('span');
-    span.textContent = `${e.name}（${String(e.no).padStart(4,'0')}）`;
+    cb.addEventListener('change', updateAnnualSelSummary);
+    const nameSpan = document.createElement('span');
+    nameSpan.style.flex = '1';
+    nameSpan.textContent = e.name;
+    const noSpan = document.createElement('span');
+    noSpan.style.cssText = 'color:var(--text3);font-size:12px;font-variant-numeric:tabular-nums;';
+    noSpan.textContent = String(e.no).padStart(4, '0');
     label.appendChild(cb);
-    label.appendChild(span);
+    label.appendChild(nameSpan);
+    label.appendChild(noSpan);
     list.appendChild(label);
   });
   updateAnnualSelSummary();
@@ -50,41 +60,86 @@ function getSelectedAnnualNos() {
   ).map(cb => parseInt(cb.value));
 }
 
-// 선택 요약 텍스트 갱신
+// 드롭다운 버튼 텍스트·뱃지 갱신
 function updateAnnualSelSummary() {
   const nos = getSelectedAnnualNos();
-  const total = document.querySelectorAll('#annualEmpCheckList input[type="checkbox"]').length;
   const jp = LANG === 'JP';
-  const summary = document.getElementById('annualEmpSelSummary');
-  if (!summary) return;
+  const labelEl = document.getElementById('annualEmpSelLabel');
+  const countEl = document.getElementById('annualEmpSelCount');
+  if (!labelEl) return;
   if (nos.length === 0) {
-    summary.textContent = jp ? '未選択' : '미선택';
-    summary.style.color = 'var(--red)';
-  } else if (nos.length === total) {
-    summary.textContent = jp ? `全員（${total}名）` : `전체（${total}명）`;
-    summary.style.color = 'var(--text2)';
+    labelEl.textContent = jp ? '従業員選択' : '사원 선택';
+    if (countEl) countEl.style.display = 'none';
   } else if (nos.length === 1) {
     const emp = employees.find(e => parseInt(e.no) === nos[0]);
-    summary.textContent = emp ? emp.name : `1${jp?'名':'명'}`;
-    summary.style.color = 'var(--text2)';
+    labelEl.textContent = emp ? emp.name : (jp ? '1名' : '1명');
+    if (countEl) { countEl.textContent = '1'; countEl.style.display = ''; }
   } else {
-    const emp = employees.find(e => parseInt(e.no) === nos[0]);
-    const first = emp ? emp.name : '';
-    summary.textContent = jp ? `${first} 他${nos.length-1}名` : `${first} 외${nos.length-1}명`;
-    summary.style.color = 'var(--text2)';
+    labelEl.textContent = jp ? '従業員選択' : '사원 선택';
+    if (countEl) { countEl.textContent = nos.length; countEl.style.display = ''; }
   }
 }
 
-function openAnnualEmpModal()  { document.getElementById('annualEmpModal').classList.add('open'); }
-function closeAnnualEmpModal() { document.getElementById('annualEmpModal').classList.remove('open'); }
-function selectAllAnnualEmps() { document.querySelectorAll('#annualEmpCheckList input[type="checkbox"]').forEach(cb => cb.checked = true); }
-function clearAllAnnualEmps()  { document.querySelectorAll('#annualEmpCheckList input[type="checkbox"]').forEach(cb => cb.checked = false); }
+// 드롭다운 열기/닫기
+function toggleAnnualEmpDrop(e) {
+  e.stopPropagation();
+  const drop = document.getElementById('annualEmpDrop');
+  if (!drop) return;
+  const opening = drop.style.display === 'none' || drop.style.display === '';
+  drop.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    const inp = document.getElementById('annualEmpSearch');
+    if (inp) { inp.value = ''; inp.focus(); }
+    filterAnnualEmpList();
+  } else {
+    renderAnnual();
+  }
+}
 
-function applyAnnualEmpSel() {
-  closeAnnualEmpModal();
-  updateAnnualSelSummary();
+function closeAnnualEmpDrop() {
+  const drop = document.getElementById('annualEmpDrop');
+  if (!drop || drop.style.display === 'none') return;
+  drop.style.display = 'none';
   renderAnnual();
 }
+
+// 이름·사번 검색 필터
+function filterAnnualEmpList() {
+  const q = (document.getElementById('annualEmpSearch')?.value || '').toLowerCase().trim();
+  document.querySelectorAll('#annualEmpCheckList label').forEach(label => {
+    const no = label.dataset.no || '';
+    const emp = employees.find(e => String(e.no) === no);
+    if (!emp) { label.style.display = 'none'; return; }
+    const match = !q || emp.name.toLowerCase().includes(q) || String(emp.no).padStart(4,'0').includes(q);
+    label.style.display = match ? '' : 'none';
+  });
+}
+
+// 전체 선택 / 해제 / 재직자만
+function selectAllAnnualEmps() {
+  document.querySelectorAll('#annualEmpCheckList label[style*="display: none"]').forEach(() => {});
+  document.querySelectorAll('#annualEmpCheckList label:not([style*="display: none"]) input[type="checkbox"]').forEach(cb => cb.checked = true);
+  updateAnnualSelSummary();
+}
+function clearAllAnnualEmps() {
+  document.querySelectorAll('#annualEmpCheckList input[type="checkbox"]').forEach(cb => cb.checked = false);
+  updateAnnualSelSummary();
+}
+function selectActiveOnlyAnnual() {
+  document.querySelectorAll('#annualEmpCheckList label').forEach(label => {
+    const no = label.dataset.no || '';
+    const emp = employees.find(e => String(e.no) === no);
+    const cb = label.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = emp ? !emp.deleted : false;
+  });
+  updateAnnualSelSummary();
+}
+
+// 외부 클릭 시 드롭다운 닫기
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('annualEmpDropWrap');
+  if (wrap && !wrap.contains(e.target)) closeAnnualEmpDrop();
+});
 
 // GAS import 시 숫자값으로 저장될 수 있으므로 string/number 모두 처리
 function safeInt(v) { return parseInt(String(v == null ? '0' : v).replace(/,/g, '')) || 0; }

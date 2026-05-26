@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 00:00 — 임금대장 플레이스홀더 i18n 텍스트 추가
+﻿// 수정: 2026-05-27 00:05 — 임금대장 드롭다운 i18n: 재직자만 추가, 모달 관련 항목 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -115,12 +115,9 @@ function applyLang() {
   setTxt('t-rates-ai', '協会けんぽから最新料率を取得', '協会けんぽ 최신 요율 가져오기');
   setTxt('t-rates-save', '料率を保存', '요율 저장');
 
-  setTxt('t-annual-sel-btn',    '従業員選択',  '사원 선택');
-  setTxt('t-annual-modal-title','従業員を選択','사원 선택');
-  setTxt('t-annual-sel-all',   '全選択',      '전체 선택');
-  setTxt('t-annual-sel-clear', '全解除',      '전체 해제');
-  setTxt('t-annual-sel-ok',    '確認',        '확인');
-  setTxt('t-annual-sel-cancel','キャンセル',  '취소');
+  setTxt('t-annual-sel-all',    '全選択',      '전체 선택');
+  setTxt('t-annual-sel-clear',  '全解除',      '전체 해제');
+  setTxt('t-annual-sel-active', '在職者のみ',  '재직자만');
 
   setTxt('t-history-title', '支給履歴', '지급 이력');
   setTxt('t-h-month', '月', '월');
