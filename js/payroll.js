@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 15:35 — 전월 대비 차인지급액 증감 표시 주식 스타일로 변경(▲빨강/▼파랑/─회색)
+﻿// 수정: 2026-05-26 22:55 — Undo/Redo 연동: onPayrollBlur 추가, renderEmpSelect 삭제필터, saveCurrent에 SAVE_MARKER 삽입
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -55,20 +55,20 @@ function renderEmpSelect() {
   const sel = document.getElementById('empSelect');
   sel.innerHTML = '';
   const jp = LANG==='JP';
-  // 미선택 옵션 항상 첫 번째에
   const blank = document.createElement('option');
   blank.value = '-1';
   blank.textContent = jp ? '── 従業員を選択 ──' : '── 사원 선택 ──';
   sel.appendChild(blank);
   if(!employees.length) return;
   employees.forEach((e,i) => {
+    if(e.deleted) return;
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = `${String(e.no).padStart(4,'0')} ${e.name}`;
     sel.appendChild(opt);
   });
-  // currentEmpIdx가 유효하면 선택 유지, 아니면 미선택
-  sel.value = (currentEmpIdx >= 0 && currentEmpIdx < employees.length) ? currentEmpIdx : '-1';
+  const validIdx = currentEmpIdx >= 0 && currentEmpIdx < employees.length && !employees[currentEmpIdx]?.deleted;
+  sel.value = validIdx ? currentEmpIdx : '-1';
 }
 function onEmpChange() {
   const newIdx = parseInt(document.getElementById('empSelect').value);
@@ -101,8 +101,8 @@ function loadPayrollForm() {
   };
 
   const ph = document.getElementById('payrollPlaceholder');
-  // 미선택 상태
-  if(currentEmpIdx < 0 || !employees.length) {
+  // 미선택 또는 삭제된 사원 상태
+  if(currentEmpIdx < 0 || !employees.length || employees[currentEmpIdx]?.deleted) {
     showContent(false);
     if(ph) ph.style.display = '';
     payrollDirty = false;
@@ -227,6 +227,29 @@ function focusNext(event, nextId) {
 function savePrevVal(input) {
   prevValues[input.id] = input.value;
   if(input.value === '0') input.value = '';
+}
+
+// 포커스 이탈 시 값이 변경됐으면 undo 액션 등록
+function onPayrollBlur(input) {
+  const before = prevValues[input.id];
+  if (before === undefined) return;
+  const norm = v => {
+    const n = parseInt(String(v == null ? '0' : v).replace(/,/g, '')) || 0;
+    return n === 0 ? '' : n.toLocaleString();
+  };
+  if (norm(before) === norm(input.value)) return;
+  if (!employees.length || currentEmpIdx < 0 || currentEmpIdx >= employees.length) return;
+  const emp = employees[currentEmpIdx];
+  if (!emp || emp.deleted) return;
+  pushAction({
+    type:   'edit',
+    empNo:  emp.no,
+    year:   currentYear,
+    month:  currentMonth,
+    col:    input.id,
+    before: norm(before),
+    after:  norm(input.value),
+  });
 }
 
 // 반각 스페이스로 변환 (일본어 입력 시 전각 스페이스 → 반각)
@@ -356,6 +379,9 @@ function saveCurrent() {
   payrollDirty = false;
   const saveBtn = document.getElementById('btn-save');
   if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
+
+  // 저장 시점 마커 삽입 (Undo/Redo에서 저장 전/후를 구분)
+  insertSaveMarker();
 
   if(gasUrl && window._calc) {
     const c=window._calc;

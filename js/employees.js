@@ -1,15 +1,18 @@
-﻿// 수정: 2026-05-26 04:39 — shaho_start 입력 UX 개선: 6자리 자동 포맷·유효성 검사·입사일 비교
+﻿// 수정: 2026-05-26 22:55 — Undo/Redo 연동: 사원 소프트 삭제·복원, pushAction(addRow/deleteEmployee)
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
   const title=document.getElementById('empListTitle');
-  title.textContent=(LANG==='JP'?`従業員一覧（${employees.length}名）`:`사원 목록（${employees.length}명）`);
+  const activeCount = employees.filter(e => !e.deleted).length;
+  title.textContent=(LANG==='JP'?`従業員一覧（${activeCount}名）`:`사원 목록（${activeCount}명）`);
   body.innerHTML='';
-  if(!employees.length) {
+  const hasActive = employees.some(e => !e.deleted);
+  if(!hasActive) {
     body.innerHTML=`<div class="emp-list-empty">${LANG==='JP'?'従業員が登録されていません':'등록된 사원이 없습니다'}</div>`;
     return;
   }
   employees.forEach((emp,i)=>{
+    if(emp.deleted) return;
     const item=document.createElement('div');
     item.className='emp-list-item'+(i===editingEmpIdx?' active':'');
     const famCnt=countFamilies(emp);
@@ -730,8 +733,8 @@ function saveEmployee() {
 
   if(editingEmpIdx===-1) {
     employees.push(empData);
-    // 신규 등록 후 해당 사원 편집 모드로 전환
     editingEmpIdx = employees.length - 1;
+    pushAction({ type: 'addRow', empNo: empData.no, snapshot: { ...empData } });
   } else {
     const oldNo = employees[editingEmpIdx].no;
     employees[editingEmpIdx] = empData;
@@ -774,11 +777,16 @@ function deleteEmp(i) {
   const emp=employees[i];
   const msg=LANG==='JP'?`${emp.name} を削除しますか？`:`${emp.name}을(를) 삭제하시겠습니까?`;
   if(!confirm(msg)) return;
-  employees.splice(i,1);
-  localStorage.setItem(LS.emp,JSON.stringify(employees));
-  if(currentEmpIdx>=employees.length) currentEmpIdx=Math.max(0,employees.length-1);
+  const snapshot = { ...emp };
+  employees[i] = { ...emp, deleted: true };
+  localStorage.setItem(LS.emp, JSON.stringify(employees));
+  pushAction({ type: 'deleteEmployee', empNo: emp.no, snapshot });
+  if(currentEmpIdx === i) {
+    currentEmpIdx = -1;
+    loadPayrollForm();
+  }
   renderEmpSelect(); renderEmpList(); cancelEmpForm();
-  showToast(LANG==='JP'?'削除しました':'삭제했습니다');
+  showToast(LANG==='JP'?'削除しました (Ctrl+Z で復元可)':'삭제됨 (Ctrl+Z로 복원 가능)');
 }
 
 

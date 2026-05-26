@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 15:45 — gas 페이지 타이틀 "데이터 관리"로 변경
+// 수정: 2026-05-26 22:55 — Undo/Redo 키 바인딩(Ctrl+Z/Y/Shift+Z), initUndo 호출, beforeunload에 hasUnsavedChanges 추가
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -69,7 +69,17 @@ function migrateRateHistory() {
   return migrated;
 }
 
+// ── Undo/Redo 키 바인딩 ──
+document.addEventListener('keydown', e => {
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (!ctrl) return;
+  if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if (e.key === 'Z' && e.shiftKey) { e.preventDefault(); redo(); }
+  else if (e.key === 'y') { e.preventDefault(); redo(); }
+});
+
 function initApp() {
+  initUndo();
   // load storage
   try { const s = localStorage.getItem(LS.emp); if(s) { employees = JSON.parse(s); employees.forEach(e=>{ if(!e) return; if(e.shaho_start) e.shaho_start=normalizeYM(e.shaho_start); if(e.join) e.join=normalizeDate(e.join); if(e.birth) e.birth=normalizeDate(e.birth); }); } } catch(e){}
   try { const s = localStorage.getItem(LS.rateHistory); if(s) rateHistory = JSON.parse(s); } catch(e){}
@@ -116,7 +126,7 @@ function initApp() {
 
 // 페이지 닫기/새로고침 시 미저장 경고
 window.addEventListener('beforeunload', e => {
-  if(payrollDirty || empFormDirty) {
+  if(payrollDirty || empFormDirty || hasUnsavedChanges()) {
     e.preventDefault();
     e.returnValue = '';
   }

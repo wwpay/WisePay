@@ -1,12 +1,12 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-26 16:45 — GAS 일회성 마이그레이션·임포트·하드코딩 급여 데이터 제거
+  수정: 2026-05-26 22:55 — Undo/Redo 기능 구현 (undo.js 신규, 급여 셀 onblur, 사원 소프트 삭제)
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-26 16:45 — GAS 일회성 마이그레이션·임포트·하드코딩 급여 데이터 제거
+  수정: 2026-05-26 22:55 — Undo/Redo 기능 구현 (undo.js 신규, 급여 셀 onblur, 사원 소프트 삭제)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -172,13 +172,13 @@
         <span class="card-total" id="totalPayTxt">¥0</span>
       </div>
       <div>
-        <div class="row"><span class="row-label" id="t-r-base">月給</span><input class="row-input" id="r-base" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-ot')"></div>
-        <div class="row"><span class="row-label" id="t-r-ot">残業手当</span><input class="row-input" id="r-ot" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-commute')"></div>
-        <div class="row"><span class="row-label" id="t-r-commute">非課税通勤手当</span><input class="row-input" id="r-commute" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-kinmu')"></div>
-        <div class="row"><span class="row-label" id="t-r-kinmu">勤務手当</span><input class="row-input" id="r-kinmu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-shokumu')"></div>
-        <div class="row"><span class="row-label" id="t-r-shokumu">職務手当</span><input class="row-input" id="r-shokumu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-field')"></div>
-        <div class="row"><span class="row-label" id="t-r-field">現場手当</span><input class="row-input" id="r-field" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'r-hyo')"></div>
-        <div class="row" style="background:var(--accent2);border-radius:var(--r2);"><span class="row-label" id="t-r-hyo" style="font-size:11px;color:var(--text2);">標準報酬月額<br>（手動指定・任意）</span><input class="row-input" id="r-hyo" placeholder="0=自動" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-jumin')" style="font-style:italic;"></div>
+        <div class="row"><span class="row-label" id="t-r-base">月給</span><input class="row-input" id="r-base" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-ot')"></div>
+        <div class="row"><span class="row-label" id="t-r-ot">残業手当</span><input class="row-input" id="r-ot" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-commute')"></div>
+        <div class="row"><span class="row-label" id="t-r-commute">非課税通勤手当</span><input class="row-input" id="r-commute" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-kinmu')"></div>
+        <div class="row"><span class="row-label" id="t-r-kinmu">勤務手当</span><input class="row-input" id="r-kinmu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-shokumu')"></div>
+        <div class="row"><span class="row-label" id="t-r-shokumu">職務手当</span><input class="row-input" id="r-shokumu" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-field')"></div>
+        <div class="row"><span class="row-label" id="t-r-field">現場手当</span><input class="row-input" id="r-field" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-hyo')"></div>
+        <div class="row" style="background:var(--accent2);border-radius:var(--r2);"><span class="row-label" id="t-r-hyo" style="font-size:11px;color:var(--text2);">標準報酬月額<br>（手動指定・任意）</span><input class="row-input" id="r-hyo" placeholder="0=自動" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'k-jumin')" style="font-style:italic;"></div>
         <div class="row row-total"><span class="row-label" id="t-r-total">計</span><span class="row-val" id="shikyuuTotal">0</span></div>
       </div>
     </div>
@@ -194,8 +194,8 @@
         <div class="row"><span class="row-label" id="t-k-nenkin">厚生年金保険料</span><span class="row-val hi" id="k-nenkin">0</span></div>
         <div class="row"><span class="row-label" id="t-k-koyo">雇用保険料</span><span class="row-val hi" id="k-koyo">0</span></div>
         <div class="row"><span class="row-label" id="t-k-shotoku">所得税</span><span class="row-val" id="k-shotoku">0</span></div>
-        <div class="row"><span class="row-label" id="t-k-jumin">住民税</span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onkeydown="focusNext(event,'k-nencho')"></div>
-        <div class="row"><span class="row-label" id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
+        <div class="row"><span class="row-label" id="t-k-jumin">住民税</span><input class="row-input" id="k-jumin" onfocus="savePrevVal(this)" oninput="fmtInput(this);recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'k-nencho')"></div>
+        <div class="row"><span class="row-label" id="t-k-nencho" style="color:var(--red)">年末調整精算額</span><input class="row-input" id="k-nencho" onfocus="savePrevVal(this)" oninput="markPayrollDirty();recalc()" onblur="onPayrollBlur(this)" onkeydown="focusNext(event,'r-base')" style="border-color:#fca5a5;"></div>
         <div style="font-size:10px;color:var(--text3);padding:3px 13px;" id="t-nencho-hint">※ 還付はマイナス(-)入力 / 환급은 마이너스(-) 입력</div>
         <div class="row row-total"><span class="row-label" id="t-k-total">計</span><span class="row-val" id="kojoTotal">0</span></div>
       </div>
@@ -523,6 +523,7 @@
   </div>
 </div>
 
+<script src="js/undo.js"></script>
 <script src="js/payroll.js"></script>
 <script src="js/rates.js"></script>
 <script src="js/employees.js"></script>
