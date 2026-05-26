@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 16:01 — 언어 전환 시 보험료율 적용연월·지급이력 드롭다운 즉시 반영
+﻿// 수정: 2026-05-26 16:08 — 수동백업→데이터백업, GAS자동백업→구글드라이브자동백업 명칭 변경
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -94,11 +94,11 @@ function applyLang() {
   setTxt('t-gas-upload-desc', 'ローカルデータをGoogleドライブに上書きします', '로컬 데이터를 구글 드라이브에 덮어씁니다');
   setTxt('t-gas-download-label', 'Googleドライブ → ローカルPC', '구글 드라이브 → 로컬PC');
   setTxt('t-gas-download-desc', 'Googleドライブのデータをローカルに上書きします', '구글 드라이브 데이터를 로컬에 덮어씁니다');
-  setTxt('t-backup-title', '手動バックアップ', '수동 백업');
+  setTxt('t-backup-title', 'データバックアップ', '데이터 백업');
   setTxt('t-backup-json-btn', '📄 JSONバックアップ', '📄 JSON 백업');
   setTxt('t-backup-excel-btn', '📊 Excelバックアップ', '📊 Excel 백업');
   setTxt('t-backup-file-desc', 'ファイル名: WisePay_backup_YYYYMMDD', '파일명: WisePay_backup_YYYYMMDD');
-  setTxt('t-backup-auto-title', '📅 GAS 自動バックアップ（毎週月曜日）', '📅 GAS 자동 백업 (매주 월요일)');
+  setTxt('t-backup-auto-title', '📅 Googleドライブ 自動バックアップ', '📅 구글 드라이브 자동 백업');
   setTxt('t-backup-auto-desc',
     '毎週月曜日の午前9時に別のスプレッドシートへ自動バックアップされます（最大26個保持）。',
     '매주 월요일 오전 9시에 별도 스프레드시트로 자동 백업됩니다 (최대 26개 유지).'
