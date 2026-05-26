@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 15:45 — nav-gas "데이터 관리"로 변경, 언어 전환 시 상단 타이틀 즉시 갱신
+﻿// 수정: 2026-05-26 16:01 — 언어 전환 시 보험료율 적용연월·지급이력 드롭다운 즉시 반영
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -18,8 +18,10 @@ function toggleLang() {
   renderEmpSelect();
   renderEmpList();
   renderRatesPage();
+  updateRatesDisplay();
   renderAnnual();
   renderHistory();
+  buildHistEmpSel();
   updateGasStatus();
   recalc();
 

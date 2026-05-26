@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 22:55 — checkRateBanner → 알림 시스템으로 전환
+﻿// 수정: 2026-05-26 16:01 — 일본어 모드 건강보험 표기 혼용(건강保険) 수정
 'use strict';
 async function openRateModal() {
   const jp = LANG==='JP';
@@ -145,7 +145,7 @@ function renderRatesPage() {
     <tbody id="rateHistoryTbody"></tbody>
   </table>
   <div style="margin-top:10px;font-size:11px;color:var(--text3);padding:6px 2px;">
-    ${jp?'※ 건강保険・介護保険は「最新料率を取得」ボタンで協会けんぽ公式サイトから取得できます。厚生年金・雇用保険は手動で追加してください。':'※ 건강보험·개호보험은 「최신 요율 가져오기」로 가져올 수 있습니다. 후생연금·고용보험은 직접 추가해 주세요.'}
+    ${jp?'※ 健康保険・介護保険は「最新料率を取得」ボタンで協会けんぽ公式サイトから取得できます。厚生年金・雇用保険は手動で追加してください。':'※ 건강보험·개호보험은 「최신 요율 가져오기」로 가져올 수 있습니다. 후생연금·고용보험은 직접 추가해 주세요.'}
   </div>`;
   area.innerHTML = html;
   renderRateHistoryRows();

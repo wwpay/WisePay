@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 15:10 — 파일 선택 커스텀 레이블 함수 추가, 급여CSV섹션 수동백업으로 이동
+// 수정: 2026-05-26 16:01 — autoLoadFromGas 배경 동기화 토스트 제거
 'use strict';
 async function exportAllToGas() {
   if (!gasUrl) {
@@ -385,7 +385,6 @@ async function autoLoadFromGas() {
     buildHistEmpSel();
     renderHistory();
     updateGasStatus();
-    showToast(LANG === 'JP' ? 'Google同期完了 ✓' : 'Google 동기화 완료 ✓', 's');
     // 동기화 로그 기록 (fire-and-forget)
     fetch(gasUrl, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
