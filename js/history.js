@@ -1,4 +1,4 @@
-// 수정: 2026-05-25 23:24 — 임금대장 사원 선택: 체크박스 팝업 모달로 교체 (복수 선택, 전체/해제 버튼)
+// 수정: 2026-05-27 00:00 — renderAnnual: 미선택 시 플레이스홀더 표시 (급여명세와 동일 패턴)
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -221,11 +221,21 @@ function buildEmpTableHtml(emp, year, jp) {
 function renderAnnual() {
   const jp = LANG==='JP';
   const ph = document.getElementById('annualPrintHeader');
+  const placeholder = document.getElementById('annualPlaceholder');
+  const content = document.getElementById('annualContent');
+
+  const showPlaceholder = () => {
+    if(placeholder) placeholder.style.display = 'flex';
+    if(content) content.style.display = 'none';
+    ph.style.display = 'none';
+  };
+  const showContent = () => {
+    if(placeholder) placeholder.style.display = 'none';
+    if(content) content.style.display = '';
+  };
 
   if (!employees.length) {
-    ph.style.display = 'none';
-    document.getElementById('annualContent').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員データがありません。まずGoogle同期を行ってください。':'사원 데이터가 없습니다. Google 동기화를 먼저 해주세요.'}</div>`;
+    showPlaceholder();
     return;
   }
 
@@ -235,11 +245,10 @@ function renderAnnual() {
   const noDataMsg = `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'この年度のデータがありません':'이 연도의 데이터가 없습니다'}</div>`;
 
   if (selectedNos.length === 0) {
-    ph.style.display = 'none';
-    document.getElementById('annualContent').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--text3);">${jp?'従業員を選択してください':'사원을 선택해 주세요'}</div>`;
+    showPlaceholder();
     return;
   }
+  showContent();
 
   // 단일 사원: 고정 헤더 방식
   if (selectedNos.length === 1) {

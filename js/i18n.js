@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 16:08 — 수동백업→데이터백업, GAS자동백업→구글드라이브자동백업 명칭 변경
+﻿// 수정: 2026-05-27 00:00 — 임금대장 플레이스홀더 i18n 텍스트 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -137,6 +137,8 @@ function applyLang() {
 
   setTxt('t-payroll-ph-main', '従業員を選択してください', '사원을 선택해 주세요');
   setTxt('t-payroll-ph-sub', '上のドロップダウンから従業員を選択すると給与明細が表示されます。', '위 드롭다운에서 사원을 선택하면 급여 명세가 표시됩니다.');
+  setTxt('t-annual-ph-main', '従業員を選択してください', '사원을 선택해 주세요');
+  setTxt('t-annual-ph-sub', '上の「従業員選択」ボタンから選択すると賃金台帳が表示されます。', '위 「사원 선택」 버튼으로 선택하면 임금대장이 표시됩니다.');
   setTxt('t-rates-title', '適用保険料率（2026年度・東京都）', '적용 보험료율（2026년도・도쿄도）');
   setHtml('t-rt-kenko', '健康保険料率<br>（東京都）', '건강보험료율<br>（도쿄도）');
   setHtml('t-rt-kaigo', '介護保険料率<br>（全国一律）', '개호보험료율<br>（전국 일률）');
