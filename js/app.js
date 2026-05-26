@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 11:52 — savePdf() employees.find 타입 불일치 수정 (문자열/정수 혼용 문제)
+// 수정: 2026-05-26 11:56 — savePdf() setTimeout 추가 + 토스트로 파일명 확인
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -158,8 +158,12 @@ function savePdf() {
 
   const origTitle = document.title;
   document.title = filename;
-  window.addEventListener('afterprint', () => { document.title = origTitle; }, { once: true });
-  window.print();
+  showToast(`PDF: ${filename}.pdf`, 's');
+  // Chrome이 타이틀 변경을 처리할 시간을 확보한 뒤 프린트 다이얼로그 열기
+  setTimeout(() => {
+    window.addEventListener('afterprint', () => { document.title = origTitle; }, { once: true });
+    window.print();
+  }, 300);
 }
 
 // 인쇄 시 스크롤바 제거 + overflow:hidden 해제 (page-break 동작 보장)
