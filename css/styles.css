@@ -1,4 +1,4 @@
-﻿/* 수정: 2026-05-26 11:52 — 인쇄 시 마지막 행 하단 라운딩 추가 */
+﻿/* 수정: 2026-05-26 15:39 — 전월 대비 diff 색상 주식 스타일로 변경(up=빨강/dn=파랑/nc=회색) */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -91,8 +91,8 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .emp-right{text-align:right;}
 .net-label{font-size:11px;color:var(--text3);margin-bottom:3px;}
 .net-amount{font-size:25px;font-weight:700;letter-spacing:-.5px;}
-.net-diff{font-size:11px;color:var(--text3);margin-top:1px;min-height:14px;}
-.net-diff.up{color:var(--red);} .net-diff.dn{color:var(--green);}
+.net-diff{font-size:11px;color:var(--text3);margin-bottom:4px;min-height:15px;font-weight:500;}
+.net-diff.up{color:#e53e3e;} .net-diff.dn{color:#1d4ed8;} .net-diff.nc{color:#94a3b8;}
 
 /* GRID */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}

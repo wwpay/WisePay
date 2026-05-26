@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 12:44 — 급여 폼 데이터 표시 로직: 과거 월 미저장→0, 당월·미래 월 미저장→최근 저장 월 데이터 초기값
+﻿// 수정: 2026-05-26 15:35 — 전월 대비 차인지급액 증감 표시 주식 스타일로 변경(▲빨강/▼파랑/─회색)
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -317,7 +317,10 @@ function recalc() {
     const pk=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${prevY}_${prevM}`;
     const ps=localStorage.getItem(pk);
     const de=document.getElementById('netDiffTxt');
-    if(ps) { try { const pd=JSON.parse(ps); const diff=net-(pd._net||0); const u=LANG==='JP'?'前月比':'전월 대비'; de.textContent=`${u} ${diff>=0?'+':''}${fmt(diff)}`; de.className='net-diff '+(diff>=0?'up':'dn'); } catch(e){ de.textContent=' '; de.className='net-diff'; } }
+    if(ps) { try { const pd=JSON.parse(ps); const diff=net-(pd._net||0); const u=LANG==='JP'?'前月比':'전월 대비'; if(diff>0){de.textContent=u+'  ▲ +'+fmt(diff);de.className='net-diff up';}
+      else if(diff<0){de.textContent=u+'  ▼ '+fmt(diff);de.className='net-diff dn';}
+      else{de.textContent=u+'  ─ ±0';de.className='net-diff nc';}
+    } catch(e){ de.textContent=' '; de.className='net-diff'; } }
     else { de.textContent=' '; de.className='net-diff'; }
   }
   window._calc = {kenko,nenkin,shotoku,totalPay,totalKojo,net};

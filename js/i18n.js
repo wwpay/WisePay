@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 15:20 — 동기화 노트 제거, 자동백업 설명 간소화
+﻿// 수정: 2026-05-26 15:39 — 협회건포 → 協会けんぽ 표기 통일
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -45,7 +45,7 @@ function applyLang() {
   setTxt('t-nav-gas', '設定', '설정');
 
   setTxt('t-langbtn', '한국어로 전환', '日本語に切替');
-  setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '협회건포 최신 요율 가져오기');
+  setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '協会けんぽ 최신 요율 가져오기');
   setTxt('t-save-btn', '保存', '저장');
   // t-del-month-btn은 renderMonthTabs()에서 동적으로 갱신
   setTxt('t-print-btn', '印刷', '인쇄');
@@ -108,9 +108,9 @@ function applyLang() {
   setTxt('t-reset-btn', '初期化', '초기화');
 
   setTxt('t-rates-page-title', '保険料率設定', '보험료율 설정');
-  setTxt('t-rates-desc', '協会けんぽ東京都・2026年度の料率。改定時に更新してください。', '협회けんぽ 도쿄도・2026년도 요율. 개정 시 업데이트해 주세요.');
+  setTxt('t-rates-desc', '協会けんぽ東京都・2026年度の料率。改定時に更新してください。', '協会けんぽ 도쿄도・2026년도 요율. 개정 시 업데이트해 주세요.');
   setTxt('t-rates-current', '現在の適用料率', '현재 적용 요율');
-  setTxt('t-rates-ai', '協会けんぽから最新料率を取得', '협회건포에서 최신 요율 가져오기');
+  setTxt('t-rates-ai', '協会けんぽから最新料率を取得', '協会けんぽ 최신 요율 가져오기');
   setTxt('t-rates-save', '料率を保存', '요율 저장');
 
   setTxt('t-annual-sel-btn',    '従業員選択',  '사원 선택');

@@ -1,6 +1,6 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-26 15:20 — 동기화 UI 고정폭·화살표 버튼 대형화·경고아이콘 개선·노트 삭제
+  수정: 2026-05-26 15:39 — 동기화 UI 왼쪽정렬·상단 요율버튼 삭제·보험요율 버튼 개선·협회けんぽ 표기·전월대비 주식 스타일
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -99,10 +99,6 @@
       </button>
       <span id="notif-badge" style="display:none;"></span>
     </div>
-    <button class="btn btn-ai" onclick="openRateModal()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span id="t-ai-btn">最新要率を取得</span>
-    </button>
     <button class="btn btn-primary" id="btn-save" onclick="saveCurrent()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       <span id="t-save-btn">保存</span>
@@ -163,8 +159,8 @@
     </div>
     <div class="emp-right">
       <div class="net-label" id="t-net-label">差引総支給額（手取り）</div>
-      <div class="net-amount" id="netAmountTxt">¥0</div>
       <div class="net-diff" id="netDiffTxt"></div>
+      <div class="net-amount" id="netAmountTxt">¥0</div>
     </div>
   </div>
 
@@ -318,7 +314,10 @@
     <div id="ratesFormArea" style="padding:14px 13px;"></div>
   </div>
   <div style="display:flex;gap:7px;">
-    <button class="btn btn-ai" onclick="openRateModal()" id="t-rates-ai">協会けんぽから最新料率を取得</button>
+    <button onclick="openRateModal()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 3px 8px rgba(79,70,229,0.35);transition:all .15s;" onmouseover="this.style.boxShadow='0 5px 12px rgba(79,70,229,0.5)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 3px 8px rgba(79,70,229,0.35)';this.style.transform=''">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span id="t-rates-ai">協会けんぽから最新料率を取得</span>
+    </button>
   </div>
 </div>
 
@@ -394,7 +393,7 @@
       <div id="gas-actions" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
         <div id="t-gas-sync-title" style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;">데이터 동기화</div>
         <div style="overflow-x:auto;">
-          <div style="min-width:280px;max-width:300px;margin:0 auto;">
+          <div style="min-width:280px;max-width:300px;margin:0;">
             <!-- 구글 드라이브 박스 -->
             <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:9px;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
