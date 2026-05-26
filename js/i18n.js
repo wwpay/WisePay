@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 14:10 — t-nav-gas "설정"으로 변경, 동기화 설명 "덮어씁니다"로 수정
+﻿// 수정: 2026-05-26 15:10 — 동기화 레이블 구글드라이브/로컬PC로 변경, 스텝2 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -81,10 +81,6 @@ function applyLang() {
   setTxt('t-gas-desc', 'Google Apps Script を使って給与データをスプレッドシートに自動保存・同期できます。', 'Google Apps Script를 사용해 급여 데이터를 스프레드시트에 자동 저장·동기화할 수 있습니다.');
   setTxt('t-gas-step1-title', 'Google スプレッドシートを新規作成', 'Google 스프레드시트 새로 만들기');
   setTxt('t-gas-step1-desc', '「WisePay」という名前でスプレッドシートを作成してください。', '「WisePay」라는 이름으로 스프레드시트를 만들어 주세요.');
-  setTxt('t-gas-step2-title', '拡張機能 → Apps Script を開く', '확장 프로그램 → Apps Script 열기');
-  setTxt('t-gas-step2-desc', 'メニュー「拡張機能」→「Apps Script」→ code.gs に以下のコードを貼り付けてください。', '메뉴 「확장 프로그램」→「Apps Script」→ code.gs에 아래 코드를 붙여 넣으세요.');
-  setTxt('t-gas-code-comment', '// ↓ このコードを code.gs にそのまま貼り付けてください', '// ↓ 이 코드를 code.gs에 그대로 붙여 넣으세요');
-  setTxt('t-gas-copy-btn', '📋 コードをコピー', '📋 코드 복사');
   setTxt('t-gas-step3-title', 'ウェブアプリとしてデプロイ', '웹 앱으로 배포');
   setHtml('t-gas-step3-desc',
     '「デプロイ」→「新しいデプロイ」→ 種類:「ウェブアプリ」<br>アクセス権限:「全員」→ デプロイ → <strong>URLをコピー</strong><br><span style="color:var(--orange);font-size:11px;">✅ exec = 「デプロイ」URL（アクセス:全員 必須）&nbsp;&nbsp;🧪 dev = 「テストデプロイ」URL（オーナーのみ・権限エラーが出やすい）</span>',
@@ -92,11 +88,11 @@ function applyLang() {
   );
   setTxt('t-gas-step4-title', 'WebアプリのURLを入力', '웹 앱 URL 입력');
   setTxt('t-gas-sync-title', 'データ同期', '데이터 동기화');
-  setTxt('t-gas-upload-label', 'ローカル → Google', '로컬 → Google');
-  setTxt('t-gas-upload-desc', 'ローカルデータをGoogleに上書きします', '로컬 데이터를 구글에 덮어씁니다');
-  setTxt('t-gas-download-label', 'Google → ローカル', 'Google → 로컬');
-  setTxt('t-gas-download-desc', 'Googleデータをローカルに上書きします', '구글 데이터를 로컬에 덮어씁니다');
-  setTxt('t-gas-sync-note', '※ 初回は「ローカル → Google」で既存データをアップロードしてください', '※ 초회는 「로컬 → Google」로 기존 데이터를 업로드해 주세요');
+  setTxt('t-gas-upload-label', 'ローカルPC → Googleドライブ', '로컬PC → 구글 드라이브');
+  setTxt('t-gas-upload-desc', 'ローカルデータをGoogleドライブに上書きします', '로컬 데이터를 구글 드라이브에 덮어씁니다');
+  setTxt('t-gas-download-label', 'Googleドライブ → ローカルPC', '구글 드라이브 → 로컬PC');
+  setTxt('t-gas-download-desc', 'Googleドライブのデータをローカルに上書きします', '구글 드라이브 데이터를 로컬에 덮어씁니다');
+  setTxt('t-gas-sync-note', '※ 初回は「ローカルPC → Googleドライブ」で既存データをアップロードしてください', '※ 초회는 「로컬PC → 구글 드라이브」로 기존 데이터를 업로드해 주세요');
   setTxt('t-backup-title', '手動バックアップ', '수동 백업');
   setTxt('t-backup-json-btn', '📄 JSONバックアップ', '📄 JSON 백업');
   setTxt('t-backup-excel-btn', '📊 Excelバックアップ', '📊 Excel 백업');

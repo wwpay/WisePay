@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 04:39 — 로딩 시 join/birth normalizeDate 추가
+// 수정: 2026-05-26 15:10 — 파일 선택 커스텀 레이블 함수 추가, 급여CSV섹션 수동백업으로 이동
 'use strict';
 async function exportAllToGas() {
   if (!gasUrl) {
@@ -566,7 +566,21 @@ function buildPayrollFieldMap(headers) {
   return headers.map(h => mapPayrollHeaderToField(h));
 }
 
-// ── 급여 CSV → Google 시트 임포트 (브라우저 업로드 방식) ──
+// ── 파일 선택 커스텀 레이블 업데이트 ──
+function updateFreeeFileLabel() {
+  const input = document.getElementById('freeePayrollInput');
+  const label = document.getElementById('freeeFileLabel');
+  if (!label) return;
+  if (!input || !input.files || input.files.length === 0) {
+    label.textContent = LANG === 'JP' ? 'ファイル未選択' : '선택된 파일 없음';
+    return;
+  }
+  label.textContent = input.files.length === 1
+    ? input.files[0].name
+    : (LANG === 'JP' ? `${input.files.length}個のファイル` : `${input.files.length}개 파일 선택됨`);
+}
+
+// ── 급여 CSV → 구글 드라이브 임포트 (브라우저 업로드 방식) ──
 async function importFreeePayrollCSV() {
   console.log('[WisePay] importFreeePayrollCSV called');
   const input    = document.getElementById('freeePayrollInput');
