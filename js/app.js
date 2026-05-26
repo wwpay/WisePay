@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 12:30 — 임금대장 단독 선택 파일명 형식 변경: 임금대장_사원명_연도
+// 수정: 2026-05-26 12:33 — 임금대장 파일명 형식 원복: 사원번호_사원명_임금대장_연도
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -134,9 +134,10 @@ function savePdf() {
     if (nos.length === 1) {
       const emp = employees.find(e => parseInt(e.no) === nos[0]);
       if (emp) {
+        const no = String(emp.no).padStart(4, '0');
         filename = jp
-          ? `賃金台帳_${emp.name}_${year}年度`
-          : `임금대장_${emp.name}_${year}년도`;
+          ? `${no}_${emp.name}_賃金台帳_${year}年度`
+          : `${no}_${emp.name}_임금대장_${year}년도`;
       }
     } else if (nos.length > 1) {
       const isAll = nos.length === employees.length;
