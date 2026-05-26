@@ -1,12 +1,12 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-26 16:12 — 로고 영역 클릭 시 초기화면(급여 명세)으로 이동
+  수정: 2026-05-26 16:15 — payroll nav data-page 속성 추가, 백업 후 초기화면 이동
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-26 16:12 — 로고 영역 클릭 시 초기화면(급여 명세)으로 이동
+  수정: 2026-05-26 16:15 — payroll nav data-page 속성 추가, 백업 후 초기화면 이동
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,7 +52,7 @@
   </div>
   <nav class="nav">
     <div class="nav-sec" id="t-nav-main">メイン</div>
-    <div class="nav-item active" onclick="gotoPage('payroll',this)">
+    <div class="nav-item active" data-page="payroll" onclick="gotoPage('payroll',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       <span id="t-nav-payroll">給与明細</span>
     </div>

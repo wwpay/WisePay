@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 16:01 — 백업 flash·토스트 수정: sessionStorage 제거 + Excel showSaveFilePicker 순서 변경
+// 수정: 2026-05-26 16:15 — 백업 완료 후 초기화면(급여 명세)으로 자동 이동
 'use strict';
 
 function _backupDateStr() {
@@ -75,6 +75,7 @@ async function downloadBackupJson() {
 
   _markBackupDone();
   showToast(LANG === 'JP' ? 'JSONバックアップ完了 ✓' : 'JSON 백업 완료 ✓', 's');
+  gotoPage('payroll', null);
 }
 
 async function downloadBackupExcel() {
@@ -124,4 +125,5 @@ async function downloadBackupExcel() {
 
   _markBackupDone();
   showToast(LANG === 'JP' ? 'Excelバックアップ完了 ✓' : 'Excel 백업 완료 ✓', 's');
+  gotoPage('payroll', null);
 }
