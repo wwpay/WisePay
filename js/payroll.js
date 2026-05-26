@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 22:55 — Undo/Redo 연동: onPayrollBlur 추가, renderEmpSelect 삭제필터, saveCurrent에 SAVE_MARKER 삽입
+﻿// 수정: 2026-05-26 23:10 — GAS 포맷 덮어쓰기로 PFIELD 유실 문제 수정: saved 데이터에 PFIELD 없으면 초기값 로직으로 fallthrough
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -118,19 +118,30 @@ function loadPayrollForm() {
   const emp = employees[currentEmpIdx];
   const pNo = String(emp.no).padStart(4,'0');
   const key = `kyuyo_p_${pNo}_${currentYear}_${currentMonth}`;
-  const saved = localStorage.getItem(key);
+  const savedRaw = localStorage.getItem(key);
 
-  if(saved) {
+  // PFIELD 키(r-base 등 입력값)가 하나라도 있으면 로컬 저장 포맷
+  // GAS 포맷(kenko, totalPay 등 집계값만)은 PFIELDS 없음 → 무시
+  const _hasPF = d => PFIELDS.some(f => f in d);
+
+  const _loadPFields = d => {
+    PFIELDS.forEach(f => {
+      const el = document.getElementById(f);
+      if(!el) return;
+      const n = parseInt(String(d[f] !== undefined ? d[f] : 0).replace(/,/g, '')) || 0;
+      el.value = n === 0 ? '' : n.toLocaleString();
+    });
+  };
+
+  let hasSavedPF = false;
+  if(savedRaw) {
     try {
-      const d = JSON.parse(saved);
-      PFIELDS.forEach(f => {
-        const el = document.getElementById(f);
-        if(!el || d[f] === undefined) return;
-        const n = parseInt(String(d[f]).replace(/,/g, '')) || 0;
-        el.value = n === 0 ? '' : n.toLocaleString();
-      });
+      const d = JSON.parse(savedRaw);
+      if(_hasPF(d)) { hasSavedPF = true; _loadPFields(d); }
     } catch(e){}
-  } else {
+  }
+
+  if(!hasSavedPF) {
     const today = new Date();
     const todayYM = today.getFullYear() * 100 + (today.getMonth() + 1);
     const selectedYM = currentYear * 100 + currentMonth;
@@ -139,24 +150,24 @@ function loadPayrollForm() {
       // 과거 월 + 데이터 없음 → 전 필드 0 표시
       PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = '0'; });
     } else {
-      // 당월 또는 미래 월 + 데이터 없음 → 가장 최근 저장된 월 데이터로 초기값 설정
+      // 당월 또는 미래 월 + 데이터 없음 → 가장 최근 PFIELD 포맷 데이터로 초기값 설정
       let latestData = null;
       let searchY = currentYear, searchM = currentMonth - 1;
       if(searchM < 1) { searchM = 12; searchY--; }
       for(let i = 0; i < 24; i++) {
         const k = `kyuyo_p_${pNo}_${searchY}_${searchM}`;
         const s = localStorage.getItem(k);
-        if(s) { try { latestData = JSON.parse(s); } catch(e) {} break; }
+        if(s) {
+          try {
+            const candidate = JSON.parse(s);
+            if(_hasPF(candidate)) { latestData = candidate; break; }
+          } catch(e) {}
+        }
         searchM--;
         if(searchM < 1) { searchM = 12; searchY--; }
       }
       if(latestData) {
-        PFIELDS.forEach(f => {
-          const el = document.getElementById(f);
-          if(!el || latestData[f] === undefined) return;
-          const n = parseInt(String(latestData[f]).replace(/,/g,'')) || 0;
-          el.value = n === 0 ? '' : n.toLocaleString();
-        });
+        _loadPFields(latestData);
       } else {
         PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
       }
