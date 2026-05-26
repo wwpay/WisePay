@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 23:10 — GAS 포맷 덮어쓰기로 PFIELD 유실 문제 수정: saved 데이터에 PFIELD 없으면 초기값 로직으로 fallthrough
+﻿// 수정: 2026-05-26 23:30 — saveCurrent GAS 전송에 PFIELD 입력값 포함 → 다음 달 기본값 복원 가능
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -396,7 +396,13 @@ function saveCurrent() {
 
   if(gasUrl && window._calc) {
     const c=window._calc;
-    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...c}),mode:'no-cors'})
+    // PFIELD 입력값도 함께 전송 → GAS 시트에 저장 → 다음 월 기본값 복원에 활용
+    const pdata={};
+    PFIELDS.forEach(f=>{
+      const el=document.getElementById(f);
+      pdata[f]=el?(parseInt((el.value||'0').replace(/,/g,''))||0):0;
+    });
+    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...pdata,...c}),mode:'no-cors'})
       .then(()=>showToast(LANG==='JP'?'Google スプレッドシートに保存しました ✓':'Google 스프레드시트에 저장됨 ✓','s'))
       .catch(()=>showToast(LANG==='JP'?'ローカルのみ保存しました':'로컬만 저장됨','w'));
   } else {
