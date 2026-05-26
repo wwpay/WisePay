@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 13:15 — downloadBackupJson: revokeObjectURL 지연 처리로 다운로드 중 페이지 리로드 방지
+// 수정: 2026-05-26 13:25 — _triggerDownload: target=_blank으로 현재 페이지 네비게이션 방지, Excel도 직접 blob 제어
 'use strict';
 
 function _backupDateStr() {
@@ -19,6 +19,20 @@ function _thisMondayStr() {
 
 function _markBackupDone() {
   localStorage.setItem('wisepay_backup_week', _thisMondayStr());
+}
+
+// 다운로드 트리거: target=_blank으로 현재 페이지 네비게이션 방지
+function _triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
 }
 
 // 월요일 접속 시, 이번 주 백업 안 됐으면 토스트 알림
@@ -45,14 +59,7 @@ function downloadBackupJson() {
     rateHistory,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/octet-stream' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'WisePay_backup_' + date + '.json';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  _triggerDownload(blob, 'WisePay_backup_' + date + '.json');
   _markBackupDone();
   showToast(LANG === 'JP' ? 'JSONバックアップ完了 ✓' : 'JSON 백업 다운로드 완료 ✓', 's');
 }
@@ -69,7 +76,10 @@ function downloadBackupExcel() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(empData), '사원정보');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payData.length ? payData : [{}]), '급여데이터');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rateHistory.length ? rateHistory : [{}]), '보험료율이력');
-  XLSX.writeFile(wb, 'WisePay_backup_' + date + '.xlsx');
+  // XLSX.writeFile 대신 직접 blob 생성 → _triggerDownload로 페이지 네비게이션 방지
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/octet-stream' });
+  _triggerDownload(blob, 'WisePay_backup_' + date + '.xlsx');
   _markBackupDone();
   showToast(LANG === 'JP' ? 'Excelバックアップ完了 ✓' : 'Excel 백업 다운로드 완료 ✓', 's');
 }
