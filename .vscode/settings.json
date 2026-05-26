@@ -1,4 +1,9 @@
 {
     "liveServer.settings.port": 5501,
+    "liveServer.settings.ignoreFiles": [
+        "**/WisePay_backup_*",
+        "Backup/**",
+        ".git/**"
+    ],
     "task.allowAutomaticTasks": "on"
 }
