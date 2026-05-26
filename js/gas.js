@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 23:20 — autoLoadFromGas: PFIELD 포맷 로컬 데이터 보호 (GAS 집계값으로 덮어쓰기 방지)
+// 수정: 2026-05-26 23:55 — autoLoadFromGas: PFIELD 보호 조건 강화 (0·빈값 제외, 실제 비영(非零) 입력값 있을 때만 보호)
 'use strict';
 async function exportAllToGas() {
   if (!gasUrl) {
@@ -367,7 +367,7 @@ async function autoLoadFromGas() {
         if (existing) {
           try {
             const ex = JSON.parse(existing);
-            if (PFIELDS.some(f => f in ex)) return;
+            if (PFIELDS.some(f => f in ex && Number(String(ex[f] || '0').replace(/,/g, '')) !== 0)) return;
           } catch(e) {}
         }
         localStorage.setItem(key, JSON.stringify(p));

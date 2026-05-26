@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 23:30 — saveCurrent GAS 전송에 PFIELD 입력값 포함 → 다음 달 기본값 복원 가능
+﻿// 수정: 2026-05-26 23:55 — loadPayrollForm: _hasPF 수정(빈값·0 제외) + _loadGasApprox 추가 → 과거/미래 월 초기값 로직 개선
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -120,9 +120,12 @@ function loadPayrollForm() {
   const key = `kyuyo_p_${pNo}_${currentYear}_${currentMonth}`;
   const savedRaw = localStorage.getItem(key);
 
-  // PFIELD 키(r-base 등 입력값)가 하나라도 있으면 로컬 저장 포맷
-  // GAS 포맷(kenko, totalPay 등 집계값만)은 PFIELDS 없음 → 무시
-  const _hasPF = d => PFIELDS.some(f => f in d);
+  // PFIELD 키가 하나라도 0이 아닌 값으로 존재할 때만 실제 입력 포맷으로 판단
+  // '' (GAS 시트 빈셀) 또는 0만 있는 경우는 미입력으로 처리
+  const _hasPF = d => PFIELDS.some(f => {
+    if (!(f in d)) return false;
+    return Number(String(d[f] || '0').replace(/,/g, '')) !== 0;
+  });
 
   const _loadPFields = d => {
     PFIELDS.forEach(f => {
@@ -133,11 +136,24 @@ function loadPayrollForm() {
     });
   };
 
+  // GAS 집계값(totalPay)을 r-base에 근사값으로 설정 — PFIELD 미입력 시 폴백
+  const _loadGasApprox = d => {
+    PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
+    const baseEl = document.getElementById('r-base');
+    const tp = parseInt(String(d.totalPay || 0).replace(/,/g, '')) || 0;
+    if(baseEl && tp > 0) baseEl.value = tp.toLocaleString();
+  };
+
+  // GAS 집계 포맷 여부 판별 (totalPay 또는 kenko 또는 net 키 존재)
+  const _isGas = d => !!(d.totalPay || d.kenko || d.net);
+
   let hasSavedPF = false;
+  let savedGasData = null;
   if(savedRaw) {
     try {
       const d = JSON.parse(savedRaw);
       if(_hasPF(d)) { hasSavedPF = true; _loadPFields(d); }
+      else if(_isGas(d)) { savedGasData = d; }
     } catch(e){}
   }
 
@@ -147,11 +163,14 @@ function loadPayrollForm() {
     const selectedYM = currentYear * 100 + currentMonth;
 
     if(selectedYM < todayYM) {
-      // 과거 월 + 데이터 없음 → 전 필드 0 표시
-      PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = '0'; });
+      // 과거 월: GAS 집계값이 있으면 totalPay→r-base 근사값 표시, 없으면 전 필드 비움
+      if(savedGasData) { _loadGasApprox(savedGasData); }
+      else { PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; }); }
     } else {
-      // 당월 또는 미래 월 + 데이터 없음 → 가장 최근 PFIELD 포맷 데이터로 초기값 설정
+      // 당월·미래 월: 가장 최근 PFIELD 포맷 데이터로 초기값 설정
+      // PFIELD 없으면 가장 최근 GAS 집계값으로 폴백
       let latestData = null;
+      let latestGasData = savedGasData;
       let searchY = currentYear, searchM = currentMonth - 1;
       if(searchM < 1) { searchM = 12; searchY--; }
       for(let i = 0; i < 24; i++) {
@@ -161,6 +180,7 @@ function loadPayrollForm() {
           try {
             const candidate = JSON.parse(s);
             if(_hasPF(candidate)) { latestData = candidate; break; }
+            else if(!latestGasData && _isGas(candidate)) { latestGasData = candidate; }
           } catch(e) {}
         }
         searchM--;
@@ -168,6 +188,8 @@ function loadPayrollForm() {
       }
       if(latestData) {
         _loadPFields(latestData);
+      } else if(latestGasData) {
+        _loadGasApprox(latestGasData);
       } else {
         PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
       }
