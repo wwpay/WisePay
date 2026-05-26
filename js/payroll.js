@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-25 23:01 — 데이터 초기화 버튼 월 2자리 고정 (레이아웃 이동 방지)
+﻿// 수정: 2026-05-26 12:44 — 급여 폼 데이터 표시 로직: 과거 월 미저장→0, 당월·미래 월 미저장→최근 저장 월 데이터 초기값
 'use strict';
 function renderMonthTabs() {
   const c = document.getElementById('monthTabs');
@@ -131,8 +131,36 @@ function loadPayrollForm() {
       });
     } catch(e){}
   } else {
-    // 저장된 데이터 없으면 전 필드 빈 값 — 전월 자동복사 없음
-    PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
+    const today = new Date();
+    const todayYM = today.getFullYear() * 100 + (today.getMonth() + 1);
+    const selectedYM = currentYear * 100 + currentMonth;
+
+    if(selectedYM < todayYM) {
+      // 과거 월 + 데이터 없음 → 전 필드 0 표시
+      PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = '0'; });
+    } else {
+      // 당월 또는 미래 월 + 데이터 없음 → 가장 최근 저장된 월 데이터로 초기값 설정
+      let latestData = null;
+      let searchY = currentYear, searchM = currentMonth - 1;
+      if(searchM < 1) { searchM = 12; searchY--; }
+      for(let i = 0; i < 24; i++) {
+        const k = `kyuyo_p_${pNo}_${searchY}_${searchM}`;
+        const s = localStorage.getItem(k);
+        if(s) { try { latestData = JSON.parse(s); } catch(e) {} break; }
+        searchM--;
+        if(searchM < 1) { searchM = 12; searchY--; }
+      }
+      if(latestData) {
+        PFIELDS.forEach(f => {
+          const el = document.getElementById(f);
+          if(!el || latestData[f] === undefined) return;
+          const n = parseInt(String(latestData[f]).replace(/,/g,'')) || 0;
+          el.value = n === 0 ? '' : n.toLocaleString();
+        });
+      } else {
+        PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
+      }
+    }
   }
   updateEmpHeader();
   payrollDirty = false;
