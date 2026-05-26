@@ -1,12 +1,12 @@
 <!-- ================================================
   WisePay (給与Pro by Wisewires)
-  수정: 2026-05-26 16:08 — 동기화 레이블 줄바꿈 방지, 수동백업→데이터백업, GAS자동백업→구글드라이브자동백업
+  수정: 2026-05-26 16:12 — 로고 영역 클릭 시 초기화면(급여 명세)으로 이동
 ================================================ -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-25 23:24 — 임금대장 사원선택 체크박스 팝업 모달로 교체 (전체선택/해제 버튼 포함)
+  수정: 2026-05-26 16:12 — 로고 영역 클릭 시 초기화면(급여 명세)으로 이동
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,7 +43,7 @@
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
-  <div class="logo">
+  <div class="logo" onclick="gotoPage('payroll', document.querySelector('.nav-item[data-page=payroll]'))" style="cursor:pointer;" title="홈으로">
     <div class="logo-ww-img" role="img" aria-label="Wisewires"></div>
     <div class="logo-text-block">
       <span class="logo-name">WisePay</span>
