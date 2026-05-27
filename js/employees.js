@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 23:00 — emp.no PK 명시, 삭제된 ID 재사용 방지, 힌트 문구 수정
+﻿// 수정: 2026-05-27 23:10 — validateEmpNo const jp 중복 선언 수정 (SyntaxError 버그)
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -626,7 +626,6 @@ function validateEmpNo(input) {
     return;
   }
   const no = input.value.padStart(4,'0');
-  const jp = LANG==='JP';
   // 활성 사원 중복 체크 (Primary Key 중복 방지), 수정 시 자기 자신은 제외
   const dup = employees.some((e,i) => {
     if(editingEmpIdx !== -1 && i === editingEmpIdx) return false;
