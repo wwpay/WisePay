@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 22:30 — 백업 타이틀·버튼 텍스트 수정 (데이터 백업/복원, 데이터 삽입)
+﻿// 수정: 2026-05-27 23:20 — toggleLang: 사원 폼 열린 상태에서 언어 전환 시 폼 재렌더링
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -24,6 +24,22 @@ function toggleLang() {
   buildHistEmpSel();
   updateGasStatus();
   recalc();
+
+  // 사원 폼이 열려있으면 언어 반영하여 재렌더링 (f-no 입력란 존재 여부로 판단)
+  if (document.getElementById('f-no')) {
+    const jp = LANG === 'JP';
+    const emp = editingEmpIdx >= 0 ? employees[editingEmpIdx] : null;
+    const title = document.getElementById('empFormTitle');
+    const btns  = document.getElementById('empFormBtns');
+    if (title) title.textContent = editingEmpIdx >= 0
+      ? (jp ? `${emp.name} の編集` : `${emp.name} 편집`)
+      : (jp ? '新規従業員登録' : '신규 사원 등록');
+    if (btns) btns.innerHTML = editingEmpIdx >= 0
+      ? `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${editingEmpIdx})">${jp?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`
+      : `<button class="btn btn-success btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+    empFormDirty = false;
+    renderEmpFormFields(emp);
+  }
 
   showToast(
     LANG === 'JP' ? '日本語に切り替えました' : '한국어로 전환했습니다',
