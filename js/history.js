@@ -328,8 +328,8 @@ function renderAnnual() {
     const title = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
     const sub = (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
     allHtml += `<div class="annual-emp-block${count>0?' annual-page-break':''}">` +
-      `<div style="text-align:right;margin-bottom:10px;">` +
-      `<div style="font-size:16px;font-weight:700;margin-bottom:3px;">${title}</div>` +
+      `<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px;margin-bottom:10px;">` +
+      `<div style="font-size:16px;font-weight:700;">${title}</div>` +
       `<div style="font-size:12px;color:#666;">${sub}</div></div>` +
       tableHtml + `</div>`;
     count++;

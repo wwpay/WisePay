@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-27 17:20 — 임금대장 컨트롤 왼쪽 정렬·헤더 오른쪽 정렬·사원선택 확인 버튼 추가
+  수정: 2026-05-27 17:31 — 임금대장 팝업 left:0 수정·헤더 제목 왼쪽/출력일 오른쪽 정렬
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -243,7 +243,7 @@
           <span id="annualEmpSelCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;line-height:1.6;font-weight:600;"></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div id="annualEmpDrop" style="display:none;position:absolute;top:calc(100% + 5px);right:0;min-width:290px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,0.13);z-index:300;padding:10px;">
+        <div id="annualEmpDrop" style="display:none;position:absolute;top:calc(100% + 5px);left:0;min-width:290px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,0.13);z-index:300;padding:10px;">
           <input type="text" id="annualEmpSearch" placeholder="이름 또는 사번 검색..." autocomplete="off"
             style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--r2);padding:7px 10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;outline:none;"
             oninput="filterAnnualEmpList()">
@@ -270,9 +270,11 @@
     <div style="font-size:12px;" id="t-annual-ph-sub">上の「従業員選択」ボタンから選択すると賃金台帳が表示されます。</div>
   </div>
   <!-- 인쇄용 헤더 -->
-  <div id="annualPrintHeader" style="display:none;margin-bottom:12px;text-align:right;">
-    <div style="font-size:16px;font-weight:700;" id="annualPrintTitle"></div>
-    <div style="font-size:12px;color:#666;margin-top:3px;" id="annualPrintSub"></div>
+  <div id="annualPrintHeader" style="display:none;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px;">
+      <div style="font-size:16px;font-weight:700;" id="annualPrintTitle"></div>
+      <div style="font-size:12px;color:#666;" id="annualPrintSub"></div>
+    </div>
   </div>
   <div id="annualContent" style="display:none;"></div>
 </div>
