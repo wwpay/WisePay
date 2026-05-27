@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 14:55 — gotoPage console.trace 제거 (디버그 완료)
+// 수정: 2026-05-27 23:00 — deletedEmpIds 초기화 로드 추가
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -73,6 +73,7 @@ function initApp() {
   // load storage
   try { const s = localStorage.getItem(LS.emp); if(s) { employees = JSON.parse(s).filter(e => e && !e.deleted); employees.forEach(e=>{ if(e.shaho_start) e.shaho_start=normalizeYM(e.shaho_start); if(e.join) e.join=normalizeDate(e.join); if(e.leave) e.leave=normalizeDate(e.leave); if(e.birth) e.birth=normalizeDate(e.birth); }); } } catch(e){}
   try { const s = localStorage.getItem(LS.rateHistory); if(s) rateHistory = JSON.parse(s); } catch(e){}
+  try { const s = localStorage.getItem(LS.deletedEmpIds); if(s) deletedEmpIds = JSON.parse(s); } catch(e){}
   // 마이그레이션
   syncFuyouFromFamilies();
   migrateRateHistory();

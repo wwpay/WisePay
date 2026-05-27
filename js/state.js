@@ -1,5 +1,5 @@
 ﻿'use strict';
-// 수정: 2026-05-24 19:56 — PFIELDS에 r-hyo 추가
+// 수정: 2026-05-27 23:00 — emp.no를 Primary Key로 명시, deletedEmpIds 추가
 let LANG = 'KR';
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
@@ -26,7 +26,9 @@ let employees = [];
 // 각 입력란의 이전 값 저장용 (ESC 복원)
 const prevValues = {};
 
-const LS = { emp:'kyuyo_emp', rates:'kyuyo_rates', rateHistory:'kyuyo_rate_history', gas:'kyuyo_gas', lang:'kyuyo_lang' };
+const LS = { emp:'kyuyo_emp', rates:'kyuyo_rates', rateHistory:'kyuyo_rate_history', gas:'kyuyo_gas', lang:'kyuyo_lang', deletedEmpIds:'kyuyo_deleted_emp_ids' };
+// emp.no: 앱 전체의 Primary Key — 사원·급여 데이터 연결 기준, 재사용 불가
+let deletedEmpIds = []; // 과거 삭제된 사원의 ID(Primary Key) 목록
 let payrollDirty = false; // 급여명세 미저장 여부
 let _pendingScrapedRates = null; // 스크래핑 결과 임시 보관
 

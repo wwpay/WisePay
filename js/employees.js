@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 22:50 — 사원 폼 레이아웃 변경: 사원번호 전체 폭, 이름+카나·입사일+퇴사일 쌍
+﻿// 수정: 2026-05-27 23:00 — emp.no PK 명시, 삭제된 ID 재사용 방지, 힌트 문구 수정
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -106,7 +106,7 @@ function renderEmpFormFields(emp) {
           <label class="form-label"><span class="form-req">*</span>${jp?'社員番号（4桁）':'사원번호（4자리）'}</label>
           <span class="form-error" id="f-no-err"></span>
         </div>
-        <div class="form-label-hint">${jp?'半角数字4桁のみ（全角不可）':'반각 숫자 4자리만（전각 불가）'}</div>
+        <div class="form-label-hint">${jp?'半角数字4桁のみ / 現在使用中または過去に使用されたIDは登録不可':'반각 숫자 4자리만 / 현재 사용 중이거나 과거에 사용된 ID는 등록 불가'}</div>
       </div>
       <input class="form-input" id="f-no" maxlength="4" value="${v('no')?String(v('no')).padStart(4,'0'):''}"
         oninput="validateEmpNo(this);markDirty()" onblur="padEmpNo(this)"
@@ -626,17 +626,24 @@ function validateEmpNo(input) {
     return;
   }
   const no = input.value.padStart(4,'0');
-  // 신규/수정 모두 중복 체크, 수정 시 자기 자신은 제외
+  const jp = LANG==='JP';
+  // 활성 사원 중복 체크 (Primary Key 중복 방지), 수정 시 자기 자신은 제외
   const dup = employees.some((e,i) => {
     if(editingEmpIdx !== -1 && i === editingEmpIdx) return false;
     return String(e.no || '').padStart(4, '0') === no;
   });
   if(dup) {
-    errEl.textContent = LANG==='JP'?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다';
+    errEl.textContent = jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다';
     input.classList.add('error');
-  } else {
-    errEl.textContent=''; input.classList.remove('error');
+    return;
   }
+  // 삭제된 사원의 ID(Primary Key) 재사용 불가 — 신규 등록 시에만 체크
+  if(editingEmpIdx === -1 && deletedEmpIds.includes(no)) {
+    errEl.textContent = jp?'この番号は過去に使用されています。別の番号を入力してください':'이미 사용된 적 있는 ID입니다. 다른 ID를 입력해 주세요';
+    input.classList.add('error');
+    return;
+  }
+  errEl.textContent=''; input.classList.remove('error');
 }
 
 // ══ FAMILY ══
@@ -717,12 +724,17 @@ function saveEmployee() {
     return;
   }
 
-  // 중복 체크 - 신규/수정 모두, 수정 시 자기 자신 제외
+  // Primary Key 중복 체크 — 신규/수정 모두, 수정 시 자기 자신 제외
   const dup = employees.some((e,i) => {
     if(editingEmpIdx !== -1 && i === editingEmpIdx) return false;
     return String(e.no || '').padStart(4, '0') === no;
   });
   if(dup) { showToast(jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다','e'); return; }
+  // 삭제된 사원의 Primary Key 재사용 불가 — 신규 등록 시에만 체크
+  if(editingEmpIdx === -1 && deletedEmpIds.includes(no)) {
+    showToast(jp?'この番号は過去に使用されています。別の番号を入力してください':'이미 사용된 적 있는 ID입니다. 다른 ID를 입력해 주세요','e');
+    return;
+  }
 
   const joinVal = joinEl?.value || '';
   const leaveEl = document.getElementById('f-leave');
@@ -789,6 +801,12 @@ function deleteEmp(i) {
   const emp=employees[i];
   const msg=LANG==='JP'?`${emp.name} を削除しますか？`:`${emp.name}을(를) 삭제하시겠습니까?`;
   if(!confirm(msg)) return;
+  // 삭제된 사원의 Primary Key를 재사용 불가 목록에 추가
+  const deletedNo = String(emp.no).padStart(4, '0');
+  if(!deletedEmpIds.includes(deletedNo)) {
+    deletedEmpIds.push(deletedNo);
+    localStorage.setItem(LS.deletedEmpIds, JSON.stringify(deletedEmpIds));
+  }
   employees.splice(i, 1);
   localStorage.setItem(LS.emp, JSON.stringify(employees));
   if(currentEmpIdx === i) {
