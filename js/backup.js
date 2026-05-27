@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 14:55 — 백업 저장 폴더 사전 설정 기능 추가 (IndexedDB + File System Access API)
+// 수정: 2026-05-27 15:12 — requestPermission 제거 + showDirectoryPicker 전 sessionStorage 복원키 설정
 'use strict';
 
 /* ── 날짜 유틸 ── */
@@ -37,7 +37,7 @@ function checkBackupReminder() {
   }, 2500);
 }
 
-/* ── 앵커 다운로드 (폴백) ── */
+/* ── 앵커 다운로드 (비Chrome 폴백) ── */
 function _saveFile(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -104,8 +104,23 @@ async function _writeToDir(dirHandle, blob, filename) {
   await writable.close();
 }
 
+/* ── showDirectoryPicker 래퍼:
+   Chrome 권한 승인 후 페이지가 리로드될 수 있으므로
+   호출 전에 sessionStorage 복원 키를 설정해 둔다.
+   취소 시에는 키를 삭제. ── */
+async function _pickDirectory() {
+  sessionStorage.setItem('wisepay_restore_page', 'gas');
+  try {
+    const handle = await showDirectoryPicker({ mode: 'readwrite' });
+    return handle;
+  } catch (e) {
+    sessionStorage.removeItem('wisepay_restore_page');
+    throw e;
+  }
+}
+
 /* ── 폴더 지정 저장 (핵심 함수) ──
-   반환값: true = 저장 완료, false = 취소/실패 (성공 토스트 표시 안 함) */
+   반환값: true = 저장 완료, false = 취소/실패 */
 async function _saveWithFolder(blob, filename) {
   const jp = LANG === 'JP';
 
@@ -117,30 +132,28 @@ async function _saveWithFolder(blob, filename) {
 
   let dirHandle = await _loadDirHandle();
 
+  // 저장된 핸들이 있으면 권한을 조용히 확인 (requestPermission 사용 안 함)
+  if (dirHandle) {
+    const perm = await dirHandle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      // 권한 만료(브라우저 재시작 등): 기존 설정 초기화 후 다시 폴더 선택
+      await _clearDirHandle();
+      localStorage.removeItem('wisepay_backup_folder_name');
+      renderBackupFolderStatus();
+      dirHandle = null;
+    }
+  }
+
+  // 폴더 미설정 또는 권한 만료: 폴더 선택 대화상자 오픈
   if (!dirHandle) {
-    // 폴더 미설정: 폴더 선택 대화상자 자동 오픈
     try {
-      dirHandle = await showDirectoryPicker({ mode: 'readwrite' });
+      dirHandle = await _pickDirectory();
       await _saveDirHandle(dirHandle);
       localStorage.setItem('wisepay_backup_folder_name', dirHandle.name);
       renderBackupFolderStatus();
     } catch (e) {
-      if (e.name === 'AbortError') return false; // 사용자가 취소
-      // 기타 오류: 앵커 다운로드로 폴백
-      _saveFile(blob, filename);
-      return true;
-    }
-  } else {
-    // 폴더 설정됨: 권한 확인
-    let perm = await dirHandle.queryPermission({ mode: 'readwrite' });
-    if (perm !== 'granted') {
-      perm = await dirHandle.requestPermission({ mode: 'readwrite' });
-    }
-    if (perm !== 'granted') {
-      await _clearDirHandle();
-      localStorage.removeItem('wisepay_backup_folder_name');
-      renderBackupFolderStatus();
-      showToast(jp ? 'フォルダへのアクセスが拒否されました。再設定してください。' : '폴더 접근이 거부되었습니다. 다시 설정해 주세요.', 'e');
+      if (e.name === 'AbortError') return false; // 사용자 취소
+      showToast(jp ? 'フォルダ選択に失敗しました' : '폴더 선택에 실패했습니다', 'e');
       return false;
     }
   }
@@ -150,7 +163,7 @@ async function _saveWithFolder(blob, filename) {
     await _writeToDir(dirHandle, blob, filename);
     return true;
   } catch (e) {
-    // 폴더 삭제됨 등 쓰기 실패: 설정 초기화
+    // 폴더 삭제 등 쓰기 실패: 설정 초기화
     await _clearDirHandle();
     localStorage.removeItem('wisepay_backup_folder_name');
     renderBackupFolderStatus();
@@ -191,7 +204,7 @@ async function setBackupFolder() {
     return;
   }
   try {
-    const dirHandle = await showDirectoryPicker({ mode: 'readwrite' });
+    const dirHandle = await _pickDirectory();
     await _saveDirHandle(dirHandle);
     localStorage.setItem('wisepay_backup_folder_name', dirHandle.name);
     renderBackupFolderStatus();
