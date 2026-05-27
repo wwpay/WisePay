@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 10:18 — 백업/복원을 사원/급여 두 종류로 분리
+// 수정: 2026-05-27 11:45 — 백업 후 초기화면 이동 버그 수정 (click 버블링 차단 + 페이지 복원)
 'use strict';
 
 function _backupDateStr() {
@@ -41,8 +41,10 @@ function _anchorDownload(blob, filename) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.style.display = 'none';
   document.body.appendChild(a);
-  a.click();
+  // bubbles:false 로 클릭 이벤트가 상위 DOM으로 전파되지 않도록 차단
+  a.dispatchEvent(new MouseEvent('click', { bubbles: false, cancelable: false }));
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
@@ -69,6 +71,7 @@ async function downloadEmpBackupJson() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   await _saveFile(blob, filename);
   _markBackupDone();
+  _restoreGasPage();
   showToast(LANG === 'JP' ? '従業員バックアップ完了 ✓' : '사원 백업 완료 ✓', 's');
 }
 
@@ -79,7 +82,15 @@ async function downloadPayBackupJson() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   await _saveFile(blob, filename);
   _markBackupDone();
+  _restoreGasPage();
   showToast(LANG === 'JP' ? '給与バックアップ完了 ✓' : '급여 백업 완료 ✓', 's');
+}
+
+/* 백업 완료 후 페이지가 이탈됐을 경우 데이터 관리 페이지로 복원 */
+function _restoreGasPage() {
+  if (!document.querySelector('#page-gas.active')) {
+    gotoPage('gas', document.querySelector('.nav-item[data-page="gas"]'));
+  }
 }
 
 /* ── 사원 복원 ── */
