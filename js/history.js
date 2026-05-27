@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 17:07 — 임금대장 초기 진입 시 사원 미선택 상태로 변경 (개인정보 보호)
+// 수정: 2026-05-27 17:20 — 임금대장 컨트롤 왼쪽·헤더 오른쪽 정렬, 사원선택 확인 버튼 추가
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -328,8 +328,9 @@ function renderAnnual() {
     const title = `${emp.name}（${String(emp.no).padStart(4,'0')}） ${year}${jp?'年度':'년도'} ${jp?'賃金台帳':'임금대장'}`;
     const sub = (jp?`出力日：${today}`:`출력일：${today}`) + getJoinNote(emp, year, jp);
     allHtml += `<div class="annual-emp-block${count>0?' annual-page-break':''}">` +
+      `<div style="text-align:right;margin-bottom:10px;">` +
       `<div style="font-size:16px;font-weight:700;margin-bottom:3px;">${title}</div>` +
-      `<div style="font-size:12px;color:#666;margin-bottom:10px;">${sub}</div>` +
+      `<div style="font-size:12px;color:#666;">${sub}</div></div>` +
       tableHtml + `</div>`;
     count++;
   });

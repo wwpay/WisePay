@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-27 17:07 — history.js: 임금대장 초기 진입 시 사원 미선택 상태로 변경
+  수정: 2026-05-27 17:20 — 임금대장 컨트롤 왼쪽 정렬·헤더 오른쪽 정렬·사원선택 확인 버튼 추가
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -233,7 +233,7 @@
 
 <!-- ══ PAGE: ANNUAL ══ -->
 <div class="page" id="page-annual">
-  <div class="no-print" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
+  <div class="no-print" style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <!-- 인라인 드롭다운 사원 선택 -->
       <div style="position:relative;" id="annualEmpDropWrap">
@@ -253,6 +253,9 @@
             <button class="btn btn-sm" onclick="selectActiveOnlyAnnual()"><span id="t-annual-sel-active">在職者のみ</span></button>
           </div>
           <div id="annualEmpCheckList" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:4px;"></div>
+          <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;">
+            <button class="btn btn-primary" onclick="closeAnnualEmpDrop()" style="width:100%;font-size:13px;" id="t-annual-confirm">확인</button>
+          </div>
         </div>
       </div>
       <select id="annualYearSel" onchange="renderAnnual()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);">
@@ -267,7 +270,7 @@
     <div style="font-size:12px;" id="t-annual-ph-sub">上の「従業員選択」ボタンから選択すると賃金台帳が表示されます。</div>
   </div>
   <!-- 인쇄용 헤더 -->
-  <div id="annualPrintHeader" style="display:none;margin-bottom:12px;">
+  <div id="annualPrintHeader" style="display:none;margin-bottom:12px;text-align:right;">
     <div style="font-size:16px;font-weight:700;" id="annualPrintTitle"></div>
     <div style="font-size:12px;color:#666;margin-top:3px;" id="annualPrintSub"></div>
   </div>

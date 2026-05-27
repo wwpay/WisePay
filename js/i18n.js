@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 16:20 — 언어 전환 시 급여 데이터 상태 배지 텍스트 업데이트 추가
+﻿// 수정: 2026-05-27 17:20 — 임금대장 사원선택 확인 버튼 번역 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -132,6 +132,7 @@ function applyLang() {
   setTxt('t-annual-sel-all',    '全選択',      '전체 선택');
   setTxt('t-annual-sel-clear',  '全解除',      '전체 해제');
   setTxt('t-annual-sel-active', '在職者のみ',  '재직자만');
+  setTxt('t-annual-confirm',    '確認',        '확인');
 
   setTxt('t-history-title', '支給履歴', '지급 이력');
   setTxt('t-h-month', '月', '월');
