@@ -6,7 +6,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-27 10:12 — employees.js: 사원 폼에 퇴사일 필드 추가 (입사일 다음)
+  수정: 2026-05-27 10:18 — backup.js: 백업/복원을 사원/급여 두 종류로 분리
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -357,18 +357,44 @@
         <div style="font-size:12px;font-weight:600;color:#3730a3;margin-bottom:4px;" id="t-backup-auto-title">📅 구글 드라이브 자동 백업</div>
         <div style="font-size:11px;color:#4338ca;line-height:1.7;" id="t-backup-auto-desc">매주 월요일 오전 9시에 별도 스프레드시트로 자동 백업됩니다 (최대 26개 유지).</div>
       </div>
-      <!-- JSON/Excel 백업 버튼 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-        <button onclick="downloadBackupJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span id="t-backup-json-btn">📄 JSON 백업</span>
-        </button>
+      <!-- 사원 / 급여 JSON 백업 + 복원 -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:5px;">사원 데이터</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button onclick="downloadEmpBackupJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            👤 사원 백업
+          </button>
+          <button onclick="restoreEmpFromJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
+            👤 사원 복원
+          </button>
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:5px;">급여 데이터</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button onclick="downloadPayBackupJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            💴 급여 백업
+          </button>
+          <button onclick="restorePayFromJson()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
+            💴 급여 복원
+          </button>
+        </div>
+      </div>
+      <!-- 숨김 file input -->
+      <input type="file" id="restoreEmpInput" accept=".json" style="display:none;" onchange="_onRestoreEmpFile(this)">
+      <input type="file" id="restorePayInput" accept=".json" style="display:none;" onchange="_onRestorePayFile(this)">
+      <!-- Excel 백업 -->
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px;">
         <button onclick="downloadBackupExcel()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-          <span id="t-backup-excel-btn">📊 Excel 백업</span>
+          <span id="t-backup-excel-btn">📊 Excel 백업 (전체)</span>
         </button>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:14px;" id="t-backup-file-desc">파일명: WisePay_backup_YYYYMMDD</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:14px;" id="t-backup-file-desc">파일명: 사원_backup_YYYYMMDD.json / 급여_backup_YYYYMMDD.json</div>
       <!-- 급여 데이터(CSV) → 구글 드라이브 -->
       <div style="border-top:1px solid var(--border);padding-top:12px;">
         <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">급여 데이터(CSV) → 구글 드라이브</div>

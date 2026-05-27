@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 16:18 — 백업 후 화면 이동 제거 (현 화면 유지)
+// 수정: 2026-05-27 10:18 — 백업/복원을 사원/급여 두 종류로 분리
 'use strict';
 
 function _backupDateStr() {
@@ -36,7 +36,6 @@ function checkBackupReminder() {
   }, 2500);
 }
 
-// anchor fallback 다운로드 (페이지 이동 없음)
 function _anchorDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -48,35 +47,141 @@ function _anchorDownload(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-async function downloadBackupJson() {
-  const date = _backupDateStr();
-  const filename = 'WisePay_backup_' + date + '.json';
-  const data = {
-    exportedAt: new Date().toISOString(),
-    employees,
-    payrolls: collectAllPayrolls(),
-    rateHistory,
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-
+async function _saveFile(blob, filename) {
   if (typeof window.showSaveFilePicker === 'function') {
     try {
       const handle = await window.showSaveFilePicker({ suggestedName: filename });
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
+      return;
     } catch (e) {
       if (e.name === 'AbortError') return;
-      _anchorDownload(blob, filename);
     }
-  } else {
-    _anchorDownload(blob, filename);
   }
-
-  _markBackupDone();
-  showToast(LANG === 'JP' ? 'JSONバックアップ完了 ✓' : 'JSON 백업 완료 ✓', 's');
+  _anchorDownload(blob, filename);
 }
 
+/* ── 사원 백업 ── */
+async function downloadEmpBackupJson() {
+  const filename = '사원_backup_' + _backupDateStr() + '.json';
+  const data = { exportedAt: new Date().toISOString(), employees };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  await _saveFile(blob, filename);
+  _markBackupDone();
+  showToast(LANG === 'JP' ? '従業員バックアップ完了 ✓' : '사원 백업 완료 ✓', 's');
+}
+
+/* ── 급여 백업 ── */
+async function downloadPayBackupJson() {
+  const filename = '급여_backup_' + _backupDateStr() + '.json';
+  const data = { exportedAt: new Date().toISOString(), payrolls: collectAllPayrolls(), rateHistory };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  await _saveFile(blob, filename);
+  _markBackupDone();
+  showToast(LANG === 'JP' ? '給与バックアップ完了 ✓' : '급여 백업 완료 ✓', 's');
+}
+
+/* ── 사원 복원 ── */
+function restoreEmpFromJson() {
+  const input = document.getElementById('restoreEmpInput');
+  if (input) { input.value = ''; input.click(); }
+}
+
+function _onRestoreEmpFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const jp = LANG === 'JP';
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (!Array.isArray(data.employees)) {
+        showToast(jp ? '従業員バックアップファイルではありません' : '사원 백업 파일이 아닙니다', 'e');
+        input.value = '';
+        return;
+      }
+      const msg = jp
+        ? '⚠️ 従業員データを復元すると、現在の従業員データがバックアップ時点に戻ります。\n続けますか？'
+        : '⚠️ 사원 데이터를 복원하면 현재 사원 데이터가 백업 시점으로 되돌아갑니다.\n계속하시겠습니까?';
+      if (!confirm(msg)) { input.value = ''; return; }
+      employees = data.employees;
+      localStorage.setItem(LS.emp, JSON.stringify(employees));
+      showToast(jp ? '従業員データを復元しました ✓' : '사원 데이터 복원 완료 ✓', 's');
+      try { renderEmpList(); } catch(e) {}
+      try { renderEmpSelect(); } catch(e) {}
+      try { buildHistEmpSel(); renderHistory(); } catch(e) {}
+      try { buildAnnualEmpSel(); renderAnnual(); } catch(e) {}
+    } catch (err) {
+      showToast(jp ? '読み込みに失敗しました' : '파일 읽기에 실패했습니다', 'e');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ── 급여 복원 ── */
+function restorePayFromJson() {
+  const input = document.getElementById('restorePayInput');
+  if (input) { input.value = ''; input.click(); }
+}
+
+function _onRestorePayFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const jp = LANG === 'JP';
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (!Array.isArray(data.payrolls) && !Array.isArray(data.rateHistory)) {
+        showToast(jp ? '給与バックアップファイルではありません' : '급여 백업 파일이 아닙니다', 'e');
+        input.value = '';
+        return;
+      }
+      const msg = jp
+        ? '⚠️ 給与データを復元すると、現在の給与データがバックアップ時点に戻ります。\n続けますか？'
+        : '⚠️ 급여 데이터를 복원하면 현재 급여 데이터가 백업 시점으로 되돌아갑니다.\n계속하시겠습니까?';
+      if (!confirm(msg)) { input.value = ''; return; }
+
+      if (Array.isArray(data.rateHistory)) {
+        rateHistory = data.rateHistory;
+        localStorage.setItem(LS.rateHistory, JSON.stringify(rateHistory));
+      }
+
+      if (Array.isArray(data.payrolls)) {
+        // 기존 급여 키 삭제 후 복원
+        employees.forEach(emp => {
+          const pNo = String(emp.no).padStart(4, '0');
+          for (let y = 2024; y <= 2030; y++) {
+            for (let m = 1; m <= 12; m++) {
+              localStorage.removeItem(`kyuyo_p_${pNo}_${y}_${m}`);
+            }
+          }
+        });
+        data.payrolls.forEach(row => {
+          const { no, name, year, month, ...d } = row;
+          if (no == null || !year || !month) return;
+          const pNo = String(no).padStart(4, '0');
+          localStorage.setItem(`kyuyo_p_${pNo}_${year}_${month}`, JSON.stringify(d));
+        });
+      }
+
+      showToast(jp ? '給与データを復元しました ✓' : '급여 데이터 복원 완료 ✓', 's');
+      try { renderRates(); } catch(e) {}
+      const activePage = document.querySelector('.page.active')?.id || '';
+      if (activePage === 'page-annual') try { renderAnnual(); } catch(e) {}
+      if (activePage === 'page-history') try { renderHistory(); } catch(e) {}
+      if (activePage === 'page-payroll') try { loadPayrollForm(); } catch(e) {}
+    } catch (err) {
+      showToast(jp ? '読み込みに失敗しました' : '파일 읽기에 실패했습니다', 'e');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ── Excel 백업 (기존 유지) ── */
 async function downloadBackupExcel() {
   if (typeof XLSX === 'undefined') {
     showToast(LANG === 'JP' ? 'Excelライブラリ読み込み中... 少々お待ちください' : 'Excel 라이브러리 로딩 중... 잠시 후 다시 시도해 주세요', 'w');
@@ -85,7 +190,6 @@ async function downloadBackupExcel() {
   const date = _backupDateStr();
   const filename = 'WisePay_backup_' + date + '.xlsx';
 
-  // XLSX.write() 전에 showSaveFilePicker 호출 — user activation 컨텍스트 유지
   let fileHandle = null;
   if (typeof window.showSaveFilePicker === 'function') {
     try {
@@ -99,7 +203,6 @@ async function downloadBackupExcel() {
     }
   }
 
-  // 파일 핸들 확보 후 XLSX 생성 (무거운 동기 작업)
   const wb = XLSX.utils.book_new();
   const empData = employees.length ? employees.map(e => ({ ...e, families: JSON.stringify(e.families || []) })) : [{}];
   const payData = collectAllPayrolls();
@@ -115,7 +218,6 @@ async function downloadBackupExcel() {
       await writable.write(blob);
       await writable.close();
     } catch (e) {
-      console.warn('Excel write failed:', e);
       _anchorDownload(blob, filename);
     }
   } else {
