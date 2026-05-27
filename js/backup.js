@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 22:05 — 사원/급여 백업 위치 교체 + 사원 복원 사원 선택 모달 추가
+// 수정: 2026-05-27 22:35 — 백업 폴더 보기 버튼 추가
 'use strict';
 
 /* ── 날짜 유틸 ── */
@@ -189,7 +189,8 @@ function renderBackupFolderStatus() {
       `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>` +
       `<span style="color:var(--accent);font-weight:600;font-size:11px;">${folderName}</span>` +
       `<button onclick="setBackupFolder()" style="padding:2px 8px;font-size:10px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent3);border-radius:4px;cursor:pointer;">${jp ? '変更' : '변경'}</button>` +
-      `<button onclick="clearBackupFolder()" style="padding:2px 8px;font-size:10px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:4px;cursor:pointer;">${jp ? '解除' : '해제'}</button>`;
+      `<button onclick="clearBackupFolder()" style="padding:2px 8px;font-size:10px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:4px;cursor:pointer;">${jp ? '解除' : '해제'}</button>` +
+      `<button onclick="openBackupFolder()" style="padding:2px 8px;font-size:10px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:4px;cursor:pointer;">${jp ? 'フォルダを開く' : '📂 폴더 보기'}</button>`;
   } else {
     el.innerHTML =
       `<span style="color:var(--text3);font-size:11px;">${jp ? '未設定（初回バックアップ時に自動でフォルダを指定します）' : '미설정 (처음 백업 시 자동으로 폴더를 지정합니다)'}</span>` +
@@ -221,6 +222,20 @@ async function clearBackupFolder() {
   localStorage.removeItem('wisepay_backup_folder_name');
   renderBackupFolderStatus();
   showToast(LANG === 'JP' ? 'フォルダ設定を解除しました' : '폴더 설정을 해제했습니다', 's');
+}
+
+async function openBackupFolder() {
+  const jp = LANG === 'JP';
+  const dirHandle = await _loadDirHandle();
+  if (!dirHandle) {
+    showToast(jp ? 'フォルダが設定されていません' : '폴더가 설정되지 않았습니다', 'w');
+    return;
+  }
+  try {
+    await showDirectoryPicker({ startIn: dirHandle, mode: 'read' });
+  } catch (e) {
+    // AbortError: 사용자가 취소 — 무시
+  }
 }
 
 /* ── 사원 백업 ── */
