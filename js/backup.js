@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 13:02 — sessionStorage 복원 키를 백업 함수에서 삭제하지 않도록 수정
+// 수정: 2026-05-27 13:29 — showSaveFilePicker 제거 (페이지 리로드 원인) → 앵커 다운로드만 사용
 'use strict';
 
 function _backupDateStr() {
@@ -36,65 +36,36 @@ function checkBackupReminder() {
   }, 2500);
 }
 
-function _anchorDownload(blob, filename) {
+function _saveFile(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
-  a.target = '_blank';   // 혹시 탐색이 발생해도 현재 탭을 유지
-  a.rel = 'noopener';
   a.style.display = 'none';
   document.body.appendChild(a);
-  // bubbles:false 로 클릭 이벤트가 상위 DOM으로 전파되지 않도록 차단
-  a.dispatchEvent(new MouseEvent('click', { bubbles: false, cancelable: false }));
+  a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-async function _saveFile(blob, filename) {
-  if (typeof window.showSaveFilePicker === 'function') {
-    try {
-      const handle = await window.showSaveFilePicker({ suggestedName: filename });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return;
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-    }
-  }
-  _anchorDownload(blob, filename);
-}
-
 /* ── 사원 백업 ── */
-async function downloadEmpBackupJson() {
+function downloadEmpBackupJson() {
   const filename = '사원_backup_' + _backupDateStr() + '.json';
   const data = { exportedAt: new Date().toISOString(), employees };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  sessionStorage.setItem('wisepay_restore_page', 'gas');
-  await _saveFile(blob, filename);
+  _saveFile(blob, filename);
   _markBackupDone();
-  _restoreGasPage();
   showToast(LANG === 'JP' ? '従業員バックアップ完了 ✓' : '사원 백업 완료 ✓', 's');
 }
 
 /* ── 급여 백업 ── */
-async function downloadPayBackupJson() {
+function downloadPayBackupJson() {
   const filename = '급여_backup_' + _backupDateStr() + '.json';
   const data = { exportedAt: new Date().toISOString(), payrolls: collectAllPayrolls(), rateHistory };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  sessionStorage.setItem('wisepay_restore_page', 'gas');
-  await _saveFile(blob, filename);
+  _saveFile(blob, filename);
   _markBackupDone();
-  _restoreGasPage();
   showToast(LANG === 'JP' ? '給与バックアップ完了 ✓' : '급여 백업 완료 ✓', 's');
-}
-
-/* 백업 완료 후 페이지가 이탈됐을 경우 데이터 관리 페이지로 복원 */
-function _restoreGasPage() {
-  if (!document.querySelector('#page-gas.active')) {
-    gotoPage('gas', document.querySelector('.nav-item[data-page="gas"]'));
-  }
 }
 
 /* ── 사원 복원 ── */
@@ -196,28 +167,13 @@ function _onRestorePayFile(input) {
   reader.readAsText(file);
 }
 
-/* ── Excel 백업 (기존 유지) ── */
-async function downloadBackupExcel() {
+/* ── Excel 백업 ── */
+function downloadBackupExcel() {
   if (typeof XLSX === 'undefined') {
     showToast(LANG === 'JP' ? 'Excelライブラリ読み込み中... 少々お待ちください' : 'Excel 라이브러리 로딩 중... 잠시 후 다시 시도해 주세요', 'w');
     return;
   }
-  const date = _backupDateStr();
-  const filename = 'WisePay_backup_' + date + '.xlsx';
-
-  let fileHandle = null;
-  if (typeof window.showSaveFilePicker === 'function') {
-    try {
-      fileHandle = await window.showSaveFilePicker({
-        suggestedName: filename,
-        types: [{ description: 'Excel', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }]
-      });
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-      fileHandle = null;
-    }
-  }
-
+  const filename = 'WisePay_backup_' + _backupDateStr() + '.xlsx';
   const wb = XLSX.utils.book_new();
   const empData = employees.length ? employees.map(e => ({ ...e, families: JSON.stringify(e.families || []) })) : [{}];
   const payData = collectAllPayrolls();
@@ -226,19 +182,7 @@ async function downloadBackupExcel() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rateHistory.length ? rateHistory : [{}]), '보험료율이력');
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-  if (fileHandle) {
-    try {
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } catch (e) {
-      _anchorDownload(blob, filename);
-    }
-  } else {
-    _anchorDownload(blob, filename);
-  }
-
+  _saveFile(blob, filename);
   _markBackupDone();
   showToast(LANG === 'JP' ? 'Excelバックアップ完了 ✓' : 'Excel 백업 완료 ✓', 's');
 }

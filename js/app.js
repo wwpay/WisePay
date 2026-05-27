@@ -232,7 +232,7 @@ function gotoPage(id, el) {
   if(id==='employees') renderEmpList();
   if(id==='rates') renderRatesPage();
   if(id==='annual') { try { buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); } catch(e) { console.error('annual render error:', e); } }
-  if(id==='gas') { openGasModal(); sessionStorage.removeItem('wisepay_restore_page'); }
+  if(id==='gas') openGasModal();
   if(id==='notifications') renderNotificationsPage();
 }
 
