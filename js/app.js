@@ -1,4 +1,4 @@
-// 수정: 2026-05-26 22:55 — Undo/Redo 키 바인딩(Ctrl+Z/Y/Shift+Z), initUndo 호출, beforeunload에 hasUnsavedChanges 추가
+// 수정: 2026-05-27 10:12 — 사원 로드 시 leave 날짜 normalizeDate 추가
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -81,7 +81,7 @@ document.addEventListener('keydown', e => {
 function initApp() {
   initUndo();
   // load storage
-  try { const s = localStorage.getItem(LS.emp); if(s) { employees = JSON.parse(s); employees.forEach(e=>{ if(!e) return; if(e.shaho_start) e.shaho_start=normalizeYM(e.shaho_start); if(e.join) e.join=normalizeDate(e.join); if(e.birth) e.birth=normalizeDate(e.birth); }); } } catch(e){}
+  try { const s = localStorage.getItem(LS.emp); if(s) { employees = JSON.parse(s); employees.forEach(e=>{ if(!e) return; if(e.shaho_start) e.shaho_start=normalizeYM(e.shaho_start); if(e.join) e.join=normalizeDate(e.join); if(e.leave) e.leave=normalizeDate(e.leave); if(e.birth) e.birth=normalizeDate(e.birth); }); } } catch(e){}
   try { const s = localStorage.getItem(LS.rateHistory); if(s) rateHistory = JSON.parse(s); } catch(e){}
   // 마이그레이션
   syncFuyouFromFamilies();

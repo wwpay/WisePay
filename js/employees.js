@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-26 22:55 — Undo/Redo 연동: 사원 소프트 삭제·복원, pushAction(addRow/deleteEmployee)
+﻿// 수정: 2026-05-27 10:12 — 사원 폼에 퇴사일(f-leave) 필드 추가 (입사일 다음, 선택 입력)
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -146,7 +146,19 @@ function renderEmpFormFields(emp) {
       <input class="form-input" id="f-join" type="text" value="${normalizeDate(v('join'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-join-err')"
-        onkeydown="onDateKeydown(event,'f-birth','f-join-err')" oninput="onDateInput(this)">
+        onkeydown="onDateKeydown(event,'f-leave','f-join-err')" oninput="onDateInput(this)">
+    </div>
+    <div class="form-group">
+      <div class="form-label-block">
+        <div class="form-label-row">
+          <label class="form-label">${jp?'退職日':'퇴사일'}</label>
+          <span class="form-error" id="f-leave-err"></span>
+        </div>
+      </div>
+      <input class="form-input" id="f-leave" type="text" value="${normalizeDate(v('leave'))}"
+        placeholder="YYYY-MM-DD" autocomplete="off"
+        onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-leave-err')"
+        onkeydown="onDateKeydown(event,'f-birth','f-leave-err')" oninput="onDateInput(this)">
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -716,11 +728,15 @@ function saveEmployee() {
   if(dup) { showToast(jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다','e'); return; }
 
   const joinVal = joinEl?.value || '';
+  const leaveEl = document.getElementById('f-leave');
+  if (leaveEl && leaveEl.value.trim() && !validateDateText(leaveEl, 'f-leave-err', false)) { showToast(jp?'退職日を確認してください':'퇴사일을 확인해 주세요','w'); return; }
+  const leaveVal = leaveEl?.value || '';
   const birthVal = birthEl?.value || '';
 
   const empData = {
     no, name, kana,
     join: joinVal,
+    leave: leaveVal,
     birth: birthVal,
     kaigo: document.getElementById('f-kaigo')?.value||'auto',
     koyo: document.getElementById('f-koyo')?.value||'yes',
