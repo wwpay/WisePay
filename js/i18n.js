@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 17:20 — 임금대장 사원선택 확인 버튼 번역 추가
+﻿// 수정: 2026-05-27 22:30 — 백업 타이틀·버튼 텍스트 수정 (데이터 백업/복원, 데이터 삽입)
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -96,13 +96,13 @@ function applyLang() {
   setTxt('t-gas-upload-desc', 'ローカルデータをGoogleドライブに上書きします', '로컬 데이터를 구글 드라이브에 덮어씁니다');
   setTxt('t-gas-download-label', 'Googleドライブ → ローカルPC', '구글 드라이브 → 로컬PC');
   setTxt('t-gas-download-desc', 'Googleドライブのデータをローカルに上書きします', '구글 드라이브 데이터를 로컬에 덮어씁니다');
-  setTxt('t-backup-title', 'データバックアップ', '데이터 백업');
+  setTxt('t-backup-title', 'データバックアップ/復元', '데이터 백업/복원');
   setTxt('t-backup-emp-label', '従業員データ', '사원 데이터');
-  setTxt('t-backup-emp-btn',   '👤 従業員バックアップ', '👤 사원 백업');
-  setTxt('t-restore-emp-btn',  '👤 従業員復元', '👤 사원 복원');
+  setTxt('t-backup-emp-btn',   '👤 従業員データバックアップ', '👤 사원 데이터 백업');
+  setTxt('t-restore-emp-btn',  '👤 従業員データ復元', '👤 사원 데이터 복원');
   setTxt('t-backup-pay-label', '給与データ', '급여 데이터');
-  setTxt('t-backup-pay-btn',   '💴 給与バックアップ', '💴 급여 백업');
-  setTxt('t-restore-pay-btn',  '💴 給与復元', '💴 급여 복원');
+  setTxt('t-backup-pay-btn',   '💴 給与データバックアップ', '💴 급여 데이터 백업');
+  setTxt('t-restore-pay-btn',  '💴 給与データ復元', '💴 급여 데이터 복원');
   setTxt('t-backup-excel-btn', '📊 Excelバックアップ（全体）', '📊 Excel 백업 (전체)');
   setTxt('t-backup-file-desc', 'ファイル名: 従業員_backup_YYYYMMDD.json / 給与_backup_YYYYMMDD.json', '파일명: 사원_backup_YYYYMMDD.json / 급여_backup_YYYYMMDD.json');
   setTxt('t-freee-section-title', '給与データ(CSV) → Googleドライブ', '급여 데이터(CSV) → 구글 드라이브');
