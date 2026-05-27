@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 00:05 — 사원 선택 인라인 드롭다운으로 교체 (검색·재직자만·외부클릭 닫기)
+// 수정: 2026-05-27 10:08 — filterAnnualEmpList: display '' → 'flex' 수정 (항목 세로 나열 복구)
 'use strict';
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
@@ -111,7 +111,7 @@ function filterAnnualEmpList() {
     const emp = employees.find(e => String(e.no) === no);
     if (!emp) { label.style.display = 'none'; return; }
     const match = !q || emp.name.toLowerCase().includes(q) || String(emp.no).padStart(4,'0').includes(q);
-    label.style.display = match ? '' : 'none';
+    label.style.display = match ? 'flex' : 'none';
   });
 }
 
