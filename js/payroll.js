@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 16:37 — 파랑 배지 제거·과거 달 oldest 데이터 임시 채움·빈 상태 레이아웃 고정
+﻿// 수정: 2026-05-27 23:30 — 급여 추가/수정/삭제 시 gasAppendLog 로그 기록 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -423,6 +423,7 @@ function deleteCurrentMonth() {
   PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
   recalc();
   showToast(jp ? `${label}分を削除しました` : `${label}분 삭제됨`, 'w');
+  gasAppendLog('급여삭제', `${emp.name} (${currentYear}/${String(currentMonth).padStart(2,'0')})`, '성공', '');
 }
 
 // ══ SAVE PAYROLL ══
@@ -430,6 +431,7 @@ function saveCurrent() {
   if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'사원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
   const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
+  const isNewPayroll = !localStorage.getItem(key);
   const d={}; PFIELDS.forEach(f=>{d[f]=document.getElementById(f)?.value||0;}); d._net=window._calc?.net||0;
   localStorage.setItem(key,JSON.stringify(d));
 
@@ -438,6 +440,7 @@ function saveCurrent() {
   const saveBtn = document.getElementById('btn-save');
   if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
 
+  const logTarget = `${emp.name} (${currentYear}/${String(currentMonth).padStart(2,'0')})`;
   if(gasUrl && window._calc) {
     const c=window._calc;
     // PFIELD 입력값도 함께 전송 → GAS 시트에 저장 → 다음 월 기본값 복원에 활용
@@ -447,10 +450,17 @@ function saveCurrent() {
       pdata[f]=el?(parseInt((el.value||'0').replace(/,/g,''))||0):0;
     });
     fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...pdata,...c}),mode:'no-cors'})
-      .then(()=>showToast(LANG==='JP'?'Google スプレッドシートに保存しました ✓':'Google 스프레드시트에 저장됨 ✓','s'))
-      .catch(()=>showToast(LANG==='JP'?'ローカルのみ保存しました':'로컬만 저장됨','w'));
+      .then(()=>{
+        showToast(LANG==='JP'?'Google スプレッドシートに保存しました ✓':'Google 스프레드시트에 저장됨 ✓','s');
+        gasAppendLog(isNewPayroll ? '급여추가' : '급여수정', logTarget, '성공', '');
+      })
+      .catch(()=>{
+        showToast(LANG==='JP'?'ローカルのみ保存しました':'로컬만 저장됨','w');
+        gasAppendLog(isNewPayroll ? '급여추가' : '급여수정', logTarget, '실패', 'GAS 전송 오류');
+      });
   } else {
     showToast(LANG==='JP'?`${emp.name} ${currentMonth}月分を保存しました ✓`:`${emp.name} ${currentMonth}월분 저장됨 ✓`,'s');
+    gasAppendLog(isNewPayroll ? '급여추가' : '급여수정', logTarget, '성공', '로컬만 저장');
   }
 }
 

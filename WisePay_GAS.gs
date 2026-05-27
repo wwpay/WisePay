@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-26 16:45 — 일회성 마이그레이션·임포트 함수 및 하드코딩 급여 데이터 제거
+// 수정: 2026-05-27 23:30 — appendLog 형식 변경 (target/result/memo), 3개월 보존, clearSyncLog 추가
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -52,6 +52,11 @@ function doPost(e) {
     }
     if (data.type === 'appendLog') {
       appendLog(data);
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'clearSyncLog') {
+      const sheet = getSheet(SHEET_LOG);
+      sheet.clearContents();
       return jsonResponse({ ok: true });
     }
     if (data.type === 'payroll') {
@@ -155,19 +160,45 @@ function saveSheet(name, records) {
 }
 
 function appendLog(data) {
-  const MAX_ROWS = 500;
-  const headers = ['timestamp', 'logType', 'empCount', 'payrollCount', 'result', 'memo'];
+  const NEW_HEADERS = ['timestamp', 'logType', 'target', 'result', 'memo'];
   const sheet = getSheet(SHEET_LOG);
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  const lastRow = sheet.getLastRow();
+
+  // 구버전 헤더(empCount/payrollCount 형식) 또는 빈 시트이면 초기화
+  if (lastRow === 0) {
+    sheet.getRange(1, 1, 1, NEW_HEADERS.length).setValues([NEW_HEADERS]);
+  } else {
+    const curHeader = sheet.getRange(1, 1, 1, 6).getValues()[0];
+    const isOldFormat = curHeader[2] === 'empCount' || curHeader[2] === 'payrollCount';
+    if (isOldFormat) {
+      sheet.clearContents();
+      sheet.getRange(1, 1, 1, NEW_HEADERS.length).setValues([NEW_HEADERS]);
+    }
   }
+
+  // 새 로그 행을 헤더 바로 아래(2행)에 삽입 — 최신순 정렬
   const ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
-  const row = [ts, data.logType || '', data.empCount || 0, data.payrollCount || 0, data.result || '', data.memo || ''];
+  const row = [ts, data.logType || '', data.target || '', data.result || '', data.memo || ''];
   sheet.insertRowAfter(1);
   sheet.getRange(2, 1, 1, row.length).setValues([row]);
-  const total = sheet.getLastRow() - 1;
-  if (total > MAX_ROWS) {
-    sheet.deleteRows(MAX_ROWS + 2, total - MAX_ROWS);
+
+  // 3개월 이상 된 로그 자동 삭제 (행은 최신→구 순서)
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 3);
+  const total = sheet.getLastRow();
+  if (total > 1) {
+    const tsVals = sheet.getRange(2, 1, total - 1, 1).getValues();
+    let deleteFrom = -1;
+    for (let i = tsVals.length - 1; i >= 0; i--) {
+      if (new Date(tsVals[i][0]) < cutoff) {
+        deleteFrom = i + 2; // 1-based 인덱스 + 헤더 1행
+      } else {
+        break;
+      }
+    }
+    if (deleteFrom > 0) {
+      sheet.deleteRows(deleteFrom, total - deleteFrom + 1);
+    }
   }
 }
 

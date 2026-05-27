@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 23:10 — validateEmpNo const jp 중복 선언 수정 (SyntaxError 버그)
+﻿// 수정: 2026-05-27 23:30 — 사원 추가/수정/삭제 시 gasAppendLog 로그 기록 추가
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -755,7 +755,8 @@ function saveEmployee() {
     families: [...tempFamilies],
   };
 
-  if(editingEmpIdx===-1) {
+  const isNewEmp = editingEmpIdx === -1;
+  if(isNewEmp) {
     employees.push(empData);
     editingEmpIdx = employees.length - 1;
   } else {
@@ -781,6 +782,7 @@ function saveEmployee() {
   if(gasUrl) {
     fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'employees',employees}),mode:'no-cors'}).catch(()=>{});
   }
+  gasAppendLog(isNewEmp ? '사원추가' : '사원수정', `${name} (${no})`, '성공', '');
 
   empFormDirty = false;
   renderEmpSelect();
@@ -808,6 +810,7 @@ function deleteEmp(i) {
   }
   employees.splice(i, 1);
   localStorage.setItem(LS.emp, JSON.stringify(employees));
+  gasAppendLog('사원삭제', `${emp.name} (${deletedNo})`, '성공', '');
   if(currentEmpIdx === i) {
     currentEmpIdx = -1;
     loadPayrollForm();

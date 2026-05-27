@@ -1,5 +1,15 @@
-// 수정: 2026-05-27 14:55 — openGasModal에 renderBackupFolderStatus() 호출 추가
+// 수정: 2026-05-27 23:30 — gasAppendLog 헬퍼 추가, 로그 형식 변경, exportAllToGas 로그 추가
 'use strict';
+
+// ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
+function gasAppendLog(logType, target, result, memo) {
+  if (!gasUrl) return;
+  fetch(gasUrl, {
+    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ type: 'appendLog', logType, target: target || '', result: result || '성공', memo: memo || '' })
+  }).catch(() => {});
+}
+
 async function exportAllToGas() {
   if (!gasUrl) {
     showToast(LANG === 'JP' ? '先にURLを設定してください' : '먼저 URL을 설정해 주세요', 'w');
@@ -70,6 +80,7 @@ async function exportAllToGas() {
     }
 
     showToast(LANG === 'JP' ? 'Google保存確認完了 ✓' : 'Google 저장 확인 완료 ✓', 's');
+    gasAppendLog('수동업로드', '전체', '성공', `사원 ${empCount}명 / 급여 ${payrollCount}건`);
   } catch (err) {
     if (statusEl) {
       statusEl.innerHTML =
@@ -77,8 +88,8 @@ async function exportAllToGas() {
         err.message +
         '</span>';
     }
-
     showToast(LANG === 'JP' ? 'アップロード失敗' : '업로드 실패', 'e');
+    gasAppendLog('수동업로드', '전체', '실패', err.message);
     console.error('exportAllToGas error:', err);
   }
 }
@@ -290,13 +301,10 @@ async function importAllFromGas() {
     applyRatesForYM(currentYear,currentMonth); updateRatesDisplay(); renderRatesPage();
     buildHistEmpSel(); renderHistory(); buildAnnualEmpSel(); renderAnnual(); checkRateBanner();
     showToast(jp?'ダウンロード完了 ✓':'가져오기 완료 ✓','s');
-    // 동기화 로그 기록 (fire-and-forget)
-    fetch(gasUrl, {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'appendLog', logType: '수동동기화', empCount: (d.employees || []).length, payrollCount: (d.payrolls || []).length, result: '성공', memo: '' })
-    }).catch(() => {});
+    gasAppendLog('수동다운로드', '전체', '성공', `사원 ${(d.employees||[]).length}명 / 급여 ${(d.payrolls||[]).length}건`);
   } catch(err){
     if(statusEl) statusEl.innerHTML='<span style="color:var(--red)">❌ '+err.message+'</span>';
+    gasAppendLog('수동다운로드', '전체', '실패', err.message);
     console.error('importAllFromGas error:', err);
   }
 }
@@ -395,12 +403,9 @@ async function autoLoadFromGas() {
     buildHistEmpSel();
     renderHistory();
     updateGasStatus();
-    // 동기화 로그 기록 (fire-and-forget)
-    fetch(gasUrl, {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'appendLog', logType: '자동동기화', empCount: (d.employees || []).length, payrollCount: (d.payrolls || []).length, result: '성공', memo: '' })
-    }).catch(() => {});
+    gasAppendLog('자동동기화', '전체', '성공', `사원 ${(d.employees||[]).length}명 / 급여 ${(d.payrolls||[]).length}건`);
   } catch (err) {
+    gasAppendLog('자동동기화', '전체', '실패', err.message);
     console.warn('GAS auto-load failed:', err);
   }
 }
