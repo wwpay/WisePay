@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 23:45 — 생년월일 옆 나이 자동 표시 추가
+﻿// 수정: 2026-05-27 23:50 — 나이 표시 폰트를 form-input 스타일로 통일
 'use strict';
 function renderEmpList() {
   const body=document.getElementById('empListBody');
@@ -175,7 +175,7 @@ function renderEmpFormFields(emp) {
           <label class="form-label">${jp?'年齢':'나이'}</label>
         </div>
       </div>
-      <div id="f-age-display" style="display:flex;align-items:center;height:38px;padding:0 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;color:var(--text2);">${calcAgeStr(normalizeDate(v('birth')), jp)}</div>
+      <div id="f-age-display" style="padding:7px 9px;border:1px solid var(--border);border-radius:var(--r2);font-size:12.5px;font-family:inherit;color:var(--text);background:var(--surface);">${calcAgeStr(normalizeDate(v('birth')), jp)}</div>
     </div>
     <div class="form-group">
       <div class="form-label-block">
