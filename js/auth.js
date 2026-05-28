@@ -1,4 +1,4 @@
-// 수정: 2026-05-28 21:45 — 접근 불가 팝업 엔터키 닫기: showAccessDenied에서 버튼 포커스 설정
+// 수정: 2026-05-28 22:12 — 로그인 오류 메시지 줄바꿈 처리 (/ 구분자 제거)
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -119,7 +119,7 @@ async function doLogin() {
       renderNavForRole();
       initApp();
     } else {
-      err.textContent = 'IDまたはパスワードが違います / ID 또는 비밀번호가 틀렸습니다';
+      err.innerHTML = 'IDまたはパスワードが違います<br>ID 또는 비밀번호가 틀렸습니다';
       document.getElementById('login-pw').value = '';
       document.getElementById('login-pw').focus();
     }
