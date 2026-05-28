@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-28 22:39 — 글자 크기 조절 기능 추가 (A-/A+ 버튼, 4단계)
+  수정: 2026-05-28 22:54 — viewer 모드 GAS 직접 fetch, 저장 상태 표시 수정
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -360,7 +360,27 @@ function recalc()              {}
 function addNotification()     {}
 function updateGasStatus()     {}
 function gasAppendLog()        {}
-function gasRequest()          { return Promise.resolve({}); }
+function gasRequest(params, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const url = (typeof gasUrl !== 'undefined' && gasUrl) ? gasUrl : '';
+    if (!url) { reject(new Error('GAS URL 미설정')); return; }
+    const cbName = 'wisepay_cb_' + Date.now();
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      delete window[cbName]; script.remove();
+      reject(new Error('GAS 응답 시간 초과'));
+    }, timeoutMs);
+    window[cbName] = (res) => {
+      clearTimeout(timer); delete window[cbName]; script.remove();
+      resolve(res);
+    };
+    const qs = Object.entries({...params, callback: cbName})
+      .map(([k,v]) => `${k}=${encodeURIComponent(typeof v==='object'?JSON.stringify(v):v)}`)
+      .join('&');
+    script.src = `${url}?${qs}`;
+    document.head.appendChild(script);
+  });
+}
 function autoLoadFromGas()     {}
 function checkBackupReminder() {}
 function renderBackupFolderStatus() {}
@@ -381,6 +401,50 @@ function openGasModal()        {}
 function saveRateHistory()     {}
 function uploadRateHistoryToGas() {}
 function migratePayrollKeys()  {}
+
+/* ── viewer 모드 GAS 데이터 ── */
+let mViewerPayrolls = null; // null=admin모드, 배열=viewer모드(GAS 데이터)
+
+async function mLoadViewerData() {
+  const jp = LANG === 'JP';
+  const out = document.getElementById('m-payroll-out');
+  if (out) out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">⏳</div>${jp?'データを読み込んでいます…':'데이터 로드 중…'}</div>`;
+  try {
+    const result = await gasRequest({ action: 'getAll' });
+    const d = result.data || result;
+    if (d.employees && d.employees.length > 0) {
+      employees = d.employees.map(e => ({
+        ...e,
+        join: normalizeDate(e.join || ''),
+        birth: normalizeDate(e.birth || ''),
+        families: typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
+        fuyouCount: parseInt(e.fuyouCount) || 0,
+        commute: parseInt(e.commute) || 0,
+        shaho_start: normalizeYM(e.shaho_start || '')
+      }));
+    }
+    mViewerPayrolls = d.payrolls || [];
+    if (d.rateHistory && d.rateHistory.length > 0) {
+      rateHistory = d.rateHistory.map(r => ({
+        from: normalizeYM(r.from),
+        kenko: parseFloat(r.kenko) || 9.85,
+        kaigo: parseFloat(r.kaigo) || 1.62,
+        kodomo: parseFloat(r.kodomo) || 0,
+        nenkin: parseFloat(r.nenkin) || 18.30,
+        koyo: parseFloat(r.koyo) || 0.50
+      }));
+    }
+    mRenderEmpSels();
+    mRenderPayroll();
+    mRenderAnnual();
+    mRenderEmpList();
+  } catch(err) {
+    mViewerPayrolls = [];
+    showToast(jp ? 'データの読み込みに失敗しました' : 'GAS 데이터 로드 실패', 'e');
+    if (out) out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">❌</div>${jp?'データ取得失敗':'데이터 로드 실패'}</div>`;
+    console.error('mLoadViewerData error:', err);
+  }
+}
 
 /* ── 글자 크기 조절 ── */
 const FS_LEVELS = ['small','medium','large','xlarge'];
@@ -475,8 +539,17 @@ function mInitApp() {
   initFontSize();
   if (typeof applyViewerRestrictions === 'function') applyViewerRestrictions();
   mApplyLang();
-  mRenderEmpSels();
   mRenderMonthSel();
+
+  // viewer: localStorage 무시, GAS에서 직접 로드
+  if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'viewer') {
+    mViewerPayrolls = [];
+    mRenderEmpSels();
+    mLoadViewerData();
+    return;
+  }
+
+  mRenderEmpSels();
   mRenderPayroll();
   mRenderAnnual();
   mRenderEmpList();
@@ -585,23 +658,35 @@ function mRenderMonthSel() {
 function mCalc(emp, year, month) {
   if (!emp) return null;
   const pNo = String(emp.no).padStart(4,'0');
-  const raw = localStorage.getItem(`kyuyo_p_${pNo}_${year}_${month}`);
-  if (!raw) return null;
 
-  let d; try { d = JSON.parse(raw); } catch(e) { return null; }
+  let d;
+  if (mViewerPayrolls !== null) {
+    // viewer 모드: GAS 데이터에서 검색
+    const p = mViewerPayrolls.find(p =>
+      String(p.no) === String(emp.no) &&
+      Number(p.year) === year && Number(p.month) === month
+    );
+    if (!p) return null;
+    d = p;
+  } else {
+    // admin 모드: localStorage
+    const raw = localStorage.getItem(`kyuyo_p_${pNo}_${year}_${month}`);
+    if (!raw) return null;
+    try { d = JSON.parse(raw); } catch(e) { return null; }
+  }
 
   const pv = f => parseInt(String(d[f] !== undefined ? d[f] : 0).replace(/,/g,'')) || 0;
   const hasPF = PFIELDS.some(f => pv(f) !== 0);
   const isGas = !!(d.totalPay || d.kenko || d.net);
 
-  /* GAS 요약 포맷 (PFIELD 없이 totalPay/net만 존재) */
+  /* GAS 집계 포맷 (PFIELD 없이 totalPay/net만 존재) — PC와 동일하게 approx 처리 */
   if (!hasPF && isGas) {
     const tp  = parseInt(String(d.totalPay || 0).replace(/,/g,'')) || 0;
     const net = parseInt(String(d._net || d.net || 0).replace(/,/g,'')) || 0;
     const kj  = parseInt(String(d.totalKojo || 0).replace(/,/g,'')) || 0;
     if (tp === 0 && net === 0) return null;
     return {
-      status:'gas', totalPay:tp, totalKojo:kj || tp - net, net,
+      status:'approx', totalPay:tp, totalKojo:kj || tp - net, net,
       kenko:pv('kenko'), kaigo:0, kodomo:0, nenkin:pv('nenkin'),
       koyo:pv('koyo'), shotoku:pv('shotoku'), jumin:0, nencho:0,
       base:tp, ot:0, kintai:0, commute:0, commutetax:0, kinmu:0, shokumu:0, field:0,
@@ -672,10 +757,11 @@ function mRenderPayroll() {
   }
 
   const statusMap = {
-    saved: ['m-status-saved', jp?'✅ 保存済み':'✅ 저장됨'],
-    gas:   ['m-status-gas',   jp?'📡 GASデータ':'📡 GAS 데이터'],
+    saved:  ['m-status-saved',  jp?'✅ 保存済み':'✅ 저장됨'],
+    approx: ['m-status-approx', jp?'📋 仮データ（未保存）':'📋 임시 데이터 (미저장)'],
   };
   const [sCls, sTxt] = statusMap[calc.status] || ['m-status-empty', ''];
+  const statusBadge = mViewerPayrolls !== null ? '' : `<span class="m-status ${sCls}">${sTxt}</span>`;
 
   /* 지급 항목 */
   const payRows = [
@@ -708,7 +794,7 @@ function mRenderPayroll() {
   ).join('');
 
   out.innerHTML = `
-    <span class="m-status ${sCls}">${sTxt}</span>
+    ${statusBadge}
     <div class="m-net-card">
       <div class="m-net-label">${jp?'差引総支給額（手取り）':'차인지급액'}</div>
       <div class="m-net-amount">¥${f(calc.net)}</div>
