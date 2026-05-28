@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-28 17:23 — auth.js: 로그인 전면 개편(GAS users 시트, SHA-256, 세션 관리, 권한 제어)
+  수정: 2026-05-28 17:23 — 로그인 비밀번호 placeholder 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,7 @@
     </div>
     <div style="margin-bottom:6px;">
       <div style="font-size:11px;color:#64748b;margin-bottom:5px;font-weight:500;">パスワード / 비밀번호</div>
-      <input type="password" id="login-pw" placeholder="••••" autocomplete="current-password"
+      <input type="password" id="login-pw" autocomplete="current-password"
         onkeydown="loginOnEnter(event)"
         style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:#1e293b;box-sizing:border-box;outline:none;transition:border-color .15s;"
         onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#e2e8f0'">
