@@ -344,7 +344,7 @@ function _confirmRestoreEmp() {
   try { renderEmpList(); } catch(e) {}
   try { renderEmpSelect(); } catch(e) {}
   try { buildHistEmpSel(); renderHistory(); } catch(e) {}
-  try { buildAnnualEmpSel(); renderAnnual(); } catch(e) {}
+  try { buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); } catch(e) {}
 }
 
 /* ── 급여 복원 ── */

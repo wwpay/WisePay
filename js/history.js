@@ -1,11 +1,25 @@
-// 수정: 2026-05-27 22:55 — 재직자만: 퇴사일이 오늘 이전인 사원 제외
+// 수정: 2026-05-28 12:45 — 년도 선택↔사원 선택 위치 교환, 연도 드롭다운 실제 데이터 기반 동적 생성
 'use strict';
+function getAvailableAnnualYears() {
+  const years = new Set();
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    const m = key.match(/^kyuyo_p_\d{4}_(\d{4})_(\d{1,2})$/);
+    if (!m) continue;
+    const y = parseInt(m[1]);
+    const mo = parseInt(m[2]);
+    years.add(mo === 12 ? y + 1 : y);
+  }
+  return Array.from(years).sort((a, b) => b - a);
+}
+
 function buildAnnualYearSel() {
   const sel = document.getElementById('annualYearSel');
   if(!sel) return;
   const jp = LANG === 'JP';
   const prev = sel.value;
-  const years = [2026, 2025, 2024];
+  const years = getAvailableAnnualYears();
   sel.innerHTML = '';
   years.forEach(y => {
     const o = document.createElement('option');
@@ -14,6 +28,7 @@ function buildAnnualYearSel() {
     sel.appendChild(o);
   });
   if(years.map(String).includes(prev)) sel.value = prev;
+  else if(years.length) sel.value = String(years[0]);
 }
 
 // 체크리스트 빌드 — 이전 선택 유지 (첫 빌드 시 첫 번째 활성 사원 선택)

@@ -299,7 +299,7 @@ async function importAllFromGas() {
     if(statusEl) statusEl.innerHTML='<span style="color:var(--green)">'+msg+'</span>';
     renderEmpSelect(); renderEmpList(); loadPayrollForm();
     applyRatesForYM(currentYear,currentMonth); updateRatesDisplay(); renderRatesPage();
-    buildHistEmpSel(); renderHistory(); buildAnnualEmpSel(); renderAnnual(); checkRateBanner();
+    buildHistEmpSel(); renderHistory(); buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); checkRateBanner();
     showToast(jp?'ダウンロード完了 ✓':'가져오기 완료 ✓','s');
     gasAppendLog('수동다운로드', '전체', '성공', `사원 ${(d.employees||[]).length}명 / 급여 ${(d.payrolls||[]).length}건`);
   } catch(err){
@@ -398,6 +398,7 @@ async function autoLoadFromGas() {
     renderEmpSelect();
     loadPayrollForm();
     applyRatesForYM(currentYear, currentMonth);
+    buildAnnualYearSel();
     buildAnnualEmpSel();
     renderAnnual();
     buildHistEmpSel();

@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-27 23:50 — employees.js: 나이 표시 폰트 form-input 통일
+  수정: 2026-05-28 12:45 — index.html·history.js·gas.js·backup.js: 임금대장 사원↔년도 위치 교환, 연도 드롭다운 실데이터 기반 동적 생성
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -235,9 +235,6 @@
 <div class="page" id="page-annual">
   <div class="no-print" style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <select id="annualYearSel" onchange="renderAnnual()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);">
-        <option value="2026">2026年度</option><option value="2025">2025年度</option><option value="2024">2024年度</option>
-      </select>
       <!-- 인라인 드롭다운 사원 선택 -->
       <div style="position:relative;" id="annualEmpDropWrap">
         <button class="btn" id="annualEmpDropBtn" onclick="toggleAnnualEmpDrop(event)" style="display:flex;align-items:center;gap:5px;">
@@ -261,6 +258,7 @@
           </div>
         </div>
       </div>
+      <select id="annualYearSel" onchange="renderAnnual()" style="border:1px solid var(--border);border-radius:var(--r2);padding:5px 7px;font-size:12.5px;font-family:inherit;background:var(--surface);color:var(--text);"></select>
     </div>
   </div>
   <!-- 미선택 플레이스홀더 -->
