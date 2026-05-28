@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-28 17:23 — users 시트, verifyLogin, getUsers, updatePassword 구현
+// 수정: 2026-05-28 17:23 — verifyWriteToken 추가, 모든 write 핸들러에 토큰 검증 적용
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -41,12 +41,14 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     if (data.type === 'exportAll') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
       if (data.employees)   saveSheet(SHEET_EMP,  data.employees);
       if (data.payrolls)    saveSheet(SHEET_PAY,  data.payrolls);
       if (data.rateHistory) saveSheet(SHEET_RATE, data.rateHistory);
       return jsonResponse({ ok: true });
     }
     if (data.type === 'employees') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
       if (data.employees && data.employees.length > 0) {
         saveSheet(SHEET_EMP, data.employees);
       }
@@ -62,6 +64,7 @@ function doPost(e) {
       return jsonResponse({ ok: true });
     }
     if (data.type === 'payroll') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
       const { type: _t, ...payrollData } = data;
       const existing = sheetToObjects(getSheet(SHEET_PAY));
       const payMap = {};
@@ -79,6 +82,7 @@ function doPost(e) {
       return jsonResponse({ ok: true });
     }
     if (data.type === 'importPayrolls') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
       const incoming = data.payrolls || [];
       if (incoming.length) {
         const existing = sheetToObjects(getSheet(SHEET_PAY));
@@ -256,6 +260,22 @@ function appendLog(data) {
       sheet.deleteRows(deleteFrom, total - deleteFrom + 1);
     }
   }
+}
+
+function verifyWriteToken(data) {
+  var uid   = String(data._uid   || '').trim();
+  var token = String(data._token || '').toLowerCase().trim();
+  if (!uid || !token) return false;
+  var rows = sheetToObjects(getSheet(SHEET_USERS));
+  for (var i = 0; i < rows.length; i++) {
+    var u = rows[i];
+    if (String(u['ID']   || '').trim()             === uid   &&
+        String(u['PW_HASH'] || '').toLowerCase().trim() === token &&
+        String(u['권한'] || '').trim()             === 'admin') {
+      return true;
+    }
+  }
+  return false;
 }
 
 function getUsers() {

@@ -54,7 +54,8 @@ async function exportAllToGas() {
         type: 'exportAll',
         employees: employees,
         payrolls: payrolls,
-        rateHistory: rateHistory
+        rateHistory: rateHistory,
+        ...(typeof gasWriteAuth === 'function' ? gasWriteAuth() : {})
       })
     });
 
@@ -420,7 +421,7 @@ async function uploadRateHistoryToGas() {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type: 'exportAll', rateHistory: rateHistory })
+      body: JSON.stringify({ type: 'exportAll', rateHistory: rateHistory, ...(typeof gasWriteAuth === 'function' ? gasWriteAuth() : {}) })
     });
   } catch(err) {
     console.warn('uploadRateHistoryToGas error:', err);

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 23:30 — 급여 추가/수정/삭제 시 gasAppendLog 로그 기록 추가
+﻿// 수정: 2026-05-28 17:23 — viewer 쓰기 차단: saveCurrent/deleteCurrentMonth 권한 체크 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -409,6 +409,10 @@ function recalc() {
 
 // ══ DELETE MONTH ══
 function deleteCurrentMonth() {
+  if (typeof isWriteAuthorized === 'function' && !isWriteAuthorized()) {
+    showToast(LANG === 'JP' ? '閲覧専用のため操作できません' : '열람 전용 계정입니다', 'w');
+    return;
+  }
   if(!employees.length) return;
   const emp = employees[currentEmpIdx];
   const jp = LANG === 'JP';
@@ -428,6 +432,10 @@ function deleteCurrentMonth() {
 
 // ══ SAVE PAYROLL ══
 function saveCurrent() {
+  if (typeof isWriteAuthorized === 'function' && !isWriteAuthorized()) {
+    showToast(LANG === 'JP' ? '閲覧専用のため保存できません' : '열람 전용 계정입니다', 'w');
+    return;
+  }
   if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'사원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
   const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
@@ -449,7 +457,7 @@ function saveCurrent() {
       const el=document.getElementById(f);
       pdata[f]=el?(parseInt((el.value||'0').replace(/,/g,''))||0):0;
     });
-    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...pdata,...c}),mode:'no-cors'})
+    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'payroll',year:currentYear,month:currentMonth,no:emp.no,name:emp.name,...pdata,...c,...(typeof gasWriteAuth==='function'?gasWriteAuth():{})}),mode:'no-cors'})
       .then(()=>{
         showToast(LANG==='JP'?'Google スプレッドシートに保存しました ✓':'Google 스프레드시트에 저장됨 ✓','s');
         gasAppendLog(isNewPayroll ? '급여추가' : '급여수정', logTarget, '성공', '');

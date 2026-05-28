@@ -1,10 +1,11 @@
-// 수정: 2026-05-28 17:23 — 로그인 버튼 로딩 문구 개선(ログイン中… / 로그인 중…)
+// 수정: 2026-05-28 17:23 — viewer 권한 쓰기 차단: write token, applyViewerRestrictions 추가
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
 const AUTH_ID_KEY   = 'wisepay_saved_id';
 
-let currentUser = null; // { id, name, role, sessionType }
+let currentUser  = null; // { id, name, role, sessionType }
+let _writeToken  = null; // admin 로그인 시만 설정, viewer는 null
 
 const VIEWER_PAGES = new Set(['payroll', 'annual']);
 
@@ -29,13 +30,14 @@ function _getStoredSession() {
   return null;
 }
 
-function _storeSession(user) {
+function _storeSession(user, wt) {
+  const data = wt ? { ...user, _wt: wt } : { ...user };
   if (user.sessionType === 'persistent') {
     const midnight = new Date();
     midnight.setHours(23, 59, 59, 999);
-    localStorage.setItem(AUTH_SESS_KEY, JSON.stringify({ ...user, expires: midnight.getTime() }));
+    localStorage.setItem(AUTH_SESS_KEY, JSON.stringify({ ...data, expires: midnight.getTime() }));
   } else {
-    sessionStorage.setItem(AUTH_SESS_KEY, JSON.stringify(user));
+    sessionStorage.setItem(AUTH_SESS_KEY, JSON.stringify(data));
   }
 }
 
@@ -43,12 +45,14 @@ function _clearSession() {
   localStorage.removeItem(AUTH_SESS_KEY);
   sessionStorage.removeItem(AUTH_SESS_KEY);
   currentUser = null;
+  _writeToken = null;
 }
 
 function checkAuth() {
   const sess = _getStoredSession();
   if (sess) {
     currentUser = sess;
+    _writeToken = sess._wt || null;
     LANG = sess.role === 'admin' ? 'KR' : 'JP';
     applyLang();
     document.getElementById('login-overlay').style.display = 'none';
@@ -103,8 +107,10 @@ async function doLogin() {
       if (saveId) localStorage.setItem(AUTH_ID_KEY, id);
       else        localStorage.removeItem(AUTH_ID_KEY);
 
-      _storeSession(result.user);
+      const wt = result.user.role === 'admin' ? hash : null;
+      _storeSession(result.user, wt);
       currentUser = result.user;
+      _writeToken = wt;
       LANG = result.user.role === 'admin' ? 'KR' : 'JP';
       applyLang();
 
@@ -135,6 +141,17 @@ function doLogout() {
   location.reload();
 }
 
+// ── 권한 제어 ──
+
+function isWriteAuthorized() {
+  return !!(currentUser && currentUser.role === 'admin');
+}
+
+function gasWriteAuth() {
+  if (!currentUser || !_writeToken) return {};
+  return { _uid: currentUser.id, _token: _writeToken };
+}
+
 function canAccessPage(pageId) {
   if (!currentUser) return false;
   if (currentUser.role === 'admin') return true;
@@ -160,4 +177,48 @@ function renderNavForRole() {
     lock.textContent = '🔒';
     item.appendChild(lock);
   });
+}
+
+function applyViewerRestrictions() {
+  if (!currentUser || currentUser.role === 'admin') return;
+
+  // 저장·삭제 버튼 숨김
+  const saveBtn = document.getElementById('btn-save');
+  const delBtn  = document.getElementById('btn-del-month');
+  if (saveBtn) saveBtn.style.display = 'none';
+  if (delBtn)  delBtn.style.display  = 'none';
+
+  // 급여 입력 필드 읽기 전용
+  document.querySelectorAll('#page-payroll .row-input').forEach(inp => {
+    inp.readOnly = true;
+    inp.style.background  = 'var(--surface2)';
+    inp.style.cursor      = 'default';
+    inp.style.borderColor = 'transparent';
+  });
+
+  // 상단바에 열람 전용 배지 표시
+  const topbarL = document.querySelector('.topbar-l');
+  if (topbarL && !topbarL.querySelector('.viewer-badge')) {
+    const badge = document.createElement('span');
+    badge.className = 'viewer-badge';
+    badge.textContent = LANG === 'JP' ? '閲覧専用' : '열람 전용';
+    badge.style.cssText = 'font-size:11px;color:#fff;background:#64748b;border-radius:4px;padding:2px 8px;margin-left:8px;font-weight:600;';
+    topbarL.appendChild(badge);
+  }
+
+  // 쓰기 함수 일괄 no-op 오버라이드
+  const blocked = () => {
+    showToast(LANG === 'JP' ? '閲覧専用のため操作できません' : '열람 전용 계정입니다', 'w');
+  };
+  window.saveCurrent           = blocked;
+  window.deleteCurrentMonth    = blocked;
+  window.resetLocalData        = blocked;
+  window.exportAllToGas        = blocked;
+  window.importAllFromGas      = blocked;
+  window.importFreeePayrollCSV = blocked;
+  window.saveEmpForm           = blocked;
+  window.deleteEmp             = blocked;
+  window.applyRates            = blocked;
+  window.saveRateHistory       = blocked;
+  window.downloadBackupExcel   = blocked;
 }

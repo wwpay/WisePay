@@ -1,4 +1,4 @@
-// 수정: 2026-05-28 17:23 — gotoPage 권한 체크 추가, resetLocalData keepKeys 갱신
+﻿// 수정: 2026-05-28 17:23 — viewer 쓰기 차단: initApp 끝에 applyViewerRestrictions 호출
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -113,6 +113,7 @@ function initApp() {
     const _nav = document.querySelector(`.nav-item[data-page="${_rp}"]`);
     setTimeout(() => gotoPage(_rp, _nav), 150);
   }
+  if (typeof applyViewerRestrictions === 'function') applyViewerRestrictions();
 }
 
 // 페이지 닫기/새로고침 시 미저장 경고
