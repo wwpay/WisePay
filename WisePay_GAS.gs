@@ -1,5 +1,5 @@
 // WisePay GAS Script
-// 수정: 2026-05-28 17:23 — users 시트 추가, verifyLogin 핸들러 구현
+// 수정: 2026-05-28 17:23 — users 시트, verifyLogin, getUsers, updatePassword 구현
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
@@ -26,6 +26,7 @@ function doGet(e) {
     if      (action === 'test')                                         result = { ok: true };
     else if (action === 'getAll')                                       result = getAllData();
     else if (action === 'scrapeRates' || action === 'scrapeKenpoRates') result = scrapeKenpoRates();
+    else if (action === 'getUsers')                                       result = getUsers();
     else result = { ok: false, error: 'Unknown action: ' + action };
   } catch(err) {
     result = { ok: false, error: err.message };
@@ -99,6 +100,31 @@ function doPost(e) {
         saveSheet(SHEET_PAY, merged);
       }
       return jsonResponse({ ok: true, count: incoming.length });
+    }
+    if (data.type === 'updatePassword') {
+      var upId      = String(data.id        || '').trim();
+      var newHash   = String(data.hash      || '').toLowerCase().trim();
+      var verifyHash = data.verifyHash ? String(data.verifyHash).toLowerCase().trim() : null;
+      if (!upId || !newHash) return jsonResponse({ ok: false, error: 'Missing parameters' });
+      var usersSheet2 = getSheet(SHEET_USERS);
+      var allVals = usersSheet2.getDataRange().getValues();
+      if (allVals.length < 2) return jsonResponse({ ok: false, error: 'User not found' });
+      var hdrs = allVals[0];
+      var idCol   = hdrs.indexOf('ID');
+      var hashCol = hdrs.indexOf('PW_HASH');
+      if (idCol < 0 || hashCol < 0) return jsonResponse({ ok: false, error: 'Invalid sheet format' });
+      var targetRow = -1, curHash = '';
+      for (var ri = 1; ri < allVals.length; ri++) {
+        if (String(allVals[ri][idCol] || '').trim() === upId) {
+          targetRow = ri; curHash = String(allVals[ri][hashCol] || '').toLowerCase().trim(); break;
+        }
+      }
+      if (targetRow < 0) return jsonResponse({ ok: false, error: 'User not found' });
+      if (verifyHash && curHash !== verifyHash) {
+        return jsonResponse({ ok: false, error: '현재 비밀번호가 틀렸습니다 / 現在のパスワードが違います' });
+      }
+      usersSheet2.getRange(targetRow + 1, hashCol + 1).setValue(newHash);
+      return jsonResponse({ ok: true });
     }
     if (data.type === 'verifyLogin') {
       var loginId   = String(data.id   || '').trim();
@@ -230,6 +256,20 @@ function appendLog(data) {
       sheet.deleteRows(deleteFrom, total - deleteFrom + 1);
     }
   }
+}
+
+function getUsers() {
+  var sheet = getSheet(SHEET_USERS);
+  var rows  = sheetToObjects(sheet);
+  var safe  = rows.map(function(u) {
+    return {
+      id:          String(u['ID']       || '').trim(),
+      name:        String(u['이름']     || '').trim(),
+      role:        String(u['권한']     || '').trim(),
+      sessionType: String(u['세션타입'] || '').trim(),
+    };
+  }).filter(function(u) { return u.id; });
+  return { ok: true, users: safe };
 }
 
 function getAllData() {

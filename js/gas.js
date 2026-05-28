@@ -1,4 +1,4 @@
-// 수정: 2026-05-27 23:30 — gasAppendLog 헬퍼 추가, 로그 형식 변경, exportAllToGas 로그 추가
+// 수정: 2026-05-28 17:23 — openGasModal에 renderUserMgmt() 호출 추가
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -320,6 +320,7 @@ function openGasModal() {
   if (actionsEl) actionsEl.style.display = gasUrl ? '' : 'none';
   updateGasUrlBadge();
   renderBackupFolderStatus();
+  if (typeof renderUserMgmt === 'function') renderUserMgmt();
 }
 
 function updateGasUrlBadge() {
