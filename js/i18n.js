@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-27 23:20 — toggleLang: 사원 폼 열린 상태에서 언어 전환 시 폼 재렌더링
+﻿// 수정: 2026-05-29 23:19 — 데이터 동기화 관련 번역 항목 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -105,13 +105,6 @@ function applyLang() {
     '「배포」→「새 배포」→ 유형:「웹 앱」<br>액세스 권한:「전체」→ 배포 → <strong>URL 복사</strong><br><span style="color:var(--orange);font-size:11px;">✅ exec = 「배포」URL (액세스:전체 필수)&nbsp;&nbsp;🧪 dev = 「테스트 배포」URL (소유자만·권한 오류 잦음)</span>'
   );
   setTxt('t-gas-step4-title', 'WebアプリのURLを入力', '웹 앱 URL 입력');
-  setTxt('t-gas-sync-title', 'データ同期', '데이터 동기화');
-  setTxt('t-gas-drive-label', 'Googleドライブ', '구글 드라이브');
-  setTxt('t-gas-local-label', 'ローカルPC', '로컬PC');
-  setTxt('t-gas-upload-label', 'ローカルPC → Googleドライブ', '로컬PC → 구글 드라이브');
-  setTxt('t-gas-upload-desc', 'ローカルデータをGoogleドライブに上書きします', '로컬 데이터를 구글 드라이브에 덮어씁니다');
-  setTxt('t-gas-download-label', 'Googleドライブ → ローカルPC', '구글 드라이브 → 로컬PC');
-  setTxt('t-gas-download-desc', 'Googleドライブのデータをローカルに上書きします', '구글 드라이브 데이터를 로컬에 덮어씁니다');
   setTxt('t-backup-title', 'データバックアップ/復元', '데이터 백업/복원');
   setTxt('t-backup-emp-label', '従業員データ', '사원 데이터');
   setTxt('t-backup-emp-btn',   '👤 従業員データバックアップ', '👤 사원 데이터 백업');

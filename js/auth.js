@@ -215,8 +215,6 @@ function applyViewerRestrictions() {
   window.saveCurrent           = blocked;
   window.deleteCurrentMonth    = blocked;
   window.resetLocalData        = blocked;
-  window.exportAllToGas        = blocked;
-  window.importAllFromGas      = blocked;
   window.importFreeePayrollCSV = blocked;
   window.saveEmpForm           = blocked;
   window.saveEmployee          = blocked;

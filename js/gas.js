@@ -1,4 +1,4 @@
-// 수정: 2026-05-29 22:37 — gasAddDeletedEmpId/gasRemoveDeletedEmpId 추가, leave 정규화, gasDeletedEmpIds 로드
+// 수정: 2026-05-29 23:19 — 수동 동기화 함수(exportAllToGas/importAllFromGas) 제거
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -30,91 +30,6 @@ function gasRemoveDeletedEmpId(emp_no) {
     method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ type: 'removeDeletedEmpId', emp_no, ...auth })
   }).catch(() => {});
-}
-
-async function exportAllToGas() {
-  if (!gasUrl) {
-    showToast(LANG === 'JP' ? '先にURLを設定してください' : '먼저 URL을 설정해 주세요', 'w');
-    return;
-  }
-  const jp = LANG === 'JP';
-  if (!confirm(jp ? 'ローカルのデータをGoogleに上書きします。よろしいですか？' : '로컬 데이터로 Google을 덮어씁니다. 계속하시겠습니까?')) return;
-
-  const statusEl = document.getElementById('gas-sync-status');
-  if (statusEl) {
-    statusEl.innerHTML = LANG === 'JP' ? 'アップロード中... ⏳' : '업로드 중... ⏳';
-  }
-
-  const payrolls = [];
-  employees.forEach(emp => {
-    const pNo = String(emp.no).padStart(4, '0');
-    for (let y = 2024; y <= 2027; y++) {
-      for (let m = 1; m <= 12; m++) {
-        const s = localStorage.getItem('kyuyo_p_' + pNo + '_' + y + '_' + m);
-        if (s) {
-          try {
-            const d = JSON.parse(s);
-            payrolls.push({
-              no: emp.no,
-              name: emp.name,
-              year: y,
-              month: m,
-              ...d
-            });
-          } catch (e) {}
-        }
-      }
-    }
-  });
-
-  try {
-    await fetch(gasUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        type: 'exportAll',
-        employees: employees,
-        payrolls: payrolls,
-        rateHistory: rateHistory,
-        ...(typeof gasWriteAuth === 'function' ? gasWriteAuth() : {})
-      })
-    });
-
-    await new Promise(r => setTimeout(r, 3000));
-
-    const check = await gasRequest({ action: 'getAll' });
-    const saved = check.data || check;
-
-    const empCount = (saved.employees || []).length;
-    const payrollCount = (saved.payrolls || []).length;
-    const rateCount = (saved.rateHistory || []).length;
-
-    if (empCount < employees.length) {
-      throw new Error('저장 확인 실패: 사원 ' + empCount + '/' + employees.length);
-    }
-
-    const msg = LANG === 'JP'
-      ? '✅ 保存確認完了！従業員 ' + empCount + '名、給与 ' + payrollCount + '件、料率 ' + rateCount + '件'
-      : '✅ 저장 확인 완료! 사원 ' + empCount + '명, 급여 ' + payrollCount + '건, 요율 ' + rateCount + '건';
-
-    if (statusEl) {
-      statusEl.innerHTML = '<span style="color:var(--green)">' + msg + '</span>';
-    }
-
-    showToast(LANG === 'JP' ? 'Google保存確認完了 ✓' : 'Google 저장 확인 완료 ✓', 's');
-    gasAppendLog('수동업로드', '전체', '성공', `사원 ${empCount}명 / 급여 ${payrollCount}건`);
-  } catch (err) {
-    if (statusEl) {
-      statusEl.innerHTML =
-        '<span style="color:var(--red)">❌ ' +
-        err.message +
-        '</span>';
-    }
-    showToast(LANG === 'JP' ? 'アップロード失敗' : '업로드 실패', 'e');
-    gasAppendLog('수동업로드', '전체', '실패', err.message);
-    console.error('exportAllToGas error:', err);
-  }
 }
 
 function collectAllPayrolls() {
@@ -234,8 +149,6 @@ function saveGasUrl() {
   gasUrl = url;
   localStorage.setItem(LS.gas, gasUrl);
   updateGasStatus();
-  const actionsEl = document.getElementById('gas-actions');
-  if(actionsEl) actionsEl.style.display = '';
   showToast(LANG==='JP'?'Google連携URLを保存しました ✓':'Google 연동 URL 저장됨 ✓','s');
 }
 
@@ -279,62 +192,6 @@ function gasRequest(params, timeoutMs = 15000) {
     document.body.appendChild(script);
   });
 }
-async function importAllFromGas() {
-  if(!gasUrl){showToast(LANG==='JP'?'先にURLを設定してください':'먼저 URL을 설정해 주세요','w');return;}
-  const jp=LANG==='JP';
-  if(!confirm(jp?'Googleのデータでローカルを上書きします。よろしいですか？':'구글 데이터로 로컬을 덮어씁니다. 계속하시겠습니까?')) return;
-  const statusEl=document.getElementById('gas-sync-status');
-  if(statusEl) statusEl.innerHTML=jp?'ダウンロード中... ⏳':'다운로드 중... ⏳';
-  try {
-    const result = await gasRequest({ action: 'getAll' });
-    const d = result.data || result;
-    if(d.employees&&d.employees.length>0){
-      employees=d.employees.map(e=>({...e,
-        join: normalizeDate(e.join||''),
-        leave: normalizeDate(e.leave||''),
-        birth: normalizeDate(e.birth||''),
-        families:typeof e.families==='string'?JSON.parse(e.families||'[]'):(e.families||[]),
-        fuyouCount:parseInt(e.fuyouCount)||0,
-        commute:parseInt(e.commute)||0,
-        shaho_start:normalizeYM(e.shaho_start||'')
-      }));
-      localStorage.setItem(LS.emp,JSON.stringify(employees));
-      syncFuyouFromFamilies();
-    }
-    if(d.deletedEmpIds&&d.deletedEmpIds.length>0){
-      gasDeletedEmpIds = d.deletedEmpIds.map(id=>String(id).trim()).filter(Boolean);
-    }
-    if(d.payrolls&&d.payrolls.length>0){
-      d.payrolls.forEach(p=>{
-        const pNo = String(p.no).padStart(4,'0');
-        localStorage.setItem('kyuyo_p_'+pNo+'_'+p.year+'_'+p.month, JSON.stringify(p));
-      });
-    }
-    if(d.rateHistory&&d.rateHistory.length>0){
-      rateHistory=d.rateHistory.map(r=>({
-        from:normalizeYM(r.from),
-        kenko:parseFloat(r.kenko)||9.85,
-        kaigo:parseFloat(r.kaigo)||1.62,
-        kodomo:parseFloat(r.kodomo)||0,
-        nenkin:parseFloat(r.nenkin)||18.30,
-        koyo:parseFloat(r.koyo)||0.50
-      }));
-      const needsSync = migrateRateHistory();
-      if (needsSync) uploadRateHistoryToGas();
-    }
-    const msg=jp?'✅ 完了！従業員'+(d.employees||[]).length+'名、給与'+(d.payrolls||[]).length+'件':'✅ 완료! 사원 '+(d.employees||[]).length+'명, 급여 '+(d.payrolls||[]).length+'건';
-    if(statusEl) statusEl.innerHTML='<span style="color:var(--green)">'+msg+'</span>';
-    renderEmpSelect(); renderEmpList(); loadPayrollForm();
-    applyRatesForYM(currentYear,currentMonth); updateRatesDisplay(); renderRatesPage();
-    buildHistEmpSel(); renderHistory(); buildAnnualYearSel(); buildAnnualEmpSel(); renderAnnual(); checkRateBanner();
-    showToast(jp?'ダウンロード完了 ✓':'가져오기 완료 ✓','s');
-    gasAppendLog('수동다운로드', '전체', '성공', `사원 ${(d.employees||[]).length}명 / 급여 ${(d.payrolls||[]).length}건`);
-  } catch(err){
-    if(statusEl) statusEl.innerHTML='<span style="color:var(--red)">❌ '+err.message+'</span>';
-    gasAppendLog('수동다운로드', '전체', '실패', err.message);
-    console.error('importAllFromGas error:', err);
-  }
-}
 const GAS_CODE = '// WisePay GAS 코드는 별도 파일(WisePay_GAS_code.gs)을 사용해 주세요';
 
 // GAS 페이지 준비
@@ -343,8 +200,6 @@ function openGasModal() {
   if (preview) preview.textContent = GAS_CODE;
   const inp = document.getElementById('gasUrlInput');
   if (inp) inp.value = gasUrl || '';
-  const actionsEl = document.getElementById('gas-actions');
-  if (actionsEl) actionsEl.style.display = gasUrl ? '' : 'none';
   updateGasUrlBadge();
   renderBackupFolderStatus();
   if (typeof renderUserMgmt === 'function') renderUserMgmt();
