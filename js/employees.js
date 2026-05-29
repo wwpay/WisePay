@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-29 23:19 — 삭제 버튼: 급여 데이터 없을 때만 활성화, 있으면 비활성화 + 안내
+﻿// 수정: 2026-05-29 23:40 — 사원번호 입력란 폭을 다른 필드와 동일하게 수정
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -200,13 +200,13 @@ function renderEmpFormFields(emp, readOnly = false) {
 
   const html = `
   <div class="form-grid2">
-    <div class="form-group" style="grid-column:span 2;">
+    <div class="form-group">
       <div class="form-label-block">
         <div class="form-label-row">
           <label class="form-label"><span class="form-req">*</span>${jp?'社員番号（4桁）':'사원번호（4자리）'}</label>
           <span class="form-error" id="f-no-err"></span>
         </div>
-        <div class="form-label-hint">${jp?'半角数字4桁のみ / 現在使用中または過去に使用されたIDは登録不可':'반각 숫자 4자리만 / 현재 사용 중이거나 과거에 사용된 ID는 등록 불가'}</div>
+        <div class="form-label-hint">${jp?'半角数字4桁のみ':'반각 숫자 4자리만'}</div>
       </div>
       <input class="form-input" id="f-no" maxlength="4" value="${v('no')?String(v('no')).padStart(4,'0'):''}"
         oninput="validateEmpNo(this);markDirty()" onblur="padEmpNo(this)"

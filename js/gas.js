@@ -1,4 +1,4 @@
-// 수정: 2026-05-29 23:19 — 수동 동기화 함수(exportAllToGas/importAllFromGas) 제거
+// 수정: 2026-05-29 23:40 — autoLoadFromGas: 급여 데이터 전체 동기화 정리 로직 추가
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -254,18 +254,25 @@ async function autoLoadFromGas() {
     if (d.deletedEmpIds && d.deletedEmpIds.length > 0) {
       gasDeletedEmpIds = d.deletedEmpIds.map(id => String(id).trim()).filter(Boolean);
     }
-    if (d.payrolls && d.payrolls.length > 0) {
+    // 급여 데이터 전체 동기화: GAS 시트가 소스 오브 트루스
+    // d.payrolls가 배열이 아니면 GAS 미지원 버전이므로 정리 로직 건너뜀 (로컬 보호)
+    if (Array.isArray(d.payrolls)) {
+      const gasPayrollKeys = new Set(
+        d.payrolls.map(p => 'kyuyo_p_' + String(p.no).padStart(4, '0') + '_' + p.year + '_' + p.month)
+      );
+      // 로컬 급여 키 전부 수집 (삭제 전에 스냅샷)
+      const localPayrollKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('kyuyo_p_')) localPayrollKeys.push(k);
+      }
+      // GAS에 없는 로컬 키 삭제
+      localPayrollKeys.forEach(k => {
+        if (!gasPayrollKeys.has(k)) localStorage.removeItem(k);
+      });
+      // GAS 데이터로 로컬 덮어쓰기 / 없으면 추가
       d.payrolls.forEach(p => {
-        const pNo = String(p.no).padStart(4, '0');
-        const key = 'kyuyo_p_' + pNo + '_' + p.year + '_' + p.month;
-        // 로컬에 PFIELD 포맷 데이터(r-base 등 입력값)가 있으면 GAS 집계값으로 덮어쓰지 않음
-        const existing = localStorage.getItem(key);
-        if (existing) {
-          try {
-            const ex = JSON.parse(existing);
-            if (PFIELDS.some(f => f in ex && Number(String(ex[f] || '0').replace(/,/g, '')) !== 0)) return;
-          } catch(e) {}
-        }
+        const key = 'kyuyo_p_' + String(p.no).padStart(4, '0') + '_' + p.year + '_' + p.month;
         localStorage.setItem(key, JSON.stringify(p));
       });
     }
