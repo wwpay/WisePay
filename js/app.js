@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-30 01:05 — calcAgeByYear 적용, rerenderAll 추가, resetLocalData 리팩터
+﻿// 수정: 2026-05-30 01:30 — #8 rateHistory 초기값 수정, #11 migratePayrollKeys 연도 동적화
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -262,8 +262,11 @@ function resetLocalData() {
   // 상태 변수 초기화
   employees = [];
   rateHistory = [
-    { from:'2026-01', kenko:9.91, kaigo:1.59, kodomo:0.00, nenkin:18.30, koyo:0.50 },
-    { from:'2026-03', kenko:9.85, kaigo:1.62, kodomo:0.00, nenkin:18.30, koyo:0.50 },
+    { from:'2024-03', kenko:9.98, kaigo:1.60, kodomo:0.00, nenkin:18.30, koyo:0.60 },
+    { from:'2024-04', kenko:9.98, kaigo:1.60, kodomo:0.00, nenkin:18.30, koyo:0.60 },
+    { from:'2025-03', kenko:9.91, kaigo:1.59, kodomo:0.00, nenkin:18.30, koyo:0.60 },
+    { from:'2025-04', kenko:9.91, kaigo:1.59, kodomo:0.00, nenkin:18.30, koyo:0.55 },
+    { from:'2026-03', kenko:9.85, kaigo:1.62, kodomo:0.00, nenkin:18.30, koyo:0.55 },
     { from:'2026-04', kenko:9.85, kaigo:1.62, kodomo:0.23, nenkin:18.30, koyo:0.50 },
   ];
   currentEmpIdx = -1;
@@ -296,18 +299,20 @@ function migratePayrollKeys() {
     employees.forEach(emp => {
       const paddedNo = String(emp.no).padStart(4, '0');
       const numericNo = String(parseInt(paddedNo, 10)); // "0001" → "1"
-      if(paddedNo === numericNo) return; // 이미 같으면 스킵
-      for(let y = 2023; y <= 2027; y++) {
-        for(let m = 1; m <= 12; m++) {
-          const oldKey = `kyuyo_p_${numericNo}_${y}_${m}`;
-          const newKey = `kyuyo_p_${paddedNo}_${y}_${m}`;
-          const oldData = localStorage.getItem(oldKey);
-          if(oldData && !localStorage.getItem(newKey)) {
-            localStorage.setItem(newKey, oldData);
-            localStorage.removeItem(oldKey);
-          }
-        }
+      if(paddedNo === numericNo) return; // 패딩이 이미 같으면 스킵
+      const oldPrefix = `kyuyo_p_${numericNo}_`;
+      const newPrefix = `kyuyo_p_${paddedNo}_`;
+      // 하드코딩된 연도 범위 대신 실제 존재하는 키를 스캔
+      const toMigrate = [];
+      for(let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if(k && k.startsWith(oldPrefix)) toMigrate.push(k);
       }
+      toMigrate.forEach(oldKey => {
+        const newKey = newPrefix + oldKey.slice(oldPrefix.length);
+        if(!localStorage.getItem(newKey)) localStorage.setItem(newKey, localStorage.getItem(oldKey));
+        localStorage.removeItem(oldKey);
+      });
     });
   } catch(e) {}
 }

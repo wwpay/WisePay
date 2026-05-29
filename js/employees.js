@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-30 01:05 — calcAgeByYear 적용, rerenderAll 적용
+﻿// 수정: 2026-05-30 01:30 — #10 날짜 검증 timezone-safe 문자열 비교로 수정
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -625,8 +625,9 @@ function validateDateText(input, errId, required) {
     input.classList.add('error');
     return false;
   }
-  const d = new Date(y, m-1, day);
-  if(d > new Date()) {
+  const t = new Date();
+  const todayStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  if(v > todayStr) {
     errEl.textContent = jp ? '未来の日付は入力できません' : '미래 날짜는 입력할 수 없습니다';
     input.classList.add('error');
     return false;
@@ -643,7 +644,9 @@ function isValidDate(dateStr) {
   if(m<1||m>12) return false;
   const maxDay = new Date(y,m,0).getDate();
   if(day<1||day>maxDay) return false;
-  if(new Date(y,m-1,day) > new Date()) return false;
+  const t2 = new Date();
+  const todayStr2 = `${t2.getFullYear()}-${String(t2.getMonth()+1).padStart(2,'0')}-${String(t2.getDate()).padStart(2,'0')}`;
+  if(dateStr > todayStr2) return false;
   return true;
 }
 

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-30 01:05 — calcAgeByYear/calcPayrollBreakdown 추출, recalc·isKaigo 리팩터
+﻿// 수정: 2026-05-30 01:30 — #9 isKaigo 정확한 날짜 기반 나이 계산(calcAgeExact) 적용
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -315,10 +315,22 @@ function onPayrollBlur(input) {}
 function toHalfSpace(str) {
   return str.replace(/\u3000/g, ' ');
 }
-// ── 나이 계산 유틸 (연도 기반) ──────────────────────────
+// ── 나이 계산 유틸 ──────────────────────────────────────
+// 연도 기반 (부양가족 16세 판정 등 연도 단위 기준에 사용)
 function calcAgeByYear(birthStr) {
   if (!birthStr) return 0;
   return currentYear - parseInt(birthStr.substring(0, 4));
+}
+// 정확한 날짜 기반 (개호보험 40세 판정 등 월일까지 정확히 봐야 할 때 사용)
+function calcAgeExact(birthStr) {
+  if (!birthStr || !/^\d{4}-\d{2}-\d{2}$/.test(birthStr)) return 0;
+  const today = new Date();
+  const birth = new Date(birthStr);
+  if (isNaN(birth.getTime())) return 0;
+  let age = today.getFullYear() - birth.getFullYear();
+  const md = today.getMonth() - birth.getMonth();
+  if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
+  return Math.max(0, age);
 }
 
 // ── 공제 계산 공통 함수 ─────────────────────────────────
@@ -350,7 +362,7 @@ function isKaigo(emp) {
   if(emp.kaigo==='yes') return true;
   if(emp.kaigo==='no') return false;
   if(!emp.birth) return false;
-  return calcAgeByYear(emp.birth) >= 40;
+  return calcAgeExact(emp.birth) >= 40;
 }
 function recalc() {
   const emp = employees[currentEmpIdx];
