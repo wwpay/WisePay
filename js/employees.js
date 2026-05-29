@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-29 23:55 — 퇴사일 flex 래퍼 조건부 렌더링으로 입력 폭 수정
+﻿// 수정: 2026-05-30 00:02 — 부양가족 이름 입력란에 라벨 추가
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -353,6 +353,11 @@ function renderEmpFormFields(emp, readOnly = false) {
     </div>
     ${readOnly ? '' : `<div class="fam-add-row">
       <div class="form-group" style="margin:0;">
+        <div class="form-label-block" style="min-height:24px;">
+          <div class="form-label-row">
+            <label class="form-label">${jp?'氏名':'이름'}</label>
+          </div>
+        </div>
         <input class="form-input" id="fam-name" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('fam-birth').focus();}">
       </div>
       <div class="form-group" style="margin:0;">
