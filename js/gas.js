@@ -1,4 +1,4 @@
-// 수정: 2026-05-28 17:23 — openGasModal에 renderUserMgmt() 호출 추가
+// 수정: 2026-05-29 22:37 — gasAddDeletedEmpId/gasRemoveDeletedEmpId 추가, leave 정규화, gasDeletedEmpIds 로드
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -7,6 +7,28 @@ function gasAppendLog(logType, target, result, memo) {
   fetch(gasUrl, {
     method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ type: 'appendLog', logType, target: target || '', result: result || '성공', memo: memo || '' })
+  }).catch(() => {});
+}
+
+// ── deleted_emp_ids 시트 기록 (fire-and-forget) ──
+function gasAddDeletedEmpId(emp_no, leave_date) {
+  if (!gasUrl) return;
+  const auth = typeof gasWriteAuth === 'function' ? gasWriteAuth() : {};
+  if (!auth._uid) return;
+  fetch(gasUrl, {
+    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ type: 'addDeletedEmpId', emp_no, deleted_at: leave_date || '', deleted_by: auth._uid, ...auth })
+  }).catch(() => {});
+}
+
+// ── deleted_emp_ids 시트에서 제거 (재직 복귀 시 사용, fire-and-forget) ──
+function gasRemoveDeletedEmpId(emp_no) {
+  if (!gasUrl) return;
+  const auth = typeof gasWriteAuth === 'function' ? gasWriteAuth() : {};
+  if (!auth._uid) return;
+  fetch(gasUrl, {
+    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ type: 'removeDeletedEmpId', emp_no, ...auth })
   }).catch(() => {});
 }
 
@@ -269,6 +291,7 @@ async function importAllFromGas() {
     if(d.employees&&d.employees.length>0){
       employees=d.employees.map(e=>({...e,
         join: normalizeDate(e.join||''),
+        leave: normalizeDate(e.leave||''),
         birth: normalizeDate(e.birth||''),
         families:typeof e.families==='string'?JSON.parse(e.families||'[]'):(e.families||[]),
         fuyouCount:parseInt(e.fuyouCount)||0,
@@ -277,6 +300,9 @@ async function importAllFromGas() {
       }));
       localStorage.setItem(LS.emp,JSON.stringify(employees));
       syncFuyouFromFamilies();
+    }
+    if(d.deletedEmpIds&&d.deletedEmpIds.length>0){
+      gasDeletedEmpIds = d.deletedEmpIds.map(id=>String(id).trim()).filter(Boolean);
     }
     if(d.payrolls&&d.payrolls.length>0){
       d.payrolls.forEach(p=>{
@@ -360,6 +386,7 @@ async function autoLoadFromGas() {
       employees = d.employees.map(e => ({
         ...e,
         join: normalizeDate(e.join || ''),
+        leave: normalizeDate(e.leave || ''),
         birth: normalizeDate(e.birth || ''),
         families: typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
         fuyouCount: parseInt(e.fuyouCount) || 0,
@@ -368,6 +395,9 @@ async function autoLoadFromGas() {
       }));
       localStorage.setItem(LS.emp, JSON.stringify(employees));
       syncFuyouFromFamilies();
+    }
+    if (d.deletedEmpIds && d.deletedEmpIds.length > 0) {
+      gasDeletedEmpIds = d.deletedEmpIds.map(id => String(id).trim()).filter(Boolean);
     }
     if (d.payrolls && d.payrolls.length > 0) {
       d.payrolls.forEach(p => {

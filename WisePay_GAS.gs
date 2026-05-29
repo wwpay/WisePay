@@ -1,16 +1,17 @@
 // WisePay GAS Script
-// 수정: 2026-05-28 17:23 — verifyWriteToken 추가, 모든 write 핸들러에 토큰 검증 적용
+// 수정: 2026-05-29 22:37 — deleted_emp_ids 시트 추가, 퇴사 처리 및 재직 복귀 핸들러 구현
 // 이 파일 전체를 Google Apps Script(code.gs)에 붙여넣고 재배포하세요.
 // 배포 설정: 웹 앱 > 액세스 권한: 전체(Everyone)
 //
 // ⚠️ PDF 파싱 기능을 쓰려면:
 //   GAS 편집기 왼쪽 메뉴 「서비스(+)」→ Drive API v2 추가 필요
 
-const SHEET_EMP   = '사원정보';
-const SHEET_PAY   = '급여데이터';
-const SHEET_RATE  = '보험료율데이터';
-const SHEET_LOG   = 'WisePay로그';
-const SHEET_USERS = 'users';
+const SHEET_EMP     = '사원정보';
+const SHEET_PAY     = '급여데이터';
+const SHEET_RATE    = '보험료율데이터';
+const SHEET_LOG     = 'WisePay로그';
+const SHEET_USERS   = 'users';
+const SHEET_DELETED = 'deleted_emp_ids';
 
 // 협회けんぽ URL (2025년 사이트 개편 후 변경된 URL)
 const KENPO_INDEX_URL = 'https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/';
@@ -25,6 +26,7 @@ function doGet(e) {
   try {
     if      (action === 'test')                                         result = { ok: true };
     else if (action === 'getAll')                                       result = getAllData();
+    else if (action === 'getDeletedEmpIds')                             result = { ok: true, data: getDeletedEmpIdsData() };
     else if (action === 'scrapeRates' || action === 'scrapeKenpoRates') result = scrapeKenpoRates();
     else if (action === 'getUsers')                                       result = getUsers();
     else result = { ok: false, error: 'Unknown action: ' + action };
@@ -53,6 +55,44 @@ function doPost(e) {
         saveSheet(SHEET_EMP, data.employees);
       }
       return jsonResponse({ ok: true, count: (data.employees || []).length });
+    }
+    if (data.type === 'addDeletedEmpId') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var empNo = String(data.emp_no || '').trim();
+      if (!empNo) return jsonResponse({ ok: false, error: 'Missing emp_no' });
+      var deletedAt = String(data.deleted_at || '').replace(/T.*$/, '').trim();
+      var deletedBy = String(data.deleted_by || 'system').trim();
+      var delSheet = getSheet(SHEET_DELETED);
+      if (delSheet.getLastRow() === 0) {
+        delSheet.getRange(1, 1, 1, 3).setValues([['emp_no', 'deleted_at', 'deleted_by']]);
+        delSheet.appendRow([empNo, deletedAt, deletedBy]);
+      } else {
+        var delVals = delSheet.getDataRange().getValues();
+        var delHdrs = delVals[0];
+        var noCol = delHdrs.indexOf('emp_no');
+        var exists = noCol >= 0 && delVals.slice(1).some(function(r) { return String(r[noCol]).trim() === empNo; });
+        if (!exists) delSheet.appendRow([empNo, deletedAt, deletedBy]);
+      }
+      return jsonResponse({ ok: true });
+    }
+    if (data.type === 'removeDeletedEmpId') {
+      if (!verifyWriteToken(data)) return jsonResponse({ ok: false, error: 'Unauthorized' });
+      var rEmpNo = String(data.emp_no || '').trim();
+      if (!rEmpNo) return jsonResponse({ ok: false, error: 'Missing emp_no' });
+      var rSheet = getSheet(SHEET_DELETED);
+      if (rSheet.getLastRow() < 2) return jsonResponse({ ok: true });
+      var rVals = rSheet.getDataRange().getValues();
+      var rHdrs = rVals[0];
+      var rNoCol = rHdrs.indexOf('emp_no');
+      if (rNoCol >= 0) {
+        for (var ri = 1; ri < rVals.length; ri++) {
+          if (String(rVals[ri][rNoCol]).trim() === rEmpNo) {
+            rSheet.deleteRow(ri + 1);
+            break;
+          }
+        }
+      }
+      return jsonResponse({ ok: true });
     }
     if (data.type === 'appendLog') {
       appendLog(data);
@@ -187,11 +227,11 @@ function sheetToObjects(sheet) {
       } else if (key === 'shaho_start' && typeof val === 'string') {
         const ym = val.trim();
         obj[key] = /^\d{4}-\d{2}$/.test(ym) ? ym : '';
-      } else if ((key === 'join' || key === 'birth') && val instanceof Date) {
+      } else if ((key === 'join' || key === 'birth' || key === 'leave' || key === 'deleted_at') && val instanceof Date) {
         obj[key] = val.getFullYear() + '-' +
           String(val.getMonth() + 1).padStart(2, '0') + '-' +
           String(val.getDate()).padStart(2, '0');
-      } else if ((key === 'join' || key === 'birth') && typeof val === 'string') {
+      } else if ((key === 'join' || key === 'birth' || key === 'leave' || key === 'deleted_at') && typeof val === 'string') {
         obj[key] = val.replace(/T.*$/, '').trim();
       } else {
         obj[key] = val;
@@ -296,11 +336,22 @@ function getAllData() {
   return {
     ok: true,
     data: {
-      employees:   sheetToObjects(getSheet(SHEET_EMP)),
-      payrolls:    sheetToObjects(getSheet(SHEET_PAY)),
-      rateHistory: sheetToObjects(getSheet(SHEET_RATE))
+      employees:     sheetToObjects(getSheet(SHEET_EMP)),
+      payrolls:      sheetToObjects(getSheet(SHEET_PAY)),
+      rateHistory:   sheetToObjects(getSheet(SHEET_RATE)),
+      deletedEmpIds: getDeletedEmpIdsData()
     }
   };
+}
+
+function getDeletedEmpIdsData() {
+  var sheet = getSheet(SHEET_DELETED);
+  if (sheet.getLastRow() < 2) return [];
+  var vals = sheet.getDataRange().getValues();
+  var hdrs = vals[0];
+  var noCol = hdrs.indexOf('emp_no');
+  if (noCol < 0) return [];
+  return vals.slice(1).map(function(row) { return String(row[noCol]).trim(); }).filter(Boolean);
 }
 
 // ── 협회けんぽ スクレイピング ─────────────────────────────────

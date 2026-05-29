@@ -1,20 +1,69 @@
-﻿// 수정: 2026-05-27 23:50 — 나이 표시 폰트를 form-input 스타일로 통일
+﻿// 수정: 2026-05-29 22:37 — 퇴사 처리 UI 전면 개선 (뱃지·표시규칙·토글·읽기전용·재직복귀)
 'use strict';
+
+let showResigned = false; // 퇴사자 포함 토글 상태
+
+function isResigned(emp) {
+  return !!(emp && emp.leave && emp.leave.trim());
+}
+
+// 사원 목록 표시 여부 판정 (설계 규칙 적용)
+function shouldShowEmp(emp) {
+  if (!isResigned(emp)) return true;          // 재직중: 항상 표시
+  if (showResigned) return true;              // 토글 ON: 전체 퇴사자 표시
+  const leaveYear = parseInt((emp.leave || '').substring(0, 4));
+  if (isNaN(leaveYear)) return false;
+  const today = new Date();
+  const thisYear = today.getFullYear();
+  const thisMonth = today.getMonth() + 1;
+  if (leaveYear === thisYear) return true;            // 당해 연도: 뱃지 붙여서 표시
+  if (leaveYear === thisYear - 1) return thisMonth <= 3; // 전년도: 1~3월만 표시
+  return false;                                       // 2년 이상: 항상 숨김
+}
+
+function toggleShowResigned() {
+  showResigned = !showResigned;
+  renderEmpList();
+}
+
 function renderEmpList() {
-  const body=document.getElementById('empListBody');
-  const title=document.getElementById('empListTitle');
-  title.textContent=(LANG==='JP'?`従業員一覧（${employees.length}名）`:`사원 목록（${employees.length}명）`);
-  body.innerHTML='';
-  if(!employees.length) {
-    body.innerHTML=`<div class="emp-list-empty">${LANG==='JP'?'従業員が登録されていません':'등록된 사원이 없습니다'}</div>`;
+  const body = document.getElementById('empListBody');
+  const title = document.getElementById('empListTitle');
+  const jp = LANG === 'JP';
+  body.innerHTML = '';
+
+  const activeCount = employees.filter(e => !isResigned(e)).length;
+  const resignedCount = employees.filter(e => isResigned(e)).length;
+  title.textContent = jp
+    ? `従業員一覧（${activeCount}名）`
+    : `사원 목록（${activeCount}명）`;
+
+  // 퇴사자가 있을 때만 토글 바 표시
+  if (resignedCount > 0) {
+    const toggleBar = document.createElement('div');
+    toggleBar.className = 'emp-list-toggle-bar';
+    toggleBar.innerHTML = `<button class="resign-toggle-btn${showResigned ? ' active' : ''}" onclick="toggleShowResigned()">${jp ? `退職者を含む（${resignedCount}名）` : `퇴사자 포함（${resignedCount}명）`}</button>`;
+    body.appendChild(toggleBar);
+  }
+
+  const visibleEmps = employees.filter(emp => shouldShowEmp(emp));
+  if (!visibleEmps.length) {
+    const empty = document.createElement('div');
+    empty.className = 'emp-list-empty';
+    empty.textContent = jp ? '従業員が登録されていません' : '등록된 사원이 없습니다';
+    body.appendChild(empty);
     return;
   }
-  employees.forEach((emp,i)=>{
-    const item=document.createElement('div');
-    item.className='emp-list-item'+(i===editingEmpIdx?' active':'');
-    const famCnt=countFamilies(emp);
-    item.innerHTML=`<div class="emp-list-av">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${emp.name}</div><div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${LANG==='JP'?'扶養':'부양'} ${famCnt}${LANG==='JP'?'名':'명'}</div></div>`;
-    item.onclick=()=>openEmpForm(i);
+
+  employees.forEach((emp, i) => {
+    if (!shouldShowEmp(emp)) return;
+    const resigned = isResigned(emp);
+    const item = document.createElement('div');
+    item.className = 'emp-list-item' + (i === editingEmpIdx ? ' active' : '') + (resigned ? ' resigned' : '');
+    const famCnt = countFamilies(emp);
+    const badge = resigned ? `<span class="resign-badge">${jp ? '退' : '퇴'}</span>` : '';
+    item.innerHTML = `<div class="emp-list-av${resigned ? ' av-resigned' : ''}">${emp.name.charAt(0)}</div><div class="emp-list-info"><div class="emp-list-name">${badge}${emp.name}</div><div class="emp-list-no">${String(emp.no).padStart(4,'0')} · ${jp?'扶養':'부양'} ${famCnt}${jp?'名':'명'}</div></div>`;
+    item.onclick = () => openEmpForm(i);
     body.appendChild(item);
   });
 }
@@ -61,17 +110,25 @@ function openEmpForm(idx) {
   const title=document.getElementById('empFormTitle');
   const btns=document.getElementById('empFormBtns');
 
+  const jp = LANG === 'JP';
   if(idx===-1) {
     tempFamilies=[];
-    title.textContent=LANG==='JP'?'新規従業員登録':'신규 사원 등록';
-    btns.innerHTML=`<button class="btn btn-success btn-sm" onclick="saveEmployee()">${LANG==='JP'?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${LANG==='JP'?'キャンセル':'취소'}</button>`;
-    renderEmpFormFields(null);
+    title.textContent=jp?'新規従業員登録':'신규 사원 등록';
+    btns.innerHTML=`<button class="btn btn-success btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+    renderEmpFormFields(null, false);
   } else {
     const emp=employees[idx];
     tempFamilies=JSON.parse(JSON.stringify(emp.families||[]));
-    title.textContent=LANG==='JP'?`${emp.name} の編集`:`${emp.name} 편집`;
-    btns.innerHTML=`<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${LANG==='JP'?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${idx})">${LANG==='JP'?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${LANG==='JP'?'キャンセル':'취소'}</button>`;
-    renderEmpFormFields(emp);
+    const resigned = isResigned(emp);
+    if (resigned) {
+      title.textContent = jp ? `${emp.name} の閲覧（退職者）` : `${emp.name} 보기（퇴사자）`;
+      btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="reinstateEmp(${idx})">${jp?'在職に戻す':'재직 복귀'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+      renderEmpFormFields(emp, true);
+    } else {
+      title.textContent = jp ? `${emp.name} の編集` : `${emp.name} 편집`;
+      btns.innerHTML = `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${idx})">${jp?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+      renderEmpFormFields(emp, false);
+    }
   }
   renderEmpList();
   document.getElementById('empFormBtns').style.display='flex';
@@ -93,10 +150,11 @@ function cancelEmpForm() {
   renderEmpList();
 }
 
-function renderEmpFormFields(emp) {
+function renderEmpFormFields(emp, readOnly = false) {
   const isNew = !emp;
   const v = (k,def='') => emp ? (emp[k]!==undefined&&emp[k]!==''?emp[k]:def) : def;
   const jp=LANG==='JP';
+  const dis = readOnly ? ' disabled' : '';
 
   const html = `
   <div class="form-grid2">
@@ -110,7 +168,7 @@ function renderEmpFormFields(emp) {
       </div>
       <input class="form-input" id="f-no" maxlength="4" value="${v('no')?String(v('no')).padStart(4,'0'):''}"
         oninput="validateEmpNo(this);markDirty()" onblur="padEmpNo(this)"
-        onkeydown="focusNext(event,'f-name')">
+        onkeydown="focusNext(event,'f-name')"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -120,7 +178,7 @@ function renderEmpFormFields(emp) {
         </div>
       </div>
       <input class="form-input" id="f-name" value="${v('name')}"
-        oninput="clearFieldError('f-name-err','f-name');markDirty()" onkeydown="focusNext(event,'f-kana')">
+        oninput="clearFieldError('f-name-err','f-name');markDirty()" onkeydown="focusNext(event,'f-kana')"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -131,7 +189,7 @@ function renderEmpFormFields(emp) {
         <div class="form-label-hint">${jp?'カタカナ・英字可':'가타카나·영문 가능'}</div>
       </div>
       <input class="form-input" id="f-kana" value="${v('kana')}"
-        oninput="clearFieldError('f-kana-err','f-kana');markDirty()" onkeydown="focusNext(event,'f-join')">
+        oninput="clearFieldError('f-kana-err','f-kana');markDirty()" onkeydown="focusNext(event,'f-join')"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -143,7 +201,7 @@ function renderEmpFormFields(emp) {
       <input class="form-input" id="f-join" type="text" value="${normalizeDate(v('join'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-join-err')"
-        onkeydown="onDateKeydown(event,'f-leave','f-join-err')" oninput="onDateInput(this)">
+        onkeydown="onDateKeydown(event,'f-leave','f-join-err')" oninput="onDateInput(this)"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -152,10 +210,13 @@ function renderEmpFormFields(emp) {
           <span class="form-error" id="f-leave-err"></span>
         </div>
       </div>
-      <input class="form-input" id="f-leave" type="text" value="${normalizeDate(v('leave'))}"
-        placeholder="YYYY-MM-DD" autocomplete="off"
-        onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-leave-err')"
-        onkeydown="onDateKeydown(event,'f-birth','f-leave-err')" oninput="onDateInput(this)">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="form-input" id="f-leave" type="text" value="${normalizeDate(v('leave'))}"
+          placeholder="YYYY-MM-DD" autocomplete="off"
+          onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-leave-err')"
+          onkeydown="onDateKeydown(event,'f-birth','f-leave-err')" oninput="onDateInput(this)"${dis}>
+        ${readOnly ? `<button class="btn btn-success btn-sm" style="white-space:nowrap;" onclick="reinstateEmp(${editingEmpIdx})">${jp?'在職に戻す':'재직 복귀'}</button>` : ''}
+      </div>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -167,7 +228,7 @@ function renderEmpFormFields(emp) {
       <input class="form-input" id="f-birth" type="text" value="${normalizeDate(v('birth'))}"
         placeholder="YYYY-MM-DD" autocomplete="off" data-required="1"
         onfocus="onDateFocus(this)" onblur="onDateBlur(this,'f-birth-err');updateAgeDisplay()"
-        onkeydown="onDateKeydown(event,'f-kaigo','f-birth-err')" oninput="onDateInput(this)">
+        onkeydown="onDateKeydown(event,'f-kaigo','f-birth-err')" oninput="onDateInput(this)"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -183,7 +244,7 @@ function renderEmpFormFields(emp) {
           <label class="form-label">${jp?'介護保険':'개호보험'}</label>
         </div>
       </div>
-      <select class="form-select" id="f-kaigo" onchange="markDirty()">
+      <select class="form-select" id="f-kaigo" onchange="markDirty()"${dis}>
         <option value="auto" ${v('kaigo','auto')==='auto'?'selected':''}>${jp?'自動（年齢で判定）':'자동（나이로 판정）'}</option>
         <option value="yes" ${v('kaigo')==='yes'?'selected':''}>${jp?'対象（40歳以上）':'대상（40세 이상）'}</option>
         <option value="no" ${v('kaigo')==='no'?'selected':''}>${jp?'対象外':'대상 외'}</option>
@@ -195,7 +256,7 @@ function renderEmpFormFields(emp) {
           <label class="form-label">${jp?'雇用保険':'고용보험'}</label>
         </div>
       </div>
-      <select class="form-select" id="f-koyo" onchange="markDirty()">
+      <select class="form-select" id="f-koyo" onchange="markDirty()"${dis}>
         <option value="yes" ${v('koyo','yes')==='yes'?'selected':''}>${jp?'加入':'가입'}</option>
         <option value="no" ${v('koyo')==='no'?'selected':''}>${jp?'未加入':'미가입'}</option>
       </select>
@@ -212,7 +273,7 @@ function renderEmpFormFields(emp) {
         placeholder="YYYY-MM" maxlength="7" autocomplete="off"
         oninput="onShahoInput(this)"
         onblur="onShahoBlur(this)"
-        onkeydown="onShahoKeydown(event)">
+        onkeydown="onShahoKeydown(event)"${dis}>
     </div>
     <div class="form-group">
       <div class="form-label-block">
@@ -220,7 +281,7 @@ function renderEmpFormFields(emp) {
           <label class="form-label">${jp?'所得税区分':'소득세 구분'}</label>
         </div>
       </div>
-      <select class="form-select" id="f-shotoku-kbn" onchange="markDirty()">
+      <select class="form-select" id="f-shotoku-kbn" onchange="markDirty()"${dis}>
         <option value="ko" ${v('shotokuKbn','ko')==='ko'?'selected':''}>${jp?'甲欄（扶養控除等申告書あり）':'갑란（부양공제신고서 제출）'}</option>
         <option value="otsu" ${v('shotokuKbn')==='otsu'?'selected':''}>${jp?'乙欄（申告書なし）':'을란（신고서 미제출）'}</option>
       </select>
@@ -232,7 +293,7 @@ function renderEmpFormFields(emp) {
         </div>
         <div class="form-label-hint">${jp?'扶養家族（16歳以上）から自動計算':'부양가족（16세 이상）에서 자동 계산'}</div>
       </div>
-      <select class="form-select" id="f-fuyou" onchange="markDirty()">
+      <select class="form-select" id="f-fuyou" onchange="markDirty()"${dis}>
         ${[0,1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${(emp ? countFamilies(emp) : 0)===n?'selected':''}>${n}${jp?'人':'명'}</option>`).join('')}
       </select>
     </div>
@@ -243,7 +304,7 @@ function renderEmpFormFields(emp) {
       <span>${jp?'扶養家族':'부양가족'} <span class="fam-count-badge" id="famCountBadge">0${jp?'名':'명'}</span></span>
       <span style="font-size:11px;color:var(--text3);">${jp?'16歳以上が扶養人数にカウントされます':'만 16세 이상이 부양 인원으로 집계됩니다'}</span>
     </div>
-    <div class="fam-add-row">
+    ${readOnly ? '' : `<div class="fam-add-row">
       <div class="form-group" style="margin:0;">
         <input class="form-input" id="fam-name" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('fam-birth').focus();}">
       </div>
@@ -261,9 +322,9 @@ function renderEmpFormFields(emp) {
       </div>
       <button class="btn btn-success btn-sm" onclick="addFam()">${jp?'追加':'추가'}</button>
       <div></div>
-    </div>
+    </div>`}
     <table class="fam-table">
-      <thead><tr><th>${jp?'氏名':'이름'}</th><th>${jp?'生年月日':'생년월일'}</th><th>${jp?'扶養対象':'부양 대상'}</th><th></th></tr></thead>
+      <thead><tr><th>${jp?'氏名':'이름'}</th><th>${jp?'生年月日':'생년월일'}</th><th>${jp?'扶養対象':'부양 대상'}</th>${readOnly?'':'<th></th>'}</tr></thead>
       <tbody id="famTableBody"></tbody>
     </table>
   </div>`;
@@ -310,7 +371,7 @@ function setDateCaret(input, pos) {
 }
 
 function clearDateErrorForInput(input) {
-  const errMap = { 'f-join': 'f-join-err', 'f-birth': 'f-birth-err', 'fam-birth': 'fam-birth-err' };
+  const errMap = { 'f-join': 'f-join-err', 'f-leave': 'f-leave-err', 'f-birth': 'f-birth-err', 'fam-birth': 'fam-birth-err' };
   const errEl = document.getElementById(errMap[input.id] || '');
   if (errEl) errEl.textContent = '';
   input.classList.remove('error');
@@ -663,8 +724,8 @@ function validateEmpNo(input) {
     input.classList.add('error');
     return;
   }
-  // 삭제된 사원의 ID(Primary Key) 재사용 불가 — 신규 등록 시에만 체크
-  if(editingEmpIdx === -1 && deletedEmpIds.includes(no)) {
+  // 삭제된 사원의 ID(Primary Key) 재사용 불가 — localStorage + GAS 시트 둘 다 체크
+  if(editingEmpIdx === -1 && (deletedEmpIds.includes(no) || gasDeletedEmpIds.includes(no))) {
     errEl.textContent = jp?'この番号は過去に使用されています。別の番号を入力してください':'이미 사용된 적 있는 ID입니다. 다른 ID를 입력해 주세요';
     input.classList.add('error');
     return;
@@ -698,11 +759,12 @@ function renderFamTable() {
   if(!tbody) return;
   tbody.innerHTML='';
   const jp=LANG==='JP';
+  const ro = editingEmpIdx !== -1 && employees[editingEmpIdx] && isResigned(employees[editingEmpIdx]);
   tempFamilies.forEach((f,i)=>{
     const age = currentYear - parseInt(f.birth.substring(0,4));
     const isTarget = age >= 16;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${f.name}</td><td>${normalizeDate(f.birth)}</td><td><span class="fam-badge ${isTarget?'badge-ok':'badge-no'}">${isTarget?(jp?'対象':'대상'):(jp?'16歳未満':'16세 미만')}</span></td><td><button class="btn btn-sm" onclick="removeFam(${i})" style="color:var(--red);padding:3px 7px;">${jp?'削除':'삭제'}</button></td>`;
+    tr.innerHTML=`<td>${f.name}</td><td>${normalizeDate(f.birth)}</td><td><span class="fam-badge ${isTarget?'badge-ok':'badge-no'}">${isTarget?(jp?'対象':'대상'):(jp?'16歳未満':'16세 미만')}</span></td>${ro?'':'<td><button class="btn btn-sm" onclick="removeFam('+i+')" style="color:var(--red);padding:3px 7px;">'+(jp?'削除':'삭제')+'</button></td>'}`;
     tbody.appendChild(tr);
   });
 }
@@ -719,6 +781,11 @@ function updateFamCount() {
 // ══ SAVE EMP ══
 function saveEmployee() {
   const jp=LANG==='JP';
+  // 퇴사자는 읽기 전용 — 저장 차단
+  if(editingEmpIdx !== -1 && isResigned(employees[editingEmpIdx])) {
+    showToast(jp?'退職者は編集できません':'퇴사자는 편집할 수 없습니다','w');
+    return;
+  }
   const noEl=document.getElementById('f-no');
   const nameEl=document.getElementById('f-name');
   if(!noEl||!nameEl) return;
@@ -756,8 +823,8 @@ function saveEmployee() {
     return String(e.no || '').padStart(4, '0') === no;
   });
   if(dup) { showToast(jp?'この社員番号は既に使用されています':'이미 사용 중인 사원번호입니다','e'); return; }
-  // 삭제된 사원의 Primary Key 재사용 불가 — 신규 등록 시에만 체크
-  if(editingEmpIdx === -1 && deletedEmpIds.includes(no)) {
+  // 삭제된 사원의 Primary Key 재사용 불가 — localStorage + GAS 시트 둘 다 체크
+  if(editingEmpIdx === -1 && (deletedEmpIds.includes(no) || gasDeletedEmpIds.includes(no))) {
     showToast(jp?'この番号は過去に使用されています。別の番号を入力してください':'이미 사용된 적 있는 ID입니다. 다른 ID를 입력해 주세요','e');
     return;
   }
@@ -806,20 +873,34 @@ function saveEmployee() {
   }
 
   localStorage.setItem(LS.emp,JSON.stringify(employees));
-  if(gasUrl) {
-    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'employees',employees}),mode:'no-cors'}).catch(()=>{});
+
+  // 퇴사일이 새로 설정된 경우 deleted_emp_ids에 기록
+  if(leaveVal && !deletedEmpIds.includes(no) && !gasDeletedEmpIds.includes(no)) {
+    deletedEmpIds.push(no);
+    gasDeletedEmpIds.push(no);
+    localStorage.setItem(LS.deletedEmpIds, JSON.stringify(deletedEmpIds));
+    if(typeof gasAddDeletedEmpId === 'function') gasAddDeletedEmpId(no, leaveVal);
   }
-  gasAppendLog(isNewEmp ? '사원추가' : '사원수정', `${name} (${no})`, '성공', '');
+
+  if(gasUrl) {
+    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'employees',employees,...(typeof gasWriteAuth==='function'?gasWriteAuth():{})}),mode:'no-cors'}).catch(()=>{});
+  }
+  gasAppendLog(isNewEmp ? '사원추가' : (leaveVal ? '퇴사처리' : '사원수정'), `${name} (${no})`, '성공', leaveVal ? `퇴사일: ${leaveVal}` : '');
 
   empFormDirty = false;
   renderEmpSelect();
   renderEmpList();
-  // 저장 후 화면 클리어 없이 제목만 업데이트
   const title = document.getElementById('empFormTitle');
-  if(title) title.textContent = LANG==='JP' ? `${name} の編集` : `${name} 편집`;
-  // 상단 버튼도 저장→편집 모드로 갱신
   const btns = document.getElementById('empFormBtns');
-  if(btns) btns.innerHTML = `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${LANG==='JP'?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${editingEmpIdx})">${LANG==='JP'?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${LANG==='JP'?'キャンセル':'취소'}</button>`;
+  const savedEmp = employees[editingEmpIdx];
+  if(isResigned(savedEmp)) {
+    if(title) title.textContent = jp ? `${name} の閲覧（退職者）` : `${name} 보기（퇴사자）`;
+    if(btns) btns.innerHTML = `<button class="btn btn-success btn-sm" onclick="reinstateEmp(${editingEmpIdx})">${jp?'在職に戻す':'재직 복귀'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+    renderEmpFormFields(savedEmp, true);
+  } else {
+    if(title) title.textContent = jp ? `${name} の編集` : `${name} 편집`;
+    if(btns) btns.innerHTML = `<button class="btn btn-primary btn-sm" onclick="saveEmployee()">${jp?'保存':'저장'}</button><button class="btn btn-danger btn-sm" onclick="deleteEmp(${editingEmpIdx})">${jp?'削除':'삭제'}</button><button class="btn btn-sm" onclick="cancelEmpForm()">${jp?'キャンセル':'취소'}</button>`;
+  }
   showToast(gasUrl
     ? (jp?'保存 & Google同期 ✓':'저장 & Google 동기화 ✓')
     : (jp?'従業員情報を保存しました ✓':'사원 정보를 저장했습니다 ✓'), 's');
@@ -827,16 +908,22 @@ function saveEmployee() {
 
 function deleteEmp(i) {
   const emp=employees[i];
-  const msg=LANG==='JP'?`${emp.name} を削除しますか？`:`${emp.name}을(를) 삭제하시겠습니까?`;
+  const jp=LANG==='JP';
+  const msg=jp?`${emp.name} を削除しますか？`:`${emp.name}을(를) 삭제하시겠습니까?`;
   if(!confirm(msg)) return;
   // 삭제된 사원의 Primary Key를 재사용 불가 목록에 추가
   const deletedNo = String(emp.no).padStart(4, '0');
   if(!deletedEmpIds.includes(deletedNo)) {
     deletedEmpIds.push(deletedNo);
+    gasDeletedEmpIds.push(deletedNo);
     localStorage.setItem(LS.deletedEmpIds, JSON.stringify(deletedEmpIds));
+    if(typeof gasAddDeletedEmpId === 'function') gasAddDeletedEmpId(deletedNo, emp.leave || new Date().toISOString().split('T')[0]);
   }
   employees.splice(i, 1);
   localStorage.setItem(LS.emp, JSON.stringify(employees));
+  if(gasUrl) {
+    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'employees',employees,...(typeof gasWriteAuth==='function'?gasWriteAuth():{})}),mode:'no-cors'}).catch(()=>{});
+  }
   gasAppendLog('사원삭제', `${emp.name} (${deletedNo})`, '성공', '');
   if(currentEmpIdx === i) {
     currentEmpIdx = -1;
@@ -845,7 +932,50 @@ function deleteEmp(i) {
     currentEmpIdx--;
   }
   renderEmpSelect(); renderEmpList(); cancelEmpForm();
-  showToast(LANG==='JP'?'削除しました':'삭제되었습니다');
+  showToast(jp?'削除しました':'삭제되었습니다');
+}
+
+// ══ 재직 복귀 ══
+function reinstateEmp(idx) {
+  const jp = LANG === 'JP';
+  const msg = jp
+    ? '在職に戻しますか？退職日と削除済みIDの記録が取り消されます。'
+    : '재직으로 복귀하시겠습니까? 퇴사일과 삭제 ID 기록이 취소됩니다.';
+  if(!confirm(msg)) return;
+
+  const emp = employees[idx];
+  const no = String(emp.no).padStart(4, '0');
+
+  // 퇴사일 제거
+  employees[idx] = { ...emp, leave: '' };
+
+  // localStorage deletedEmpIds에서 제거
+  deletedEmpIds = deletedEmpIds.filter(id => id !== no);
+  gasDeletedEmpIds = gasDeletedEmpIds.filter(id => id !== no);
+  localStorage.setItem(LS.deletedEmpIds, JSON.stringify(deletedEmpIds));
+
+  // localStorage 사원 정보 저장
+  localStorage.setItem(LS.emp, JSON.stringify(employees));
+
+  // GAS 동기화
+  if(gasUrl) {
+    fetch(gasUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'employees',employees,...(typeof gasWriteAuth==='function'?gasWriteAuth():{})}),mode:'no-cors'}).catch(()=>{});
+    if(typeof gasRemoveDeletedEmpId === 'function') gasRemoveDeletedEmpId(no);
+  }
+  gasAppendLog('재직복귀', `${emp.name} (${no})`, '성공', '');
+
+  editingEmpIdx = -1;
+  empFormDirty = false;
+  const body = document.getElementById('empFormBody');
+  if(body) body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text3);"><div style="font-size:36px;margin-bottom:10px;">👈</div><div>${jp?'左のリストから選択、または「新規」ボタンで登録してください。':'좌측 목록에서 선택하거나 「사원 추가」 버튼으로 등록해 주세요.'}</div></div>`;
+  const formTitle = document.getElementById('empFormTitle');
+  if(formTitle) formTitle.textContent = jp ? '従業員を選択してください' : '사원을 선택해 주세요';
+  const btnsEl = document.getElementById('empFormBtns');
+  if(btnsEl) btnsEl.innerHTML = '';
+
+  renderEmpSelect();
+  renderEmpList();
+  showToast(jp ? '在職に戻しました ✓' : '재직으로 복귀했습니다 ✓', 's');
 }
 
 

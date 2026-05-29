@@ -1,5 +1,5 @@
 ﻿'use strict';
-// 수정: 2026-05-27 23:00 — emp.no를 Primary Key로 명시, deletedEmpIds 추가
+// 수정: 2026-05-29 22:37 — gasDeletedEmpIds 추가 (GAS deleted_emp_ids 시트 동기화용)
 let LANG = 'KR';
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
@@ -28,7 +28,8 @@ const prevValues = {};
 
 const LS = { emp:'kyuyo_emp', rates:'kyuyo_rates', rateHistory:'kyuyo_rate_history', gas:'kyuyo_gas', lang:'kyuyo_lang', deletedEmpIds:'kyuyo_deleted_emp_ids' };
 // emp.no: 앱 전체의 Primary Key — 사원·급여 데이터 연결 기준, 재사용 불가
-let deletedEmpIds = []; // 과거 삭제된 사원의 ID(Primary Key) 목록
+let deletedEmpIds = [];    // localStorage 기반 삭제 ID 목록 (하위 호환)
+let gasDeletedEmpIds = []; // GAS deleted_emp_ids 시트 기반 목록 (우선 기준)
 let payrollDirty = false; // 급여명세 미저장 여부
 let _pendingScrapedRates = null; // 스크래핑 결과 임시 보관
 

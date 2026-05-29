@@ -1,4 +1,4 @@
-/* 수정: 2026-05-28 22:39 — 글자 크기 조절 기능 추가 (A-/A+ 버튼, 4단계, --fs-delta 변수) */
+/* 수정: 2026-05-29 22:37 — 퇴사 뱃지·토글·읽기전용 관련 스타일 추가 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 :root {
   --bg:#f0f2f7; --surface:#fff; --surface2:#f8f9fc;
@@ -154,6 +154,13 @@ body{font-family:'Noto Sans JP','Noto Sans KR',sans-serif;background:var(--bg);c
 .emp-list-name{font-size:calc(13px + var(--fs-delta));font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .emp-list-no{font-size:calc(11px + var(--fs-delta));color:var(--text3);margin-top:1px;}
 .emp-list-empty{padding:30px;text-align:center;color:var(--text3);font-size:calc(13px + var(--fs-delta));}
+.emp-list-toggle-bar{padding:5px 13px;border-bottom:1px solid var(--border2);background:var(--surface2);}
+.resign-toggle-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:3px 10px;font-size:calc(11px + var(--fs-delta));color:var(--text3);cursor:pointer;transition:background .15s,color .15s;}
+.resign-toggle-btn:hover{background:#fee2e2;color:#dc2626;border-color:#fecaca;}
+.resign-toggle-btn.active{background:#fee2e2;color:#dc2626;border-color:#fecaca;font-weight:600;}
+.resign-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:#fee2e2;color:#dc2626;font-size:calc(9px + var(--fs-delta));font-weight:700;margin-right:4px;flex-shrink:0;vertical-align:middle;line-height:1;}
+.emp-list-item.resigned{opacity:.75;}
+.emp-list-item.resigned .emp-list-av,.emp-list-av.av-resigned{background:#fef2f2;color:#ef4444;border-color:#fecaca;}
 
 /* Right form panel */
 .emp-form-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}

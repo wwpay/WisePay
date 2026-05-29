@@ -1,4 +1,4 @@
-// 수정: 2026-05-28 22:24 — viewer 접근 불가 메뉴 잠금→숨김 처리 (설정 섹션 포함)
+// 수정: 2026-05-29 22:37 — viewer 차단 목록에 reinstateEmp, saveEmployee 추가
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -219,7 +219,9 @@ function applyViewerRestrictions() {
   window.importAllFromGas      = blocked;
   window.importFreeePayrollCSV = blocked;
   window.saveEmpForm           = blocked;
+  window.saveEmployee          = blocked;
   window.deleteEmp             = blocked;
+  window.reinstateEmp          = blocked;
   window.applyRates            = blocked;
   window.saveRateHistory       = blocked;
   window.downloadBackupExcel   = blocked;
