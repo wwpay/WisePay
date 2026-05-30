@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-30 01:30 — #9 isKaigo 정확한 날짜 기반 나이 계산(calcAgeExact) 적용
+﻿// 수정: 2026-05-30 22:50 — saveCurrent 저장 전 recalc() 강제 호출 + window._calc에 hyo/kaigo/kodomo/koyo 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -381,7 +381,7 @@ function recalc() {
     const netEl=document.getElementById('netAmountTxt'); if(netEl) netEl.textContent='¥0';
     ['ci-kenko','ci-nenkin','ci-koyo','ci-shotoku'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='-'; });
     const de=document.getElementById('netDiffTxt'); if(de){ de.textContent=' '; de.className='net-diff'; }
-    window._calc={kenko:0,nenkin:0,shotoku:0,totalPay:0,totalKojo:0,net:0};
+    window._calc={hyo:0,kenko:0,kaigo:0,kodomo:0,nenkin:0,koyo:0,shotoku:0,totalPay:0,totalKojo:0,net:0};
     return;
   }
 
@@ -428,7 +428,7 @@ function recalc() {
     } catch(e){ de.textContent=' '; de.className='net-diff'; } }
     else { de.textContent=' '; de.className='net-diff'; }
   }
-  window._calc = {kenko,nenkin,shotoku,totalPay,totalKojo,net};
+  window._calc = {hyo,kenko,kaigo,kodomo,nenkin,koyo,shotoku,totalPay,totalKojo,net};
 }
 
 // ══ DELETE MONTH ══
@@ -462,6 +462,7 @@ function saveCurrent() {
   }
   if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'사원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
+  recalc();
   const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
   const isNewPayroll = !localStorage.getItem(key);
   const d={}; PFIELDS.forEach(f=>{d[f]=document.getElementById(f)?.value||0;}); d._net=window._calc?.net||0;
