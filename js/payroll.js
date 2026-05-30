@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-30 23:00 — 1단계: calcPayrollData(input, emp, year, month) 순수 계산 함수 추출
+﻿// 수정: 2026-05-30 23:10 — zero 조기 반환 가드를 calcPayrollBreakdown 안으로 이동, calcPayrollData 중복 제거
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -338,6 +338,11 @@ function calcAgeExact(birthStr) {
 function calcPayrollBreakdown(emp, data, year, month) {
   const {base,ot,kintai,commute,commutetax,kinmu,shokumu,field,hyo_override,jumin,nencho} = data;
   const totalPay = base+ot-kintai+commute+commutetax+kinmu+shokumu+field;
+  // 전체 0 → getHyo(0)이 최소 등급을 반환해 오계산되므로 조기 반환
+  if (totalPay === 0 && !hyo_override && !jumin && !nencho) {
+    const r = getRatesForYM(year, month);
+    return {totalPay:0,hyo:0,kenko:0,kaigo:0,kodomo:0,nenkin:0,koyo:0,koyoEnabled:false,shakai:0,fuyou:0,isOtsu:false,shotoku:0,totalKojo:0,net:0,r};
+  }
   const hyo = hyo_override > 0 ? hyo_override : (emp ? getHyo(base-kintai+commute+commutetax+kinmu+shokumu+field) : 58000);
   const r = getRatesForYM(year, month);
   const shahoParts = emp && emp.shaho_start ? emp.shaho_start.split('-') : null;
@@ -381,7 +386,6 @@ function calcPayrollData(input, emp, year, month) {
   const hyo_override = parse('r-hyo');
   const jumin      = parse('k-jumin');
   const nencho     = parse('k-nencho');
-  const totalPay   = base + ot - kintai + commute + commutetax + kinmu + shokumu + field;
 
   const inputVals = {
     'r-base': base, 'r-ot': ot, 'r-kintai': kintai, 'r-commute': commute,
@@ -389,17 +393,7 @@ function calcPayrollData(input, emp, year, month) {
     'r-hyo': hyo_override, 'k-jumin': jumin, 'k-nencho': nencho,
   };
 
-  // 전체 0 → 공제 계산 스킵 (getHyo(0)이 최소 등급 반환해 오계산 방지)
-  if (totalPay === 0 && hyo_override === 0 && jumin === 0 && nencho === 0) {
-    return {
-      ...inputVals,
-      hyo: 0, kenko: 0, kaigo: 0, kodomo: 0, nenkin: 0, koyo: 0, shotoku: 0,
-      totalPay: 0, totalKojo: 0, net: 0,
-      koyoEnabled: false, shakai: 0, fuyou: 0, isOtsu: false,
-      r: getRatesForYM(year, month),
-    };
-  }
-
+  // 전체 0 조기 반환은 calcPayrollBreakdown 내부에서 처리
   const c = calcPayrollBreakdown(
     emp,
     {base, ot, kintai, commute, commutetax, kinmu, shokumu, field, hyo_override, jumin, nencho},
