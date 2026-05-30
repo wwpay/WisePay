@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 00:19 — deleteCurrentMonth/saveCurrent emp null 체크 추가
+// 수정: 2026-05-31 00:28 — onPayrollBlur 빈 함수 제거 + index.html 호출부 8곳 제거
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -308,8 +308,6 @@ function savePrevVal(input) {
   prevValues[input.id] = input.value;
   if(input.value === '0') input.value = '';
 }
-
-function onPayrollBlur(input) {}
 
 // 반각 스페이스로 변환 (일본어 입력 시 전각 스페이스 → 반각)
 function toHalfSpace(str) {
