@@ -1,4 +1,4 @@
-// 수정: 2026-05-30 23:43 — 3단계: saveCurrent() GAS 전송에 전 항목 포함 (pdata 중복 제거)
+// 수정: 2026-05-31 00:19 — deleteCurrentMonth/saveCurrent emp null 체크 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -492,6 +492,7 @@ function deleteCurrentMonth() {
   }
   if(!employees.length) return;
   const emp = employees[currentEmpIdx];
+  if(!emp) return;
   const jp = LANG === 'JP';
   const label = `${emp.name} ${currentYear}年${currentMonth}月`;
   const msg = jp ? `${label}分のデータを削除しますか？\nこの操作は元に戻せません。` : `${label}분 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
@@ -515,6 +516,7 @@ function saveCurrent() {
   }
   if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'사원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
+  if(!emp) return;
   recalc();
   const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
   const isNewPayroll = !localStorage.getItem(key);
