@@ -1,4 +1,4 @@
-// 수정: 2026-05-30 00:41 — viewer idle 자동 로그아웃(1시간) + 비밀번호 눈 아이콘
+// 수정: 2026-05-31 17:53 — deleteCurrentMonth 관련 참조 제거
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -237,12 +237,10 @@ function renderNavForRole() {
 function applyViewerRestrictions() {
   if (!currentUser || currentUser.role === 'admin') return;
 
-  // 저장·삭제·지급완료 버튼 숨김
+  // 저장·지급완료 버튼 숨김
   const saveBtn = document.getElementById('btn-save');
-  const delBtn  = document.getElementById('btn-del-month');
   const paidBtn = document.getElementById('btn-mark-paid');
   if (saveBtn) saveBtn.style.display = 'none';
-  if (delBtn)  delBtn.style.display  = 'none';
   if (paidBtn) paidBtn.style.display = 'none';
 
   // 급여 입력 필드 읽기 전용
@@ -268,7 +266,6 @@ function applyViewerRestrictions() {
     showToast(LANG === 'JP' ? '閲覧専用のため操作できません' : '열람 전용 계정입니다', 'w');
   };
   window.saveCurrent           = blocked;
-  window.deleteCurrentMonth    = blocked;
   window.resetLocalData        = blocked;
   window.importFreeePayrollCSV = blocked;
   window.saveEmpForm           = blocked;

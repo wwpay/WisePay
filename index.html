@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-31 17:03 — saveCurrent 저장 직후 띠·지급완료버튼 즉시 갱신
+  수정: 2026-05-31 17:53 — 데이터 초기화(삭제) 버튼 및 관련 코드 전체 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -127,10 +127,6 @@
     <button class="btn btn-primary" id="btn-save" onclick="saveCurrent()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       <span id="t-save-btn">保存</span>
-    </button>
-    <button class="btn btn-del-month" id="btn-del-month" onclick="deleteCurrentMonth()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      <span id="t-del-month-btn">この月を削除</span>
     </button>
     <button class="btn" id="btn-mark-paid" onclick="markMonthAsPaid()">
       <span id="t-mark-paid-btn">🔒 이 달 지급완료</span>

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-31 16:24 — gotoPage('payroll') 복귀 시 renderPaidBtn 호출 추가
+﻿// 수정: 2026-05-31 17:53 — deleteCurrentMonth 관련 참조 제거
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -235,7 +235,6 @@ function gotoPage(id, el) {
   if(t) document.getElementById('topbar-title').textContent = t[LANG];
   const isPayroll = id === 'payroll';
   document.getElementById('btn-save').style.display = isPayroll ? '' : 'none';
-  document.getElementById('btn-del-month').style.display = isPayroll ? '' : 'none';
   if(id==='payroll') { loadPayrollForm(); renderPaidBtn(); }
   if(id==='history') { try { buildHistEmpSel(); renderHistory(); } catch(e) { console.error('history render error:', e); } }
   if(id==='employees') renderEmpList();

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-31 16:03 — t-today-btn 다국어 추가
+﻿// 수정: 2026-05-31 17:53 — t-del-month-btn 주석 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -57,7 +57,6 @@ function applyLang() {
   setTxt('t-ai-btn', '協会けんぽ 最新料率を取得', '協会けんぽ 최신 요율 가져오기');
   setTxt('t-save-btn', '保存', '저장');
   setTxt('t-today-btn', '今月', '이번 달');
-  // t-del-month-btn은 renderMonthTabs()에서 동적으로 갱신
   setTxt('t-print-btn', '印刷', '인쇄');
   setTxt('t-pdf-btn', 'PDF保存', 'PDF 저장');
 

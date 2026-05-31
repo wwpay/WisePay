@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 17:03 — saveCurrent 저장 직후 띠·지급완료버튼 즉시 갱신
+// 수정: 2026-05-31 17:53 — deleteCurrentMonth 및 관련 참조 전체 제거
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -96,9 +96,6 @@ function renderMonthTabs() {
     c.appendChild(b);
   }
   document.getElementById('yearTxt').textContent = currentYear + (LANG==='JP'?'年':'년');
-  const delBtn = document.getElementById('t-del-month-btn');
-  const mm = String(currentMonth).padStart(2, '0');
-  if(delBtn) delBtn.textContent = LANG==='JP' ? `${mm}月データをリセット` : `${mm}월 데이터 초기화`;
 }
 
 function changeYear(d) {
@@ -558,38 +555,6 @@ function recalc() {
   // window._calc: 입력값 + 계산값 저장 (display-only 필드 koyoEnabled/shakai/fuyou/isOtsu/r 제외)
   const { koyoEnabled:_ke, shakai:_sh, fuyou:_fu, isOtsu:_ot, r:_r, ...storeFields } = c;
   window._calc = storeFields;
-}
-
-// ══ DELETE MONTH ══
-function deleteCurrentMonth() {
-  if (typeof isWriteAuthorized === 'function' && !isWriteAuthorized()) {
-    showToast(LANG === 'JP' ? '閲覧専用のため操作できません' : '열람 전용 계정입니다', 'w');
-    return;
-  }
-  if(!employees.length) return;
-  const emp = employees[currentEmpIdx];
-  if(!emp) return;
-  const jp = LANG === 'JP';
-  // 지급완료 달 삭제 보호
-  const _delYm = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
-  if (paidYMs.has(_delYm)) {
-    const warnMsg = jp
-      ? `${currentYear}年${currentMonth}月分は支払済み給与です。\n削除すると支払記録が消えます。\n本当に削除しますか？`
-      : `${currentYear}년 ${currentMonth}월분은 이미 지급완료된 급여입니다.\n삭제하면 지급 기록이 사라집니다.\n정말 삭제하시겠습니까?`;
-    if (!confirm(warnMsg)) return;
-  }
-  const label = `${emp.name} ${currentYear}年${currentMonth}月`;
-  const msg = jp ? `${label}分のデータを削除しますか？\nこの操作は元に戻せません。` : `${label}분 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
-  if(!confirm(msg)) return;
-  const key = `kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
-  localStorage.removeItem(key);
-  payrollDirty = false;
-  const saveBtn = document.getElementById('btn-save');
-  if(saveBtn) { saveBtn.style.background = ''; saveBtn.style.borderColor = ''; }
-  PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
-  recalc();
-  showToast(jp ? `${label}分を削除しました` : `${label}분 삭제됨`, 'w');
-  gasAppendLog('급여삭제', `${emp.name} (${currentYear}/${String(currentMonth).padStart(2,'0')})`, '성공', '');
 }
 
 // ══ SAVE PAYROLL ══
