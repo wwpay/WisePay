@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 15:28 — 지급완료 기능 2단계: 상태 띠 'paid' 표시 추가
+// 수정: 2026-05-31 15:40 — 지급완료 기능 3단계: 저장·삭제 시 지급완료 달 수정 보호 confirm 추가
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -509,6 +509,14 @@ function deleteCurrentMonth() {
   const emp = employees[currentEmpIdx];
   if(!emp) return;
   const jp = LANG === 'JP';
+  // 지급완료 달 삭제 보호
+  const _delYm = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
+  if (paidYMs.has(_delYm)) {
+    const warnMsg = jp
+      ? `${currentYear}年${currentMonth}月分は支払済み給与です。\n削除すると支払記録が消えます。\n本当に削除しますか？`
+      : `${currentYear}년 ${currentMonth}월분은 이미 지급완료된 급여입니다.\n삭제하면 지급 기록이 사라집니다.\n정말 삭제하시겠습니까?`;
+    if (!confirm(warnMsg)) return;
+  }
   const label = `${emp.name} ${currentYear}年${currentMonth}月`;
   const msg = jp ? `${label}分のデータを削除しますか？\nこの操作は元に戻せません。` : `${label}분 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`;
   if(!confirm(msg)) return;
@@ -532,6 +540,15 @@ function saveCurrent() {
   if(!employees.length) { showToast(LANG==='JP'?'従業員を先に登録してください':'사원을 먼저 등록해 주세요','w'); return; }
   const emp=employees[currentEmpIdx];
   if(!emp) return;
+  // 지급완료 달 저장 보호
+  const _saveYm = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
+  if (paidYMs.has(_saveYm)) {
+    const jp = LANG === 'JP';
+    const warnMsg = jp
+      ? `${currentYear}年${currentMonth}月分は支払済み給与です。\n既に支払われた記録を修正すると、実際の支払額と異なる場合があります。\n本当に修正しますか？`
+      : `${currentYear}년 ${currentMonth}월분은 이미 지급완료된 급여입니다.\n이미 지급된 기록을 수정하면 실제 지급액과 달라질 수 있습니다.\n정말 수정하시겠습니까?`;
+    if (!confirm(warnMsg)) return;
+  }
   recalc();
   const key=`kyuyo_p_${String(emp.no).padStart(4,'0')}_${currentYear}_${currentMonth}`;
   const isNewPayroll = !localStorage.getItem(key);
