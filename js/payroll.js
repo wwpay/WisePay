@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 10:24 — 수정 버튼 배경색 #475569으로 변경
+// 수정: 2026-06-01 10:44 — 과거 달 임시값 자동 채움 누락 버그 수정 (양방향 fallback)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -254,59 +254,41 @@ function loadPayrollForm() {
     const todayYM = today.getFullYear() * 100 + (today.getMonth() + 1);
     const selectedYM = currentYear * 100 + currentMonth;
 
-    if(selectedYM < todayYM) {
-      // 과거 월: 이 달 이후에서 가장 오래된(가장 가까운 미래) PFIELD 데이터로 임시 채움
-      let oldestData = null;
-      let oldestGasData = savedGasData;
-      let fwdY = currentYear, fwdM = currentMonth + 1;
-      if(fwdM > 12) { fwdM = 1; fwdY++; }
-      for(let i = 0; i < 48; i++) {
-        const k = `kyuyo_p_${pNo}_${fwdY}_${fwdM}`;
-        const s = localStorage.getItem(k);
-        if(s) {
-          try {
-            const candidate = JSON.parse(s);
-            if(_hasPF(candidate)) { oldestData = candidate; break; }
-            else if(!oldestGasData && _isGas(candidate)) { oldestGasData = candidate; }
-          } catch(e) {}
-        }
-        fwdM++;
-        if(fwdM > 12) { fwdM = 1; fwdY++; }
-      }
-      if(oldestData) {
-        _dataStatus = 'approx'; _loadPFields(oldestData);
-      } else if(oldestGasData) {
-        _dataStatus = 'approx'; _loadGasApprox(oldestGasData);
-      } else {
-        _dataStatus = 'empty'; PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
-      }
-    } else {
-      // 당월·미래 월: 가장 최근 PFIELD 포맷 데이터로 초기값 설정
-      // PFIELD 없으면 가장 최근 GAS 집계값으로 폴백
-      let latestData = null;
-      let latestGasData = savedGasData;
-      let searchY = currentYear, searchM = currentMonth - 1;
-      if(searchM < 1) { searchM = 12; searchY--; }
+    // 한 방향으로 최대 24개월 탐색하는 공통 헬퍼
+    // delta: +1=미래 방향, -1=과거 방향
+    const _scan = (startY, startM, delta, initGas) => {
+      let pf = null, gas = initGas || null;
+      let y = startY, m = startM;
       for(let i = 0; i < 24; i++) {
-        const k = `kyuyo_p_${pNo}_${searchY}_${searchM}`;
-        const s = localStorage.getItem(k);
+        m += delta;
+        if(m > 12) { m = 1; y++; }
+        if(m < 1)  { m = 12; y--; }
+        const s = localStorage.getItem(`kyuyo_p_${pNo}_${y}_${m}`);
         if(s) {
           try {
-            const candidate = JSON.parse(s);
-            if(_hasPF(candidate)) { latestData = candidate; break; }
-            else if(!latestGasData && _isGas(candidate)) { latestGasData = candidate; }
+            const c = JSON.parse(s);
+            if(_hasPF(c))                  { pf  = c; break; }
+            else if(!gas && _isGas(c))     { gas = c; }
           } catch(e) {}
         }
-        searchM--;
-        if(searchM < 1) { searchM = 12; searchY--; }
       }
-      if(latestData) {
-        _dataStatus = 'approx'; _loadPFields(latestData);
-      } else if(latestGasData) {
-        _dataStatus = 'approx'; _loadGasApprox(latestGasData);
-      } else {
-        _dataStatus = 'empty'; PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; });
-      }
+      return { pf, gas };
+    };
+
+    if(selectedYM < todayYM) {
+      // 과거 월: 미래 방향 우선 탐색 → 없으면 과거 방향 fallback
+      let { pf, gas } = _scan(currentYear, currentMonth, +1, savedGasData);
+      if(!pf && !gas) ({ pf, gas } = _scan(currentYear, currentMonth, -1, null));
+      if(pf)       { _dataStatus = 'approx'; _loadPFields(pf); }
+      else if(gas) { _dataStatus = 'approx'; _loadGasApprox(gas); }
+      else         { _dataStatus = 'empty';  PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; }); }
+    } else {
+      // 당월·미래 월: 과거 방향 우선 탐색 → 없으면 미래 방향 fallback
+      let { pf, gas } = _scan(currentYear, currentMonth, -1, savedGasData);
+      if(!pf && !gas) ({ pf, gas } = _scan(currentYear, currentMonth, +1, null));
+      if(pf)       { _dataStatus = 'approx'; _loadPFields(pf); }
+      else if(gas) { _dataStatus = 'approx'; _loadGasApprox(gas); }
+      else         { _dataStatus = 'empty';  PFIELDS.forEach(f => { const el = document.getElementById(f); if(el) el.value = ''; }); }
     }
   }
   // 지급완료된 달이면 'paid' 상태로 재정의 + 입력 잠금
