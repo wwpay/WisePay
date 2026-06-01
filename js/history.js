@@ -1,4 +1,4 @@
-// 수정: 2026-05-30 01:05 — renderHistory: calcPayrollBreakdown 공통 함수 적용
+// 수정: 2026-06-01 12:33 — 임금대장: 지급완료된 달만 데이터 표시, 미확정 달은 빈칸
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -204,7 +204,7 @@ function getJoinNote(emp, year, jp) {
   return '';
 }
 
-// 한 사원의 임금대장 표 + 요약바 HTML 반환 (데이터 없으면 null)
+// 한 사원의 임금대장 표 + 요약바 HTML 반환 (지급완료 달 없으면 null)
 function buildEmpTableHtml(emp, year, jp) {
   const mu = jp ? '月' : '월';
   const fmt = n => n.toLocaleString();
@@ -214,13 +214,23 @@ function buildEmpTableHtml(emp, year, jp) {
     ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
   ];
   const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
-  if (!monthData.some(d => d !== null)) return null;
 
+  // 각 달의 지급완료 여부
+  const isPaid = fiscalMonths.map(({year:y, month:m}) =>
+    paidYMs.has(`${y}-${String(m).padStart(2,'0')}`)
+  );
+
+  // 지급완료된 달에 데이터가 하나도 없으면 테이블 미표시
+  if (!monthData.some((d, i) => d !== null && isPaid[i])) return null;
+
+  // 컬럼 수: 데이터가 있는 마지막 달까지 (미확정 달도 자리 유지)
   let lastIdx = 0;
   for(let i=0;i<12;i++) { if(monthData[i]!==null) lastIdx=i; }
   const showCount = lastIdx+1;
   const cols = `grid-template-columns:110px repeat(${showCount},1fr) 86px;`;
-  const sumKey = k => monthData.slice(0,showCount).reduce((s,d)=>s+(d?d[k]:0),0);
+
+  // 연계(합계)는 지급완료된 달만 합산
+  const sumKey = k => monthData.slice(0,showCount).reduce((s,d,i) => s + (d && isPaid[i] ? d[k] : 0), 0);
 
   const payItems = [
     {key:'base',    label:jp?'基本給':'기본급'},
@@ -241,10 +251,12 @@ function buildEmpTableHtml(emp, year, jp) {
     {key:'nencho',  label:jp?'年末調整':'연말정산'},
   ];
 
-  const noDataCell = `<div style="color:var(--text3)">0</div>`;
-  const valCell = val => val===0
+  // 지급완료 + 데이터 있음 → 값 표시, 그 외 → 진짜 빈칸
+  const blank = `<div></div>`;
+  const valCell = val => val === 0
     ? `<div style="color:var(--text3)">0</div>`
     : `<div>${fmt(val)}</div>`;
+  const cell = (i, key) => (monthData[i] && isPaid[i]) ? valCell(monthData[i][key]) : blank;
   const sumCell = k => `<div style="font-weight:600;">${fmt(sumKey(k))}</div>`;
 
   let html = `<div class="annual-scroll-wrap"><div class="annual-wrap">`;
@@ -258,24 +270,24 @@ function buildEmpTableHtml(emp, year, jp) {
 
   payItems.forEach(r => {
     html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
-    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key]) : noDataCell;
+    for(let i=0;i<showCount;i++) html += cell(i, r.key);
     html += sumCell(r.key) + `</div>`;
   });
   html += `<div class="annual-data-row annual-subtotal-pay" style="${cols}"><div>${jp?'支給合計':'지급합계'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i]?`<div>${fmt(monthData[i].totalPay)}</div>`:`<div style="color:var(--text3)">0</div>`;
+  for(let i=0;i<showCount;i++) html += (monthData[i] && isPaid[i]) ? `<div>${fmt(monthData[i].totalPay)}</div>` : blank;
   html += `<div style="font-weight:700;">${fmt(sumKey('totalPay'))}</div></div>`;
 
   deductItems.forEach(r => {
     html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
-    for(let i=0;i<showCount;i++) html += monthData[i] ? valCell(monthData[i][r.key]) : noDataCell;
+    for(let i=0;i<showCount;i++) html += cell(i, r.key);
     html += sumCell(r.key) + `</div>`;
   });
   html += `<div class="annual-data-row annual-subtotal-deduct" style="${cols}"><div>${jp?'控除合計':'공제합계'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i]?`<div>${fmt(monthData[i].totalKojo)}</div>`:`<div style="color:var(--text3)">0</div>`;
+  for(let i=0;i<showCount;i++) html += (monthData[i] && isPaid[i]) ? `<div>${fmt(monthData[i].totalKojo)}</div>` : blank;
   html += `<div style="font-weight:700;">${fmt(sumKey('totalKojo'))}</div></div>`;
 
   html += `<div class="annual-data-row annual-net-row" style="${cols}"><div>${jp?'差引支給額':'차인지급액'}</div>`;
-  for(let i=0;i<showCount;i++) html += monthData[i]?`<div>¥${fmt(monthData[i].net)}</div>`:`<div style="color:var(--text3)">¥0</div>`;
+  for(let i=0;i<showCount;i++) html += (monthData[i] && isPaid[i]) ? `<div>¥${fmt(monthData[i].net)}</div>` : blank;
   html += `<div>¥${fmt(sumKey('net'))}</div></div>`;
   html += `</div></div>`;
 
