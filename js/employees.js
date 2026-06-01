@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-30 01:30 — #10 날짜 검증 timezone-safe 문자열 비교로 수정
+﻿// 수정: 2026-06-02 05:45 — deleteEmp 후 renderPaidBtn 추가 (삭제 후 버튼 상태 미갱신)
 'use strict';
 
 let showResigned = false; // 퇴사자 포함 토글 상태
@@ -979,6 +979,7 @@ function deleteEmp(i) {
   if(currentEmpIdx === i) {
     currentEmpIdx = -1;
     loadPayrollForm();
+    renderPaidBtn();
   } else if(currentEmpIdx > i) {
     currentEmpIdx--;
   }

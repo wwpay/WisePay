@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 10:44 — 과거 달 임시값 자동 채움 누락 버그 수정 (양방향 fallback)
+// 수정: 2026-06-02 05:45 — onEmpChange에 renderPaidBtn 추가 (사원 선택 시 버튼 상태 미갱신 버그)
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -174,6 +174,7 @@ function onEmpChange() {
   }
   currentEmpIdx = isNaN(newIdx) ? -1 : newIdx;
   loadPayrollForm();
+  renderPaidBtn();
 }
 
 function loadPayrollForm() {
