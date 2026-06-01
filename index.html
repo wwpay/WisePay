@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 22:41 — auth.js: viewer 열람 전용 배지 UI 제거
+  수정: 2026-06-01 22:52 — 데이터 관리 화면 일회용 도구 섹션 완전 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -473,21 +473,6 @@
         </div>
         <input class="gas-url-input" id="gasUrlInput" style="width:100%;" placeholder="https://script.google.com/macros/s/...../exec" oninput="updateGasUrlBadge()">
       </div>
-    </div>
-  </div>
-
-  <!-- TODO: 일회용 버튼 — 재저장 완료 후 제거할 것 -->
-  <div id="resync-payroll-wrap" style="display:none;margin-bottom:16px;border:1px solid #fca5a5;border-radius:10px;overflow:hidden;">
-    <div style="background:#fef2f2;padding:10px 16px;border-bottom:1px solid #fca5a5;display:flex;align-items:center;gap:7px;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span style="font-size:12px;font-weight:600;color:#dc2626;">일회용 도구 / 一回限りのツール</span>
-    </div>
-    <div style="padding:14px 16px;background:#fff;">
-      <button onclick="resyncAllPayrolls()"
-        style="width:100%;padding:10px 16px;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-align:left;">
-        ⚠️ 전체 급여 데이터 재저장 (일회용)
-      </button>
-      <div id="resync-payroll-status" style="margin-top:8px;font-size:12px;"></div>
     </div>
   </div>
 

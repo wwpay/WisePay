@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 22:20 — autoLoadFromGas 타임아웃 15초→25초, 콜드 스타트 대응 로딩 안내 추가
+// 수정: 2026-06-01 22:52 — 일회용 도구 섹션(resyncAllPayrolls) 완전 제거
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -55,75 +55,6 @@ function collectAllPayrolls() {
   return result;
 }
 
-// TODO: 일회용 버튼 — 재저장 완료 후 제거할 것
-async function resyncAllPayrolls() {
-  const jp = LANG === 'JP';
-  if (!isWriteAuthorized()) {
-    showToast(jp ? '管理者権限が必要です' : '관리자 계정만 실행할 수 있습니다', 'w');
-    return;
-  }
-  if (!gasUrl) {
-    showToast(jp ? '先にURLを設定してください' : '먼저 URL을 설정해 주세요', 'w');
-    return;
-  }
-  if (!confirm(jp ? 'ローカルの全給与データをGoogleシートに再保存します。実行しますか？'
-                   : '로컬의 모든 급여 데이터를 구글 시트에 재저장합니다. 실행하시겠습니까?')) return;
-
-  const statusEl = document.getElementById('resync-payroll-status');
-  if (statusEl) statusEl.textContent = jp ? '収集中...' : '데이터 수집 중...';
-
-  // kyuyo_p_NNNN_YYYY_M 형식의 키를 모두 수집
-  const payrolls = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (!k || !k.startsWith('kyuyo_p_')) continue;
-    try {
-      const d = JSON.parse(localStorage.getItem(k));
-      if (!d) continue;
-      const parts = k.split('_'); // ['kyuyo','p','0001','2026','5']
-      const no = parseInt(parts[2], 10);
-      const year = parseInt(parts[3], 10);
-      const month = parseInt(parts[4], 10);
-      if (!no || !year || !month) continue;
-      const emp = employees.find(e => parseInt(e.no, 10) === no);
-      // calcPayrollData: 입력값 + 계산값 전체 산출 (DOM 비의존, 해당 달 요율 자동 적용)
-      const { koyoEnabled:_ke, shakai:_sh, fuyou:_fu, isOtsu:_ot, r:_r, ...calcResult } =
-        calcPayrollData(d, emp, year, month);
-      payrolls.push({ no, year, month, name: emp ? emp.name : '', ...calcResult });
-    } catch(e) {}
-  }
-
-  if (!payrolls.length) {
-    showToast(jp ? '給与データがありません' : '급여 데이터가 없습니다', 'w');
-    if (statusEl) statusEl.textContent = '';
-    return;
-  }
-
-  const auth = typeof gasWriteAuth === 'function' ? gasWriteAuth() : {};
-  const BATCH = 5;
-  let sent = 0;
-  try {
-    for (let i = 0; i < payrolls.length; i += BATCH) {
-      const batch = payrolls.slice(i, i + BATCH);
-      await fetch(gasUrl, {
-        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ type: 'importPayrolls', payrolls: batch, ...auth })
-      });
-      sent += batch.length;
-      if (statusEl) statusEl.textContent = `저장 중... ${sent}/${payrolls.length}`;
-      // 배치 사이 GAS 부하 방지
-      if (i + BATCH < payrolls.length) await new Promise(r => setTimeout(r, 400));
-    }
-    const done = jp ? `✅ ${payrolls.length}件の再保存リクエスト完了` : `✅ ${payrolls.length}건 재저장 요청 완료`;
-    if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">${done}</span>`;
-    showToast(done, 's');
-    gasAppendLog('급여재저장', '전체', '성공', `${payrolls.length}건`);
-  } catch(err) {
-    if (statusEl) statusEl.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
-    showToast(jp ? '送信エラー' : '전송 오류', 'e');
-    console.error('resyncAllPayrolls error:', err);
-  }
-}
 
 async function testGas() { await testGasConnection(); }
 

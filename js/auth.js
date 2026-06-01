@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 22:41 — viewer 열람 전용 배지 UI 제거 (권한 제한 로직은 유지)
+// 수정: 2026-06-01 22:52 — 일회용 도구 섹션 관련 resync-payroll-wrap 참조 제거
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -220,9 +220,6 @@ function closeAccessDenied() {
 function renderNavForRole() {
   if (!currentUser) return;
   if (currentUser.role === 'admin') {
-    // admin 전용 요소 표시
-    const resyncWrap = document.getElementById('resync-payroll-wrap');
-    if (resyncWrap) resyncWrap.style.display = '';
     return;
   }
   // viewer: 접근 불가 메뉴 숨김
