@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 17:53 — deleteCurrentMonth 및 관련 참조 전체 제거
+// 수정: 2026-06-01 09:12 — 수정·지급완료 이모지 자물쇠→SVG 교체, 수정 버튼 주황색, 상태 띠 SVG
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -16,24 +16,27 @@ function _applyPaidLock(locked) {
       inp.style.borderColor = locked ? 'transparent' : '';
     });
   }
-  const saveBtn = document.getElementById('btn-save');
-  const saveSvg = saveBtn ? saveBtn.querySelector('svg') : null;
-  const saveTxt = document.getElementById('t-save-btn');
+  const saveBtn   = document.getElementById('btn-save');
+  const svgDisk   = document.getElementById('svg-save-disk');
+  const svgUnlock = document.getElementById('svg-save-unlock');
+  const saveTxt   = document.getElementById('t-save-btn');
   if (!saveBtn) return;
   if (locked) {
-    saveBtn.onclick        = unlockPaidMonth;
-    saveBtn.style.background  = '#16a34a';
-    saveBtn.style.borderColor = '#16a34a';
+    saveBtn.onclick           = unlockPaidMonth;
+    saveBtn.style.background  = '#ea580c';
+    saveBtn.style.borderColor = '#ea580c';
     saveBtn.style.color       = '#fff';
-    if (saveSvg) saveSvg.style.display = 'none';
-    if (saveTxt) saveTxt.textContent = LANG === 'JP' ? '🔓 修正' : '🔓 수정';
+    if (svgDisk)   svgDisk.style.display   = 'none';
+    if (svgUnlock) svgUnlock.style.display = '';
+    if (saveTxt)   saveTxt.textContent     = LANG === 'JP' ? '修正' : '수정';
   } else {
-    saveBtn.onclick        = saveCurrent;
+    saveBtn.onclick           = saveCurrent;
     saveBtn.style.background  = '';
     saveBtn.style.borderColor = '';
     saveBtn.style.color       = '';
-    if (saveSvg) saveSvg.style.display = '';
-    if (saveTxt) saveTxt.textContent = LANG === 'JP' ? '保存' : '저장';
+    if (svgDisk)   svgDisk.style.display   = '';
+    if (svgUnlock) svgUnlock.style.display = 'none';
+    if (saveTxt)   saveTxt.textContent     = LANG === 'JP' ? '保存' : '저장';
   }
 }
 
@@ -71,10 +74,11 @@ function _updatePayrollStatus(status) {
     empty:  { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)',
       text: jp ? '— 入力なし' : '— 입력값 없음' },
     paid:   { bg:'#eff6ff', color:'#1e40af', border:'#bfdbfe',
-      text: (jp ? '🔒 支払済み' : '🔒 지급완료') + (paidDateTxt ? ` (${paidDateTxt})` : '') },
+      text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13" style="vertical-align:-1px;margin-right:4px;flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+          + (jp ? '支払済み' : '지급완료') + (paidDateTxt ? ` (${paidDateTxt})` : '') },
   }[status] || { bg:'var(--surface2)', color:'var(--text3)', border:'var(--border)', text:'' };
   el.style.cssText = `display:flex;align-items:center;padding:5px 16px;font-size:11px;font-weight:600;background:${cfg.bg};color:${cfg.color};border-top:1px solid ${cfg.border};border-bottom:1px solid ${cfg.border};`;
-  el.textContent = cfg.text;
+  el.innerHTML = cfg.text;
 }
 
 function renderMonthTabs() {
@@ -616,13 +620,13 @@ function renderPaidBtn() {
     btn.style.cursor = 'default';
   } else if (isSaved) {
     // 저장 완료 — 지급완료 가능
-    if (span) span.textContent = '🔒 이 달 지급완료';
+    if (span) span.textContent = '이 달 지급완료';
     btn.disabled = false;
     btn.style.opacity = '';
     btn.style.cursor = '';
   } else {
     // 임시값·미저장·미선택 — 비활성
-    if (span) span.textContent = '🔒 이 달 지급완료';
+    if (span) span.textContent = '이 달 지급완료';
     btn.disabled = true;
     btn.style.opacity = '0.4';
     btn.style.cursor = 'not-allowed';
