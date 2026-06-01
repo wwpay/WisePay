@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 23:12 — 위험 구역 섹션 재수정: 기존 프레임 복원 + 설명 블록만 VS Code 다크 스타일
+  수정: 2026-06-01 23:21 — 위험 구역 섹션 세부 수정: 헤더 단순화, 다크 블록 구조 변경, 이중 confirm
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -522,31 +522,24 @@
   <!-- ④ 위험 구역 -->
   <div style="border:1px solid #fecaca;border-radius:10px;overflow:hidden;">
     <div style="background:#fff5f5;padding:10px 16px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:7px;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span style="font-size:12px;font-weight:600;color:#ef4444;">⚠ 위험 구역 / 危険エリア</span>
+      <span style="font-size:12px;font-weight:600;color:#ef4444;" id="t-reset-zone">⚠ 위험 구역</span>
     </div>
     <div style="padding:14px 16px;background:#fff;">
-      <div style="font-size:14px;font-weight:700;color:#ff8c00;margin-bottom:10px;">
-        로컬 데이터 초기화 / ローカルデータ初期化
-      </div>
       <!-- VS Code dark 스타일 설명 블록 -->
-      <div style="background:#1e1e1e;border-radius:7px;padding:14px 16px;font-family:Consolas,'Courier New',monospace;font-size:14px;line-height:1.9;margin-bottom:14px;">
-        <div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div>
-        <div style="padding-left:12px;">
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">브라우저(localStorage)에 저장된 모든 캐시 데이터를 삭제합니다.</span></div>
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">삭제 후 새로고침하면 Google Sheets에서 데이터를 다시 불러옵니다.</span></div>
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">앱이 비정상 동작하거나 데이터가 꼬였을 때 리셋 용도로 사용하세요.</span></div>
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Google Sheets의 데이터는 삭제되지 않습니다.</span></div>
+      <div style="background:#1e1e1e;border-radius:7px;font-family:Consolas,'Courier New',monospace;font-size:14px;margin-bottom:14px;border-top:1px solid rgba(255,255,255,0.25);border-bottom:1px solid rgba(255,255,255,0.25);">
+        <div style="padding:8px 16px 8px 16px;border-bottom:1px solid rgba(255,255,255,0.1);">
+          <span id="t-reset-title" style="font-weight:700;color:#ef4444;">로컬 데이터 초기화</span>
         </div>
-        <div style="color:#6a9955;margin-top:6px;margin-bottom:10px;">--&gt;</div>
-        <div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div>
-        <div style="padding-left:12px;">
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">ブラウザ(localStorage)に保存されたすべてのキャッシュデータを削除します。</span></div>
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">削除後に再読み込みすると、Google Sheetsからデータを再取得します。</span></div>
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">アプリの動作がおかしい場合やデータが壊れた場合のリセット用途でご使用ください。</span></div>
-          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Googleスプレッドシートのデータは削除されません。</span></div>
+        <div id="t-reset-desc" style="padding:10px 16px 10px 16px;line-height:1.9;">
+          <div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div>
+          <div style="padding-left:12px;">
+            <div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">브라우저(localStorage)에 저장된 모든 캐시 데이터를 삭제합니다.</span></div>
+            <div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">삭제 후 새로고침하면 Google Sheets에서 데이터를 다시 불러옵니다.</span></div>
+            <div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">앱이 비정상 동작하거나 데이터가 꼬였을 때 리셋 용도로 사용하세요.</span></div>
+            <div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Google Sheets의 데이터는 삭제되지 않습니다.</span></div>
+          </div>
+          <div style="color:#6a9955;margin-top:6px;">--&gt;</div>
         </div>
-        <div style="color:#6a9955;margin-top:6px;">--&gt;</div>
       </div>
       <div style="display:flex;justify-content:flex-end;">
         <button onclick="resetLocalData()" style="flex-shrink:0;padding:8px 16px;background:#fff;color:#ef4444;border:1px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff'">

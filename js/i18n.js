@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-01 23:04 — 위험 구역 섹션 터미널 리디자인으로 불필요해진 i18n 항목 3개 제거
+﻿// 수정: 2026-06-01 23:21 — 위험 구역 t-reset-zone/title/desc i18n 복원, desc를 setHtml로 언어별 전환
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -118,7 +118,13 @@ function applyLang() {
   renderBackupFolderStatus();
   try { _updatePayrollStatus(_payrollDataStatus); } catch(e) {}
 
-  setTxt('t-reset-btn', '初期化', '초기화');
+  setTxt('t-reset-zone',  '⚠ 危険エリア',        '⚠ 위험 구역');
+  setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');
+  setTxt('t-reset-btn',   '初期化',               '초기화');
+  setHtml('t-reset-desc',
+    '<div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div><div style="padding-left:12px;"><div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">ブラウザ(localStorage)に保存されたすべてのキャッシュデータを削除します。</span></div><div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">削除後に再読み込みすると、Google Sheetsからデータを再取得します。</span></div><div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">アプリの動作がおかしい場合やデータが壊れた場合のリセット用途でご使用ください。</span></div><div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Googleスプレッドシートのデータは削除されません。</span></div></div><div style="color:#6a9955;margin-top:6px;">--&gt;</div>',
+    '<div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div><div style="padding-left:12px;"><div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">브라우저(localStorage)에 저장된 모든 캐시 데이터를 삭제합니다.</span></div><div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">삭제 후 새로고침하면 Google Sheets에서 데이터를 다시 불러옵니다.</span></div><div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">앱이 비정상 동작하거나 데이터가 꼬였을 때 리셋 용도로 사용하세요.</span></div><div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Google Sheets의 데이터는 삭제되지 않습니다.</span></div></div><div style="color:#6a9955;margin-top:6px;">--&gt;</div>'
+  );
 
   setTxt('t-rates-page-title', '保険料率設定', '보험료율 설정');
   setTxt('t-rates-desc', '協会けんぽ東京都・2026年度の料率。改定時に更新してください。', '協会けんぽ 도쿄도・2026년도 요율. 개정 시 업데이트해 주세요.');

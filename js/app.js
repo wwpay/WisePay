@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-31 17:53 — deleteCurrentMonth 관련 참조 제거
+﻿// 수정: 2026-06-01 23:21 — resetLocalData 이중 confirm으로 변경
 'use strict';
 
 // families(16세 이상) 기반으로 employees의 fuyouCount를 재계산하여 저장
@@ -246,10 +246,14 @@ function gotoPage(id, el) {
 
 function resetLocalData() {
   const jp = LANG === 'JP';
-  const msg = jp
-    ? '⚠️ ローカルデータをすべて削除します。\n\n従業員・給与・保険料率データが消去されます。\nGoogleのデータは影響を受けません。\n\n本当に初期化しますか？'
-    : '⚠️ 로컬 데이터를 모두 삭제합니다.\n\n사원·급여·보험료율 데이터가 지워집니다.\nGoogle 시트 데이터는 영향 없습니다.\n\n정말 초기화하시겠습니까?';
-  if (!confirm(msg)) return;
+  const msg1 = jp
+    ? 'ローカルデータを初期化しますか？\nこの操作は元に戻せません。'
+    : '로컬 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.';
+  const msg2 = jp
+    ? '本当に初期化しますか？\nブラウザのすべてのキャッシュデータが削除されます。'
+    : '정말로 초기화하시겠습니까?\n브라우저의 모든 캐시 데이터가 삭제됩니다.';
+  if (!confirm(msg1)) return;
+  if (!confirm(msg2)) return;
 
   // kyuyo_ 접두사 키 전체 삭제 (lang, auth 제외)
   const keepKeys = new Set([LS.lang, AUTH_SESS_KEY, AUTH_ID_KEY]);
