@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 22:25 — mSyncFromGas 추가: admin 경로 GAS 동기화 누락 수정 (폰 첫 접속 사원 목록 비어있는 문제)
+  수정: 2026-06-01 22:41 — viewer 열람 전용 배지 UI 제거
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -27,7 +27,7 @@
   height: 52px; display: flex; align-items: center; padding: 0 12px; gap: 8px;
 }
 .m-topbar-l { flex: 1; display: flex; align-items: center; gap: 6px; }
-.topbar-l { display: flex; align-items: center; gap: 6px; flex: 1; } /* auth.js viewer badge */
+.topbar-l { display: flex; align-items: center; gap: 6px; flex: 1; }
 .m-app-name { font-size: 17px; font-weight: 800; color: var(--accent); letter-spacing: -0.4px; }
 .m-app-sub  { font-size: 9px; color: var(--text3); font-weight: 500; }
 .m-topbar-btn {
@@ -636,8 +636,6 @@ function mApplyLang() {
   setT('m-tab-a',      '賃金台帳',      '임금대장');
   setT('m-tab-e',      '従業員管理',    '사원 관리');
   setT('m-back-txt',   '一覧へ',        '목록으로');
-  const badge = document.querySelector('.viewer-badge');
-  if (badge) badge.textContent = jp ? '閲覧専用' : '열람 전용';
 }
 
 function mToggleLang() {

@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 17:53 — deleteCurrentMonth 관련 참조 제거
+// 수정: 2026-06-01 22:41 — viewer 열람 전용 배지 UI 제거 (권한 제한 로직은 유지)
 'use strict';
 
 const AUTH_SESS_KEY = 'wisepay_session';
@@ -250,16 +250,6 @@ function applyViewerRestrictions() {
     inp.style.cursor      = 'default';
     inp.style.borderColor = 'transparent';
   });
-
-  // 상단바에 열람 전용 배지 표시
-  const topbarL = document.querySelector('.topbar-l');
-  if (topbarL && !topbarL.querySelector('.viewer-badge')) {
-    const badge = document.createElement('span');
-    badge.className = 'viewer-badge';
-    badge.textContent = LANG === 'JP' ? '閲覧専用' : '열람 전용';
-    badge.style.cssText = 'font-size:11px;color:#fff;background:#64748b;border-radius:4px;padding:2px 8px;margin-left:8px;font-weight:600;';
-    topbarL.appendChild(badge);
-  }
 
   // 쓰기 함수 일괄 no-op 오버라이드
   const blocked = () => {
