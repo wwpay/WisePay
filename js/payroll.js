@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 09:12 — 저장 버튼 디스켓 SVG→💾 이모지, 수정 버튼 배경색 물색(#21badf)으로 변경
+// 수정: 2026-06-01 10:19 — 수정 버튼 배경색 #475569, 지급완료 버튼 문구 변경
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -22,8 +22,8 @@ function _applyPaidLock(locked) {
   if (!saveBtn) return;
   if (locked) {
     saveBtn.onclick           = unlockPaidMonth;
-    saveBtn.style.background  = '#21badf';
-    saveBtn.style.borderColor = '#21badf';
+    saveBtn.style.background  = '#475569';
+    saveBtn.style.borderColor = '#475569';
     saveBtn.style.color       = '#fff';
     if (saveIcon) saveIcon.style.display = 'none';
     if (saveTxt)  saveTxt.textContent    = LANG === 'JP' ? '🔓 修正' : '🔓 수정';
@@ -610,19 +610,19 @@ function renderPaidBtn() {
   const isSaved = _payrollDataStatus === 'saved'; // 저장 완료 상태에서만 지급완료 가능
   if (isPaid) {
     // 이미 지급완료 — 재처리 방지
-    if (span) span.textContent = '✓ 지급완료됨';
+    if (span) span.textContent = '✓ 지급 완료';
     btn.disabled = true;
     btn.style.opacity = '0.55';
     btn.style.cursor = 'default';
   } else if (isSaved) {
     // 저장 완료 — 지급완료 가능
-    if (span) span.textContent = '🔒 이 달 지급완료';
+    if (span) span.textContent = '🔒 지급 확정';
     btn.disabled = false;
     btn.style.opacity = '';
     btn.style.cursor = '';
   } else {
     // 임시값·미저장·미선택 — 비활성
-    if (span) span.textContent = '🔒 이 달 지급완료';
+    if (span) span.textContent = '🔒 지급 확정';
     btn.disabled = true;
     btn.style.opacity = '0.4';
     btn.style.cursor = 'not-allowed';
