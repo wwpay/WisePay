@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 22:20 — mLoadViewerData gasRequest 타임아웃 15초→25초, GAS 콜드 스타트 대응
+  수정: 2026-06-01 22:25 — mSyncFromGas 추가: admin 경로 GAS 동기화 누락 수정 (폰 첫 접속 사원 목록 비어있는 문제)
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -422,6 +422,58 @@ function migratePayrollKeys()  {}
 /* ── viewer 모드 GAS 데이터 ── */
 let mViewerPayrolls = null; // null=admin모드, 배열=viewer모드(GAS 데이터)
 
+async function mSyncFromGas() {
+  if (!gasUrl) return;
+  const jp = LANG === 'JP';
+  const out = document.getElementById('m-payroll-out');
+  if (!employees.length && out) {
+    out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">⏳</div>${jp?'データを読み込んでいます…':'데이터 로드 중…'}</div>`;
+  }
+  try {
+    const result = await gasRequest({ action: 'getAll' }, 25000);
+    const d = result.data || result;
+    if (d.employees && d.employees.length > 0) {
+      employees = d.employees.map(e => ({
+        ...e,
+        join:        normalizeDate(e.join || ''),
+        leave:       normalizeDate(e.leave || ''),
+        birth:       normalizeDate(e.birth || ''),
+        families:    typeof e.families === 'string' ? JSON.parse(e.families || '[]') : (e.families || []),
+        fuyouCount:  parseInt(e.fuyouCount) || 0,
+        commute:     parseInt(e.commute) || 0,
+        shaho_start: normalizeYM(e.shaho_start || '')
+      }));
+      localStorage.setItem(LS.emp, JSON.stringify(employees));
+    }
+    if (Array.isArray(d.payrolls)) {
+      d.payrolls.forEach(p => {
+        const key = 'kyuyo_p_' + String(p.no).padStart(4, '0') + '_' + p.year + '_' + p.month;
+        localStorage.setItem(key, JSON.stringify(p));
+      });
+    }
+    if (d.rateHistory && d.rateHistory.length > 0) {
+      rateHistory = d.rateHistory.map(r => ({
+        from:   normalizeYM(r.from),
+        kenko:  parseFloat(r.kenko)  || 9.85,
+        kaigo:  parseFloat(r.kaigo)  || 1.62,
+        kodomo: parseFloat(r.kodomo) || 0,
+        nenkin: parseFloat(r.nenkin) || 18.30,
+        koyo:   parseFloat(r.koyo)   || 0.50
+      }));
+      localStorage.setItem(LS.rateHistory, JSON.stringify(rateHistory));
+    }
+    mRenderEmpSels();
+    mRenderPayroll();
+    mRenderAnnual();
+    mRenderEmpList();
+  } catch(err) {
+    console.warn('mSyncFromGas failed:', err);
+    if (!employees.length) {
+      showToast(jp ? 'データの読み込みに失敗しました' : 'GAS 데이터 로드 실패', 'e');
+    }
+  }
+}
+
 async function mLoadViewerData() {
   const jp = LANG === 'JP';
   const out = document.getElementById('m-payroll-out');
@@ -570,6 +622,7 @@ function mInitApp() {
   mRenderPayroll();
   mRenderAnnual();
   mRenderEmpList();
+  mSyncFromGas(); // admin: GAS 최신 데이터 동기화 (localStorage 비어있으면 로딩 표시)
 }
 
 /* ── 언어 ── */
