@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 12:33 — 임금대장: 지급완료된 달만 데이터 표시, 미확정 달은 빈칸
+// 수정: 2026-06-01 14:05 — 임금대장: 13열 고정(전년12~당해12), 헤더 "합계"로 변경
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -209,9 +209,10 @@ function buildEmpTableHtml(emp, year, jp) {
   const mu = jp ? '月' : '월';
   const fmt = n => n.toLocaleString();
 
+  // 전년 12월 + 당해 1~12월 = 13열 고정
   const fiscalMonths = [
     { year: year-1, month: 12 },
-    ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
+    ...Array.from({length:12}, (_,i) => ({ year, month: i+1 }))
   ];
   const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
 
@@ -223,14 +224,12 @@ function buildEmpTableHtml(emp, year, jp) {
   // 지급완료된 달에 데이터가 하나도 없으면 테이블 미표시
   if (!monthData.some((d, i) => d !== null && isPaid[i])) return null;
 
-  // 컬럼 수: 데이터가 있는 마지막 달까지 (미확정 달도 자리 유지)
-  let lastIdx = 0;
-  for(let i=0;i<12;i++) { if(monthData[i]!==null) lastIdx=i; }
-  const showCount = lastIdx+1;
+  // 항상 13열 전체 표시 (미확정·무데이터 달도 자리 유지)
+  const showCount = fiscalMonths.length; // 13
   const cols = `grid-template-columns:110px repeat(${showCount},1fr) 86px;`;
 
-  // 연계(합계)는 지급완료된 달만 합산
-  const sumKey = k => monthData.slice(0,showCount).reduce((s,d,i) => s + (d && isPaid[i] ? d[k] : 0), 0);
+  // 합계열은 지급완료된 달만 합산
+  const sumKey = k => monthData.reduce((s,d,i) => s + (d && isPaid[i] ? d[k] : 0), 0);
 
   const payItems = [
     {key:'base',    label:jp?'基本給':'기본급'},
@@ -266,7 +265,7 @@ function buildEmpTableHtml(emp, year, jp) {
     const {year:y,month:m}=fiscalMonths[i];
     html += `<div>${(m===12&&y===year-1)?(jp?`前年<br>12${mu}`:`전년<br>12${mu}`):`${m}${mu}`}</div>`;
   }
-  html += `<div>${jp?'年計':'연계'}</div></div>`;
+  html += `<div>${jp?'年計':'합계'}</div></div>`;
 
   payItems.forEach(r => {
     html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
