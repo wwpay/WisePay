@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 09:12 — 수정 버튼 잠금 상태 배경색 청록(#0891b2)으로 변경
+// 수정: 2026-06-01 09:12 — 저장 버튼 디스켓 SVG→💾 이모지, 수정 버튼 배경색 물색(#21badf)으로 변경
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -16,24 +16,24 @@ function _applyPaidLock(locked) {
       inp.style.borderColor = locked ? 'transparent' : '';
     });
   }
-  const saveBtn = document.getElementById('btn-save');
-  const saveSvg = saveBtn ? saveBtn.querySelector('svg') : null;
-  const saveTxt = document.getElementById('t-save-btn');
+  const saveBtn  = document.getElementById('btn-save');
+  const saveIcon = document.getElementById('span-save-icon');
+  const saveTxt  = document.getElementById('t-save-btn');
   if (!saveBtn) return;
   if (locked) {
-    saveBtn.onclick        = unlockPaidMonth;
-    saveBtn.style.background  = '#0891b2';
-    saveBtn.style.borderColor = '#0891b2';
+    saveBtn.onclick           = unlockPaidMonth;
+    saveBtn.style.background  = '#21badf';
+    saveBtn.style.borderColor = '#21badf';
     saveBtn.style.color       = '#fff';
-    if (saveSvg) saveSvg.style.display = 'none';
-    if (saveTxt) saveTxt.textContent = LANG === 'JP' ? '🔓 修正' : '🔓 수정';
+    if (saveIcon) saveIcon.style.display = 'none';
+    if (saveTxt)  saveTxt.textContent    = LANG === 'JP' ? '🔓 修正' : '🔓 수정';
   } else {
-    saveBtn.onclick        = saveCurrent;
+    saveBtn.onclick           = saveCurrent;
     saveBtn.style.background  = '';
     saveBtn.style.borderColor = '';
     saveBtn.style.color       = '';
-    if (saveSvg) saveSvg.style.display = '';
-    if (saveTxt) saveTxt.textContent = LANG === 'JP' ? '保存' : '저장';
+    if (saveIcon) saveIcon.style.display = '';
+    if (saveTxt)  saveTxt.textContent    = LANG === 'JP' ? '保存' : '저장';
   }
 }
 
