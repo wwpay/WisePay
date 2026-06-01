@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 22:52 — 데이터 관리 화면 일회용 도구 섹션 완전 제거
+  수정: 2026-06-01 23:04 — 위험 구역 섹션 VS Code 터미널 스타일로 리디자인
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -519,20 +519,37 @@
     </div>
   </div>
 
-  <!-- ④ 위험 구역 -->
-  <div style="border:1px solid #fecaca;border-radius:10px;overflow:hidden;">
-    <div style="background:#fff5f5;padding:10px 16px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:7px;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span style="font-size:12px;font-weight:600;color:#ef4444;" id="t-reset-zone">위험 구역</span>
+  <!-- ④ 위험 구역 — VS Code terminal style -->
+  <div style="border:1px solid #3c3c3c;border-radius:10px;overflow:hidden;">
+    <!-- macOS-style title bar -->
+    <div style="background:#2d2d2d;padding:9px 14px;border-bottom:1px solid #3c3c3c;display:flex;align-items:center;gap:7px;">
+      <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;display:inline-block;flex-shrink:0;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#febc2e;display:inline-block;flex-shrink:0;"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#28c840;display:inline-block;flex-shrink:0;"></span>
+      <span style="font-size:11px;color:#8a8a8a;margin-left:6px;font-family:Consolas,'Courier New',monospace;letter-spacing:0.3px;">wisepay — admin@terminal</span>
     </div>
-    <div style="padding:14px 16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <div>
-        <div style="font-size:13px;font-weight:600;color:#1e293b;" id="t-reset-title">로컬 데이터 초기화</div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:3px;" id="t-reset-desc">사원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.</div>
+    <!-- Terminal body -->
+    <div style="background:#1e1e1e;padding:18px 20px;font-family:Consolas,'Courier New',monospace;">
+      <div style="font-size:13px;line-height:2.0;color:#d4d4d4;word-break:break-word;">
+        <div style="color:#6a9955;">// ⚠ 위험 구역 / 危険エリア</div>
+        <div style="color:#6a9955;">//</div>
+        <div><span style="color:#6a9955;">// [</span><span style="color:#ce9178;">로컬 데이터 초기화</span><span style="color:#6a9955;"> / </span><span style="color:#ce9178;">ローカルデータ初期化</span><span style="color:#6a9955;">]</span></div>
+        <div style="color:#6a9955;">//</div>
+        <div><span style="color:#6a9955;">// &gt; </span>브라우저(localStorage)에 저장된 모든 캐시 데이터를 삭제합니다.</div>
+        <div><span style="color:#6a9955;">// &gt; </span>삭제 후 새로고침하면 Google Sheets에서 데이터를 다시 불러옵니다.</div>
+        <div><span style="color:#6a9955;">// &gt; </span>앱이 비정상 동작하거나 데이터가 꼬였을 때 리셋 용도로 사용하세요.</div>
+        <div style="color:#6a9955;">//</div>
+        <div><span style="color:#6a9955;">// [!] </span><span style="color:#4ec9b0;font-weight:600;">Google Sheets의 데이터는 삭제되지 않습니다.</span></div>
+        <div><span style="color:#6a9955;">// [!] </span><span style="color:#4ec9b0;font-weight:600;">Googleスプレッドシートのデータは削除されません。</span></div>
       </div>
-      <button onclick="resetLocalData()" style="flex-shrink:0;padding:8px 16px;background:#fff;color:#ef4444;border:1px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff'">
-        <span id="t-reset-btn">초기화</span>
-      </button>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #3c3c3c;display:flex;justify-content:flex-end;">
+        <button onclick="resetLocalData()"
+          style="padding:8px 22px;background:transparent;color:#f44747;border:1px solid #f44747;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:Consolas,'Courier New',monospace;transition:background .15s,color .15s;"
+          onmouseover="this.style.background='#f44747';this.style.color='#1e1e1e'"
+          onmouseout="this.style.background='transparent';this.style.color='#f44747'">
+          $ <span id="t-reset-btn">초기화</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-﻿// 수정: 2026-05-31 17:53 — t-del-month-btn 주석 제거
+﻿// 수정: 2026-06-01 23:04 — 위험 구역 섹션 터미널 리디자인으로 불필요해진 i18n 항목 3개 제거
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -118,9 +118,6 @@ function applyLang() {
   renderBackupFolderStatus();
   try { _updatePayrollStatus(_payrollDataStatus); } catch(e) {}
 
-  setTxt('t-reset-zone', '危険区域', '위험 구역');
-  setTxt('t-reset-title', 'ローカルデータ初期化', '로컬 데이터 초기화');
-  setTxt('t-reset-desc', '従業員・給与・保険料率などブラウザに保存されたデータをすべて削除します。', '사원·급여·요율 등 브라우저에 저장된 모든 데이터를 삭제합니다.');
   setTxt('t-reset-btn', '初期化', '초기화');
 
   setTxt('t-rates-page-title', '保険料率設定', '보험료율 설정');
