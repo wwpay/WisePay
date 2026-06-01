@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 10:19 — 수정 버튼 배경색 #475569, 지급완료 버튼 문구 변경
+// 수정: 2026-06-01 10:20 — 수정 버튼 배경색 #52525b으로 변경
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -22,8 +22,8 @@ function _applyPaidLock(locked) {
   if (!saveBtn) return;
   if (locked) {
     saveBtn.onclick           = unlockPaidMonth;
-    saveBtn.style.background  = '#475569';
-    saveBtn.style.borderColor = '#475569';
+    saveBtn.style.background  = '#52525b';
+    saveBtn.style.borderColor = '#52525b';
     saveBtn.style.color       = '#fff';
     if (saveIcon) saveIcon.style.display = 'none';
     if (saveTxt)  saveTxt.textContent    = LANG === 'JP' ? '🔓 修正' : '🔓 수정';
