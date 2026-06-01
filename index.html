@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-06-01 23:04 — 위험 구역 섹션 VS Code 터미널 스타일로 리디자인
+  수정: 2026-06-01 23:12 — 위험 구역 섹션 재수정: 기존 프레임 복원 + 설명 블록만 VS Code 다크 스타일
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -519,35 +519,38 @@
     </div>
   </div>
 
-  <!-- ④ 위험 구역 — VS Code terminal style -->
-  <div style="border:1px solid #3c3c3c;border-radius:10px;overflow:hidden;">
-    <!-- macOS-style title bar -->
-    <div style="background:#2d2d2d;padding:9px 14px;border-bottom:1px solid #3c3c3c;display:flex;align-items:center;gap:7px;">
-      <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;display:inline-block;flex-shrink:0;"></span>
-      <span style="width:11px;height:11px;border-radius:50%;background:#febc2e;display:inline-block;flex-shrink:0;"></span>
-      <span style="width:11px;height:11px;border-radius:50%;background:#28c840;display:inline-block;flex-shrink:0;"></span>
-      <span style="font-size:11px;color:#8a8a8a;margin-left:6px;font-family:Consolas,'Courier New',monospace;letter-spacing:0.3px;">wisepay — admin@terminal</span>
+  <!-- ④ 위험 구역 -->
+  <div style="border:1px solid #fecaca;border-radius:10px;overflow:hidden;">
+    <div style="background:#fff5f5;padding:10px 16px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:7px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span style="font-size:12px;font-weight:600;color:#ef4444;">⚠ 위험 구역 / 危険エリア</span>
     </div>
-    <!-- Terminal body -->
-    <div style="background:#1e1e1e;padding:18px 20px;font-family:Consolas,'Courier New',monospace;">
-      <div style="font-size:13px;line-height:2.0;color:#d4d4d4;word-break:break-word;">
-        <div style="color:#6a9955;">// ⚠ 위험 구역 / 危険エリア</div>
-        <div style="color:#6a9955;">//</div>
-        <div><span style="color:#6a9955;">// [</span><span style="color:#ce9178;">로컬 데이터 초기화</span><span style="color:#6a9955;"> / </span><span style="color:#ce9178;">ローカルデータ初期化</span><span style="color:#6a9955;">]</span></div>
-        <div style="color:#6a9955;">//</div>
-        <div><span style="color:#6a9955;">// &gt; </span>브라우저(localStorage)에 저장된 모든 캐시 데이터를 삭제합니다.</div>
-        <div><span style="color:#6a9955;">// &gt; </span>삭제 후 새로고침하면 Google Sheets에서 데이터를 다시 불러옵니다.</div>
-        <div><span style="color:#6a9955;">// &gt; </span>앱이 비정상 동작하거나 데이터가 꼬였을 때 리셋 용도로 사용하세요.</div>
-        <div style="color:#6a9955;">//</div>
-        <div><span style="color:#6a9955;">// [!] </span><span style="color:#4ec9b0;font-weight:600;">Google Sheets의 데이터는 삭제되지 않습니다.</span></div>
-        <div><span style="color:#6a9955;">// [!] </span><span style="color:#4ec9b0;font-weight:600;">Googleスプレッドシートのデータは削除されません。</span></div>
+    <div style="padding:14px 16px;background:#fff;">
+      <div style="font-size:14px;font-weight:700;color:#ff8c00;margin-bottom:10px;">
+        로컬 데이터 초기화 / ローカルデータ初期化
       </div>
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #3c3c3c;display:flex;justify-content:flex-end;">
-        <button onclick="resetLocalData()"
-          style="padding:8px 22px;background:transparent;color:#f44747;border:1px solid #f44747;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:Consolas,'Courier New',monospace;transition:background .15s,color .15s;"
-          onmouseover="this.style.background='#f44747';this.style.color='#1e1e1e'"
-          onmouseout="this.style.background='transparent';this.style.color='#f44747'">
-          $ <span id="t-reset-btn">초기화</span>
+      <!-- VS Code dark 스타일 설명 블록 -->
+      <div style="background:#1e1e1e;border-radius:7px;padding:14px 16px;font-family:Consolas,'Courier New',monospace;font-size:14px;line-height:1.9;margin-bottom:14px;">
+        <div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div>
+        <div style="padding-left:12px;">
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">브라우저(localStorage)에 저장된 모든 캐시 데이터를 삭제합니다.</span></div>
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">삭제 후 새로고침하면 Google Sheets에서 데이터를 다시 불러옵니다.</span></div>
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">앱이 비정상 동작하거나 데이터가 꼬였을 때 리셋 용도로 사용하세요.</span></div>
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Google Sheets의 데이터는 삭제되지 않습니다.</span></div>
+        </div>
+        <div style="color:#6a9955;margin-top:6px;margin-bottom:10px;">--&gt;</div>
+        <div style="color:#6a9955;margin-bottom:4px;">&lt;!--</div>
+        <div style="padding-left:12px;">
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">1</span><span style="color:#d4d4d4;">ブラウザ(localStorage)に保存されたすべてのキャッシュデータを削除します。</span></div>
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">2</span><span style="color:#d4d4d4;">削除後に再読み込みすると、Google Sheetsからデータを再取得します。</span></div>
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">3</span><span style="color:#d4d4d4;">アプリの動作がおかしい場合やデータが壊れた場合のリセット用途でご使用ください。</span></div>
+          <div><span style="color:#6a9955;margin-right:10px;user-select:none;">4</span><span style="color:#4ec9b0;font-weight:600;">✅ Googleスプレッドシートのデータは削除されません。</span></div>
+        </div>
+        <div style="color:#6a9955;margin-top:6px;">--&gt;</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button onclick="resetLocalData()" style="flex-shrink:0;padding:8px 16px;background:#fff;color:#ef4444;border:1px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff'">
+          <span id="t-reset-btn">초기화</span>
         </button>
       </div>
     </div>
