@@ -1,4 +1,4 @@
-// 수정: 2026-06-01 14:05 — 임금대장: 13열 고정(전년12~당해12), 헤더 "합계"로 변경
+// 수정: 2026-06-01 16:40 — 임금대장: 전년12~당해11(12열), 일본어 합계 "年計"→"合計"
 'use strict';
 function getAvailableAnnualYears() {
   const years = new Set();
@@ -209,10 +209,10 @@ function buildEmpTableHtml(emp, year, jp) {
   const mu = jp ? '月' : '월';
   const fmt = n => n.toLocaleString();
 
-  // 전년 12월 + 당해 1~12월 = 13열 고정
+  // 전년 12월 + 당해 1~11월 = 12열 고정 (익월10일 지급 기준: 지급년도 1/10~12/10 = 급여월 전년12~당해11)
   const fiscalMonths = [
     { year: year-1, month: 12 },
-    ...Array.from({length:12}, (_,i) => ({ year, month: i+1 }))
+    ...Array.from({length:11}, (_,i) => ({ year, month: i+1 }))
   ];
   const monthData = fiscalMonths.map(({year:y, month:m}) => calcMonthData(emp, y, m));
 
@@ -224,8 +224,8 @@ function buildEmpTableHtml(emp, year, jp) {
   // 지급완료된 달에 데이터가 하나도 없으면 테이블 미표시
   if (!monthData.some((d, i) => d !== null && isPaid[i])) return null;
 
-  // 항상 13열 전체 표시 (미확정·무데이터 달도 자리 유지)
-  const showCount = fiscalMonths.length; // 13
+  // 항상 12열 전체 표시 (미확정·무데이터 달도 자리 유지)
+  const showCount = fiscalMonths.length; // 12
   const cols = `grid-template-columns:110px repeat(${showCount},1fr) 86px;`;
 
   // 합계열은 지급완료된 달만 합산
@@ -265,7 +265,7 @@ function buildEmpTableHtml(emp, year, jp) {
     const {year:y,month:m}=fiscalMonths[i];
     html += `<div>${(m===12&&y===year-1)?(jp?`前年<br>12${mu}`:`전년<br>12${mu}`):`${m}${mu}`}</div>`;
   }
-  html += `<div>${jp?'年計':'합계'}</div></div>`;
+  html += `<div>${jp?'合計':'합계'}</div></div>`;
 
   payItems.forEach(r => {
     html += `<div class="annual-data-row" style="${cols}"><div>${r.label}</div>`;
