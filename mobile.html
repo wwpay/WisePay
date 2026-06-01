@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <!--
-  수정: 2026-05-30 00:41 — viewer idle 자동 로그아웃 모달 + 비밀번호 눈 아이콘
+  수정: 2026-06-01 22:20 — mLoadViewerData gasRequest 타임아웃 15초→25초, GAS 콜드 스타트 대응
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -427,7 +427,7 @@ async function mLoadViewerData() {
   const out = document.getElementById('m-payroll-out');
   if (out) out.innerHTML = `<div class="m-placeholder"><div class="m-placeholder-icon">⏳</div>${jp?'データを読み込んでいます…':'데이터 로드 중…'}</div>`;
   try {
-    const result = await gasRequest({ action: 'getAll' });
+    const result = await gasRequest({ action: 'getAll' }, 25000);
     const d = result.data || result;
     if (d.employees && d.employees.length > 0) {
       employees = d.employees.map(e => ({

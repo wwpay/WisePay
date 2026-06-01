@@ -1,4 +1,4 @@
-// 수정: 2026-05-31 12:40 — 지급완료 기능 1단계: autoLoadFromGas에 paidYMs 로드 추가
+// 수정: 2026-06-01 22:20 — autoLoadFromGas 타임아웃 15초→25초, 콜드 스타트 대응 로딩 안내 추가
 'use strict';
 
 // ── 동기화 로그 기록 헬퍼 (fire-and-forget) ──
@@ -298,8 +298,15 @@ function updateGasUrlBadge() {
 // 로그인 후 GAS에서 조용히 최신 데이터 가져오기 (confirm 없음)
 async function autoLoadFromGas() {
   if (!gasUrl) return;
+  // GAS 콜드 스타트(~15초) 대응: 로딩 중 안내 표시
+  const dot = document.getElementById('gasDot') || document.getElementById('gas-dot');
+  const txt = document.getElementById('gasText') || document.getElementById('gas-txt');
+  if (dot && txt) {
+    dot.className = 'sdot sdot-wait';
+    txt.textContent = LANG === 'JP' ? 'データ読込中…' : '데이터 로드 중…';
+  }
   try {
-    const result = await gasRequest({ action: 'getAll' });
+    const result = await gasRequest({ action: 'getAll' }, 25000);
     const d = result.data || result;
     if (d.employees && d.employees.length > 0) {
       employees = d.employees.map(e => ({
