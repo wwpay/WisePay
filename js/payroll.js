@@ -1,4 +1,4 @@
-// 수정: 2026-06-02 05:45 — onEmpChange에 renderPaidBtn 추가 (사원 선택 시 버튼 상태 미갱신 버그)
+// 수정: 2026-06-02 12:54 — fmtInput 빈칸 early return 시 markPayrollDirty 누락 버그 수정
 'use strict';
 
 let _payrollDataStatus = 'none';
@@ -322,7 +322,7 @@ function updateEmpHeader() {
 function fmtInput(input) {
   const isNeg = input.value.startsWith('-');
   const raw = input.value.replace(/[^0-9]/g, '');
-  if(raw === '') { input.value = ''; return; }
+  if(raw === '') { input.value = ''; markPayrollDirty(); return; }
   const num = parseInt(raw, 10);
   const pos = input.selectionStart;
   const prevLen = input.value.length;
