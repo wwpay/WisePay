@@ -1,4 +1,4 @@
-﻿// 수정: 2026-06-01 23:21 — 위험 구역 t-reset-zone/title/desc i18n 복원, desc를 setHtml로 언어별 전환
+﻿// 수정: 2026-06-02 12:54 — 주민세 툴팁 tip-jumin 한/일 전환 추가
 'use strict';
 function setTxt(id, jp, kr) {
   const el = document.getElementById(id);
@@ -80,6 +80,10 @@ function applyLang() {
   setTxt('t-k-koyo', '雇用保険料', '고용보험료');
   setTxt('t-k-shotoku', '所得税', '소득세');
   setTxt('t-k-jumin', '住民税', '주민세');
+  setHtml('tip-jumin',
+    '市区町村から送付される特別徴収税額通知書の月別金額を入力してください。<br>※ 月別金額の基準は「支給日」です。<br><br>例）6月分住民税 → 6月10日支給（5月分給与）から控除<br><br>※ 6月分は年間合計の端数調整により他月と金額が異なる場合があります。',
+    '구청·시청에서 보내는 특별징수 통지서의 월별 금액을 입력하세요.<br>※ 월별 금액 기준은 \'지급일\'입니다.<br><br>예) 6월분 주민세 → 6월 10일 지급(5월분 급여)에서 공제<br><br>※ 6월분은 연간 합계의 단수 조정으로 다른 달과 금액이 다를 수 있습니다.'
+  );
   setTxt('t-k-nencho', '年末調整精算額', '연말정산 정산액');
   setTxt('t-k-total', '計', '합계');
 
